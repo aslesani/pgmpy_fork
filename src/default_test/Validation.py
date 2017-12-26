@@ -1,0 +1,618 @@
+'''
+Created on September 02, 2017
+
+@author: Adele
+'''
+
+import numpy as np
+import pandas as pd
+import csv
+from DimensionReductionandBNStructureLearning import create_BN_model
+from DimensionReductionandBNStructureLearning import read_data_from_PCA_digitized_file
+from DimensionReductionandBNStructureLearning import discretization_equal_width_for_any_data
+from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani
+from DimensionReductionandBNStructureLearning import read_data_from_PCA_output_file
+
+import matplotlib.pyplot as plt
+import random
+
+from sklearn import datasets
+from sklearn.utils import shuffle
+
+import cProfile
+import re
+
+
+from pgmpy.inference import BeliefPropagation
+from pgmpy.inference import VariableElimination
+
+from pgmpy.models import BayesianModel
+from pgmpy.estimators import BayesianEstimator
+
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import f1_score
+
+import time
+from default_test.DimensionReductionandBNStructureLearning import create_BN_model_using_BayesianEstimator
+from pandas.core.frame import DataFrame
+from builtins import int
+from numpy import dtype
+
+
+def partition_data(data, train_ratio, validation_ratio, test_ratio):
+    '''
+    partition data to train, validation and test sets according to proportion
+    Parameters:
+    data:
+    train_ratio, validation_ratio, test_ratio: the % of each set (a number less than 100)
+    
+    '''
+    
+    np.random.shuffle(data)
+    data_length = len(data)
+    print("data_length: {}".format(data_length))
+    
+    validation_length, test_length = int(data_length * validation_ratio /100) , int(data_length * test_ratio /100)
+    train_length = data_length - validation_length - test_length
+    print("train_length: {}, validation_length:{} , test_length:{}".format(train_length, validation_length, test_length))
+    
+    train_set = data[0:train_length]
+    validation_set = data[train_length: (train_length + validation_length)]
+    test_set = data[(train_length + validation_length) : data_length]
+    
+    return(train_set, validation_set, test_set)
+
+def test_estimator(estimator_model , testset, inference_object):
+    '''
+    get a pgm model and test it on testset
+    '''
+    
+    
+def kfoldcrossvalidationForBNModelUsingNumpy(k , data, target_column_name, scoring='f1_micro' ):  
+    '''
+    get a model and test it using k-fold cross validation
+    فعلا یک ایراد دارد که من برای راحتی کار همه دسته ها را یک اندازه گرفتم. ماکسیمم به تعداد 
+    k-1
+    داده ممکن است اصلا در ارزیابی وارد نشوند. بعدا درست می کنم.
+    
+    فعلا فرض کرده ام ستون آخر تارگت است
+    
+    Parameters:
+    -------
+    k: the value of k in k-fold
+    data: a pandaFrame object the estimator_model would be tested on 
+          (we imagine the last column is the target)
+          
+    scoring: the scoring method , default value:'f1_micro'
+    
+    Returns
+    -------
+    scores: a vector of scores, the length of the vector is k.
+    
+    ''' 
+    #np.random.shuffle(data)
+    data_length , data_features = np.shape(data)
+    #print(data_features)
+    #print("data_length: {}".format(data_length))
+    part_length = int(data_length / k)
+    
+    p = np.zeros((k, part_length, data_features), dtype= np.int)
+    partition = pd.DataFrame(p , columns=['1','2','3','4'])
+    
+    index = 0
+    
+    #print("type(data):{}, type(partition){}".format(type(data), type(partition)))
+    # the last k is partitioned manually, because maybe hte data_length was not devided on k
+    for i in range(0, k): 
+        end = (i+1) * part_length
+        print("index:{}, end: {}".format(index, end))
+        partition[i] = data[index:end]
+        index = end
+    
+    scores = np.zeros(k)
+    
+    for i in range(0,k):
+        test_set = partition[i]
+        train_set =  np.delete(partition, i, 0)  
+        #convert 3d array to 2d array, C means read elements like the order of C matrixes
+        train_set = np.reshape(train_set, ((k-1)*part_length, data_features), order="C")
+        estimator , _ = create_BN_model(train_set)
+        #print("here (k={})".format(i+1))# , estimator.get_parameters))
+        
+        test_set_pd = pd.DataFrame(test_set, columns=['1','2','3','4'])
+        scores[i] = pgm_test(estimator, test_set_pd, target_column_name)
+        #print(np.shape(train_set))
+        #print(train_set)
+        #print(np.shape(test_set))
+        #print(test_set)
+
+    return scores    
+    
+
+def kfoldcrossvalidationForBNModel_UsingPanda(k , data, target_column_name, scoring='f1_micro' ):  
+    '''
+    get a model and test it using k-fold cross validation
+    فعلا یک ایراد دارد که من برای راحتی کار همه دسته ها را یک اندازه گرفتم. ماکسیمم به تعداد 
+    k-1
+    داده ممکن است اصلا در ارزیابی وارد نشوند. بعدا درست می کنم.
+    
+    فعلا فرض کرده ام ستون آخر تارگت است
+    
+    Parameters:
+    -------
+    k: the value of k in k-fold
+    data: a pandaFrame object the estimator_model would be tested on 
+          (we imagine the last column is the target)
+          
+    scoring: the scoring method , default value:'f1_micro'
+    
+    Returns
+    -------
+    scores: a vector of scores, the length of the vector is k.
+    
+    ''' 
+    #np.random.shuffle(data)
+    data = shuffle(data)
+    data_length , data_features = np.shape(data)
+    #print(data_features)
+    #print("data_length: {}".format(data_length))
+    part_length = int(data_length / k)
+    
+    partition = np.zeros(k , dtype= pd.DataFrame)
+    #partition = pd.DataFrame(p , columns=['1','2','3','4'])
+    
+    index = 0
+    
+    #print("type(data):{}, type(partition){}".format(type(data), type(partition)))
+    # the last k is partitioned manually, because maybe hte data_length was not devided on k
+    for i in range(0, k): 
+        end = (i+1) * part_length
+        #print("index:{}, end: {}".format(index, end))
+        partition[i] = data[index:end]
+        index = end
+    
+    scores = np.zeros(k)
+    
+    for i in range(0,k):
+        #if i != 1:
+        #    continue
+        
+        test_set = partition[i]
+        train_set =  np.delete(partition, i, 0)
+        
+        #print("train_set.shape:{}".format(train_set.shape))
+        #create panda dataframe from nd array
+        pd_train_set = train_set[0]
+        #print("train_set[0]:{}".format(train_set[0]))
+        for j in range(1, k-1):
+            pd_train_set = pd_train_set.append(train_set[j]) 
+        #end    
+            
+        #print(type(pd_train_set))
+        #print("pd_train_set:{}".format(pd_train_set))
+        
+        
+        #convert 3d array to 2d array, C means read elements like the order of C matrixes
+        #train_set = np.reshape(train_set, ((k-1)*part_length, data_features), order="C")
+        estimator , learning_time = create_BN_model(pd_train_set)
+        #print("here (k={})".format(i+1))# , estimator.get_parameters))
+        
+        #test_set_pd = pd.DataFrame(test_set, columns=['1','2','3','4'])
+    
+        scores[i] = pgm_test(estimator, test_set, target_column_name)
+        #print(np.shape(train_set))
+        #print(train_set)
+        #print(np.shape(test_set))
+        #print(test_set)
+
+    print("scores:{}".format(scores))
+    return scores.mean()# , learning_time  
+
+    
+def pgm_test(estimator, test_set, target_column_name):
+    '''
+    test the pgm model. the model is trained by a train_set. 
+    
+    Parameters:
+    =========== 
+    estimator: the pgm model that should be tested 
+    
+    test_set: clear ;) the type of it is panda dataframe
+    
+    target_column_name: the name of the column that should be predicted
+    
+    Return:
+    =======
+    score
+    '''
+    
+    y_true = test_set[target_column_name].values#, y_predicted = np.zeros(1, number_of_tests)
+    #y_true = test_set.iloc[:,target_column_name]
+    #print(y_true)
+    #y_true = pd.DataFrame.as_matrix(y_true)
+    print("@@@@@@@@@@@@@@@@@@@@@")
+    #print(type(y_true.values))
+    
+    test_set = test_set.drop(target_column_name, axis=1, inplace=False)
+
+    y_predicted = np.zeros(shape=y_true.shape , dtype = int)
+    
+    rows , _ = test_set.shape
+    
+    for i in range (0 ,rows):
+        print("=================\ni:{}\n=================".format(i))
+        print("test data:\n {}".format(test_set.iloc[[i]]))
+        a = estimator.predict(test_set.iloc[[i]])
+        #y_predicted.iloc[[i]] = a
+        y_predicted[i] = a.iloc[0].values
+        #print(y_true[i] ,'\n', a , '\n' , y_predicted[i])
+
+    
+    print("y_true:\n{}\ny_predicted:\n{}".format( y_true, y_predicted))
+    score = f1_score(y_true, y_predicted, average='micro') 
+    return score
+    
+            
+def kfoldcrossvalidationUsingpgmpy(k , data, target, estimator_model, scoring='f1_micro' ):  
+    scores = cross_val_score(estimator_model, data, target, cv=10 , scoring=scoring) ####10-fold cross validation 
+    return scores
+    
+def create_empty_2d_array(row , col):
+    
+    #1d array 
+    #arr = np.arange(100)
+    arr = np.arange(20).reshape((row , col))#np.zeros(shape=(row,col))
+    print(arr)
+    return arr
+    
+def test_pgm_test():
+    data = pd.DataFrame(data={'A': [0, 0, 1], 'B': [0, 1, 0], 'C': [1, 1, 0]})#, columns=[1,2,3])
+    
+    print(data)
+    
+    model = BayesianModel([('A', 'C'), ('B', 'C')])
+    model.fit(data, estimator=BayesianEstimator, prior_type="K2")#MaximumLikelihoodEstimator)
+
+    test_set = pd.DataFrame(data={'A': [0, 0], 'B': [0, 1], 'C': [0, 1]})
+    
+    print(pgm_test(model, test_set, target_column_name = 'C').mean())
+    
+
+    
+def prepare_data_to_create_model_and_test(delta):
+    '''
+    read data from address_file and add columns names to pass to kfoldcrossvalidation method
+    
+    '''
+    base_address = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=" + str(delta) 
+    scores = np.zeros(39)
+    learning_time = np.zeros(39)
+    for n in range(2,41):
+        data = read_data_from_PCA_digitized_file(base_address + "\PCA_n=" + str(n) +".csv")
+        sc , learning_time[n-2] = kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro")
+        scores[n-2] = sc.mean()
+        
+    print(list(range(2,41)))
+    print(scores)
+    print(learning_time)
+
+def plot_results(x_values , y_values, x_label, y_label):
+    '''
+    plot the figure
+    
+    Parameters:
+    ===========
+    x_values: the list of x values
+    y_values: the list of y values
+    x_label:
+    y_label:
+    
+    '''
+    plt.figure(1, figsize=(4, 3))
+    plt.clf()
+    plt.axes([.2, .2, .7, .7])
+    plt.plot(x_values, y_values)#, linewidth=1)
+    plt.plot(x_values ,  [1,1,1,1])
+    #plt.axis('tight')
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    
+    ###############################################################################
+    # Prediction
+    '''
+    n_components = [20, 40, 64]
+    Cs = np.logspace(-4, 4, 3)
+    
+    #Parameters of pipelines can be set using ‘__’ separated parameter names:
+    
+    estimator = GridSearchCV(pipe,
+                             dict(pca__n_components=n_components,
+                                  logistic__C=Cs))
+    
+    plt.axvline(n_components,
+                linestyle=':', label='n_components chosen')
+    plt.legend(prop=dict(size=12))
+    '''
+    plt.show()
+
+def test_with_iris_dataset():
+    
+    iris = datasets.load_iris()
+    data = iris.data#[:, :2]  # we only take the first two features. We could
+                        # avoid this ugly slicing by using a two-dim dataset
+    target = iris.target
+    
+    target.shape = (150,1)
+    
+    pd_data = pd.DataFrame(np.concatenate((data, target), axis=1) , columns = ['c1' , 'c2' , 'c3' , 'c4' , 'target'])
+    
+    #print(pd_data.columns)
+    pd_data.c1 = pd_data.c1.astype(np.int64)
+    pd_data.c2 = pd_data.c2.astype(np.int64)
+    pd_data.c3 = pd_data.c3.astype(np.int64)
+    pd_data.c4 = pd_data.c4.astype(np.int64)
+    pd_data.target = pd_data.target.astype(np.int64)
+
+    print(pd_data)
+    return pd_data
+    #prin t(kfoldcrossvalidationForBNModel_UsingPanda(10, pd_data, target_column_name = "target", scoring = "f1_micro"))
+
+   
+def kaggle_dataset():
+    data = pd.read_csv("kaggle.csv")
+    print(data)
+
+    data2 = data[["PassengerId" , "Survived", "Sex", "Pclass"]]
+    #data2 = data[["Survived", "Sex", "Pclass"]].replace(["female", "male"], [0, 1]).replace({"Pclass": {3: 0}})
+    
+    intrain = np.random.rand(len(data2)) < 0.8
+    
+    dtrain = data2[intrain]
+    dtest = data2[~intrain]
+    
+    ##print(len(dtrain), len(dtest))
+    
+    from pgmpy.models import BayesianModel
+    titanic = BayesianModel()
+    titanic.add_edges_from([("Sex", "Survived"), ("Pclass", "Survived"), ("Pclass", "PassengerId")])
+    titanic.fit(dtrain)
+    for cpd in titanic.get_cpds():
+        print(cpd)
+    
+    
+    print(titanic.predict(dtest[["Survived", "Sex", "Pclass"]]))
+    pgm_test(titanic, dtest, "PassengerId")
+   
+def shift_data(data):
+    list_of_data = list(sorted(set(data)))
+    for item in list_of_data:
+        data[np.where(np.equal(data, item))] = list_of_data.index(item)
+        
+    #print(data)
+    return data    
+    
+    
+def disretization_Dr_Amirkhani(data):
+    '''
+    data is ndarray
+    
+    Return:
+    ======
+    data: panda dataframe
+    '''
+    column_names = []
+    for i in range(data.shape[1]-1):# skip last columns (target)
+        data[:,i] = digitize_Dr_Amirkhani(data[:,i], 4)
+        if len(set(data[:,i])) != max(list(set(data[:, i]))) + 1 : # in natural condition, len = max(set) + 1 (because the elemetns start in 0)
+            data[:,i] = shift_data(data[:,i])
+        
+        column_names.append("c" + str(i))
+    data = data.astype(int)
+    column_names.append("Person")
+    data = pd.DataFrame( data , columns = column_names)
+    
+    return data
+
+def iris_prepare_for_discritization():
+
+    iris = datasets.load_iris()
+    data = iris.data
+
+    for i in range(data.shape[1]):
+        data[:,i] = digitize_Dr_Amirkhani(data[:,i], 4)
+        #print(data[:,1])
+    
+    target = iris.target
+    target.shape = (150,1)
+    #print(data.shape, target.shape )
+    data = data.astype(int)
+    target = target.astype(int)
+    data = pd.DataFrame( np.concatenate((data, iris.target), axis=1) , columns = ['c1' , 'c2' , 'c3' , 'c4' , 'Person'])
+    #print(data)
+    return data
+
+    
+def iris_dicretization():
+
+    # irad dare in code!!!!!!
+    #ba iris test mikonam. value ha ra az 0 gereftam (min 0)
+    
+    iris = datasets.load_iris()
+    data = iris.data#[:, :2]  # we only take the first two features. We could
+                        # avoid this ugly slicing by using a two-dim dataset
+    target = iris.target
+    
+    target.shape = (150,1)
+    
+    digitized_data = discretization_equal_width_for_any_data(np.concatenate((data, target), axis=1))
+    
+    for i in range(0,5):
+        #print(set(digitized_data[:, i]))
+        digits_set = list(set(digitized_data[:, i]))
+        if len(digits_set) < 4:
+            for row in range(0,150):
+                digitized_data[row , i] = digits_set.index(digitized_data[row , i])
+        elif 0 not in digits_set:# the digits_set have all number, but the index is not started from 0
+            print("0 nit in digits_set")
+            digitized_data[:, i] -=1
+            
+        print(set(digitized_data[:, i]))   
+    
+    pd_data = pd.DataFrame( digitized_data , columns = ['c1' , 'c2' , 'c3' , 'c4' , 'Person'])
+
+    return pd_data
+       
+    
+    #print(pd_data.columns)
+    #pd_data.c1 = pd_data.c1.astype(np.int64)
+    #pd_data.c2 = pd_data.c2.astype(np.int64)
+    #pd_data.c3 = pd_data.c3.astype(np.int64)
+    #pd_data.c4 = pd_data.c4.astype(np.int64)
+    #pd_data.target = pd_data.target.astype(np.int64)
+
+    #print(pd_data)
+    #return pd_data
+def read_Abdoolahi_data():
+    dest_file = r"D:\f5_0_10.csv"
+    
+    with open(dest_file,'r') as dest_f:
+        data_iter = csv.reader(dest_f, 
+                               delimiter = ',')#quotechar = '"')
+    
+        data = [data for data in data_iter]
+    
+    
+    numpy_result = np.asarray(data, dtype = np.int)
+   
+    _ , cols = numpy_result.shape
+    column_names = []
+
+    for names in range(1, cols):
+        column_names.append(str(names))
+    column_names.append("Person")  
+       
+    panda_result = pd.DataFrame(data=numpy_result , columns= column_names , dtype = np.int) 
+    
+    print(panda_result.columns)
+    #print(panda_result)
+    
+    return panda_result
+
+    
+def select_hyperparameters():
+    delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
+    delta_length = len(delta)-1
+    
+    selected_delta = delta[random.randint(1,delta_length)]
+    selected_n = random.randint(2,41)# n is # of features
+    print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+    
+    data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
+    
+    data = disretization_Dr_Amirkhani(data)
+    
+    '''for i in range(0,selected_n):
+        feature_set_length = len(set(data[:,i]))
+        #print(set(data[:,i]))
+        selected_bin = random.randint(2,10)#feature_set_length)
+        print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
+        data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
+    
+    data = data.astype(int)
+    '''
+    score = kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro")
+    print("score:{}".format(score))
+        
+    
+def profiling():
+    
+    cProfile.run('re.compile("foo|bar")')
+    
+def BN_for_discritized_data():
+    
+    '''data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=150\PCA_n=29.csv")
+    
+    data = disretization_Dr_Amirkhani(data)
+    data.to_csv(r"D:\data.csv", sep = ',')
+    '''
+    #score = kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro")
+    #print("score:{}".format(score))
+    
+    #a = pd.read_csv(r"D:\data.csv")
+    #print(a)
+    data = read_data_from_PCA_digitized_file(r"D:\data.csv")
+    data = pd.DataFrame(data[0:10000,:] , columns=['c0','c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11','c12','c13','c14','c15','c16','c17','c18','c19','c20','c21','c22','c23','c24','c25','c26','c27','c28','Person'])
+    create_BN_model(data)
+    
+def create_model_for_different_sample_size():
+    data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=100\PCA_n=6.csv")#("D:\data.csv")#
+    data = disretization_Dr_Amirkhani(data)
+    #learning_time = np.zeros_like(range(101), dtype = np.int)
+    for i in range(2 , 138):#(1,101):
+        train_set = data.iloc[0:i*500, :]
+        print("i:{}".format(i))
+        #pr = cProfile.Profile()
+        #pr.enable()
+        #print(train_set.shape)
+    #_ , learning_time[i] = create_BN_model(train_set)
+        #pr = cProfile.Profile()
+        #pr.enable()
+    
+        create_BN_model(train_set)
+        
+        #pr.disable()
+        #pr.print_stats(sort='time')
+    
+       
+        #pr.disable()
+        #pr.print_stats(sort='time')
+        #print("i={}, learning_time:{}".format(i , learning_time[i]))
+        
+    #plot_results(range[101], y_values = learning_time, x_label = "samples(i*500)", y_label = "total learning time")
+    
+if __name__ == '__main__':
+    
+    #create_model_for_different_sample_size()
+    BN_for_discritized_data()
+    #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
+    #save_discritized_data_to_csv()
+    #select_hyperparameters()
+    #data = iris_dicretization_Dr_Amirkhani()
+    '''data = read_data_from_PCA_digitized_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv")
+    #data = data[0:300 ,:]# data.iloc[0:1500 ,:]
+    print("before")
+    for i in range(data.shape[1]):
+        print(set(data[: , i]))
+        
+    data = disretization_Dr_Amirkhani(data)
+    print("after")
+    for i in range(data.shape[1]):
+        print(set(data.iloc[: , i]))
+    '''
+    
+    #cProfile.run('re.compile("kfoldcrossvalidationForBNModel_UsingPanda|10, data, target_column_name = "Person", scoring = "f1_micro"")')
+    #data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=100\PCA_n=6.csv")
+    
+    #train_set = disretization_Dr_Amirkhani(data[0:2500, :])
+    #print(train_set)
+    '''
+    iris = datasets.load_iris()
+    data = iris.data
+    target = iris.target
+    target.shape = (150,1)
+    data = disretization_Dr_Amirkhani(np.concatenate((data, target), axis=1))
+    data = data.values
+    
+    train_set, validation_set, test_set = partition_data(data, train_ratio = 60, validation_ratio = 20, test_ratio = 20)
+    train_set = pd.DataFrame(train_set , columns=['c1','c2','c3','c4' , 'Person'])
+    
+    pr = cProfile.Profile()
+    pr.enable()
+    estimator , learning_time = create_BN_model(train_set)
+    
+    #print(kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro"))#data.iloc[0:100 ,:]
+    pr.disable()
+    pr.print_stats(sort='time')
+    print("learning_time:{}".format(learning_time))
+    '''
+        
