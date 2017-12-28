@@ -572,8 +572,9 @@ def create_model_for_different_sample_size():
     
 if __name__ == '__main__':
     
+    print("sth")
     #create_model_for_different_sample_size()
-    BN_for_discritized_data()
+    #BN_for_discritized_data()
     #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
     #save_discritized_data_to_csv()
     #select_hyperparameters()
