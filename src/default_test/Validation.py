@@ -312,7 +312,7 @@ def plot_results(x_values , y_values, x_label, y_label):
     plt.clf()
     plt.axes([.2, .2, .7, .7])
     plt.plot(x_values, y_values)#, linewidth=1)
-    plt.plot(x_values ,  [1,1,1,1])
+    #plt.plot(x_values ,  [1,1,1,1])
     #plt.axis('tight')
     plt.xlabel(x_label)
     plt.ylabel(y_label)
@@ -540,9 +540,20 @@ def BN_for_discritized_data():
     
     #a = pd.read_csv(r"D:\data.csv")
     #print(a)
-    data = read_data_from_PCA_digitized_file(r"D:\data.csv")
-    data = pd.DataFrame(data[0:10000,:] , columns=['c0','c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11','c12','c13','c14','c15','c16','c17','c18','c19','c20','c21','c22','c23','c24','c25','c26','c27','c28','Person'])
-    create_BN_model(data)
+    data = read_data_from_PCA_digitized_file(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv')#(r"D:\data.csv")
+    mul = range(1,20)
+    sample_sizes = np.zeros(len(mul))
+    learning_times = np.zeros(len(mul))
+    for i in mul:
+        step = i * 500
+        sample_sizes[i-1] = step
+        print(i)
+        pd_data = pd.DataFrame(data[0:step,:] , columns=['c0','c1','c2','c3','c4','c5','Person'])#'c6','c7','c8','c9','c10','c11','c12','c13','c14','c15','c16','c17','c18','c19','c20','c21','c22','c23','c24','c25','c26','c27','c28','Person'])
+        _ , learning_time = create_BN_model(pd_data)
+        learning_times[i-1] = float("{0:.2f}".format(learning_time))
+        
+    print(sample_sizes , learning_times)
+    plot_results(sample_sizes, learning_times, "sample_sizes", "learning_times")
     
 def create_model_for_different_sample_size():
     data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=100\PCA_n=6.csv")#("D:\data.csv")#
@@ -572,9 +583,8 @@ def create_model_for_different_sample_size():
     
 if __name__ == '__main__':
     
-    print("sth")
     #create_model_for_different_sample_size()
-    #BN_for_discritized_data()
+    BN_for_discritized_data()
     #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
     #save_discritized_data_to_csv()
     #select_hyperparameters()
