@@ -37,6 +37,7 @@ from default_test.DimensionReductionandBNStructureLearning import create_BN_mode
 from pandas.core.frame import DataFrame
 from builtins import int
 from numpy import dtype
+from msilib import Feature
 
 
 def partition_data(data, train_ratio, validation_ratio, test_ratio):
@@ -502,27 +503,28 @@ def read_Abdoolahi_data():
 def select_hyperparameters():
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
-    
-    selected_delta = delta[random.randint(1,delta_length)]
-    selected_n = random.randint(2,41)# n is # of features
-    print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
-    
-    data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
-    
-    data = disretization_Dr_Amirkhani(data)
-    
-    '''for i in range(0,selected_n):
-        feature_set_length = len(set(data[:,i]))
-        #print(set(data[:,i]))
-        selected_bin = random.randint(2,10)#feature_set_length)
-        print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
-        data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
-    
-    data = data.astype(int)
-    '''
-    score = kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro")
-    print("score:{}".format(score))
         
+    for repeat in range(20): # repaet the process of selecting hyperparameters
+        print("repeat: {}".format(repeat))
+        selected_delta = delta[random.randint(1,delta_length)]
+        selected_n = random.randint(2,41)# n is # of features in PCA
+        print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+    
+        data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
+
+        for i in range(0,selected_n):# digitize each column seperately
+            
+            feature_set_length = len(set(data[:,i]))
+            print("column number: {}, number of states:{}".format(i, feature_set_length))
+            selected_bin = random.randint(2,feature_set_length)
+            print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
+            data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
+        
+        data = data.astype(int)
+        
+        score = kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro")
+        print("score:{}".format(score))
+            
     
 def profiling():
     
@@ -584,10 +586,10 @@ def create_model_for_different_sample_size():
 if __name__ == '__main__':
     
     #create_model_for_different_sample_size()
-    BN_for_discritized_data()
+    #BN_for_discritized_data()
     #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
     #save_discritized_data_to_csv()
-    #select_hyperparameters()
+    select_hyperparameters()
     #data = iris_dicretization_Dr_Amirkhani()
     '''data = read_data_from_PCA_digitized_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv")
     #data = data[0:300 ,:]# data.iloc[0:1500 ,:]
