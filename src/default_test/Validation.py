@@ -71,11 +71,11 @@ def test_estimator(estimator_model , testset, inference_object):
 def kfoldcrossvalidationForBNModelUsingNumpy(k , data, target_column_name, scoring='f1_micro' ):  
     '''
     get a model and test it using k-fold cross validation
-    فعلا یک ایراد دارد که من برای راحتی کار همه دسته ها را یک اندازه گرفتم. ماکسیمم به تعداد 
+    Ù�Ø¹Ù„Ø§ ÛŒÚ© Ø§ÛŒØ±Ø§Ø¯ Ø¯Ø§Ø±Ø¯ Ú©Ù‡ Ù…Ù† Ø¨Ø±Ø§ÛŒ Ø±Ø§Ø­ØªÛŒ Ú©Ø§Ø± Ù‡Ù…Ù‡ Ø¯Ø³ØªÙ‡ Ù‡Ø§ Ø±Ø§ ÛŒÚ© Ø§Ù†Ø¯Ø§Ø²Ù‡ Ú¯Ø±Ù�ØªÙ…. Ù…Ø§Ú©Ø³ÛŒÙ…Ù… Ø¨Ù‡ ØªØ¹Ø¯Ø§Ø¯ 
     k-1
-    داده ممکن است اصلا در ارزیابی وارد نشوند. بعدا درست می کنم.
+    Ø¯Ø§Ø¯Ù‡ Ù…Ù…Ú©Ù† Ø§Ø³Øª Ø§ØµÙ„Ø§ Ø¯Ø± Ø§Ø±Ø²ÛŒØ§Ø¨ÛŒ ÙˆØ§Ø±Ø¯ Ù†Ø´ÙˆÙ†Ø¯. Ø¨Ø¹Ø¯Ø§ Ø¯Ø±Ø³Øª Ù…ÛŒ Ú©Ù†Ù….
     
-    فعلا فرض کرده ام ستون آخر تارگت است
+    Ù�Ø¹Ù„Ø§ Ù�Ø±Ø¶ Ú©Ø±Ø¯Ù‡ Ø§Ù… Ø³ØªÙˆÙ† Ø¢Ø®Ø± ØªØ§Ø±Ú¯Øª Ø§Ø³Øª
     
     Parameters:
     -------
@@ -132,11 +132,11 @@ def kfoldcrossvalidationForBNModelUsingNumpy(k , data, target_column_name, scori
 def kfoldcrossvalidationForBNModel_UsingPanda(k , data, target_column_name, scoring='f1_micro' ):  
     '''
     get a model and test it using k-fold cross validation
-    فعلا یک ایراد دارد که من برای راحتی کار همه دسته ها را یک اندازه گرفتم. ماکسیمم به تعداد 
+    Ù�Ø¹Ù„Ø§ ÛŒÚ© Ø§ÛŒØ±Ø§Ø¯ Ø¯Ø§Ø±Ø¯ Ú©Ù‡ Ù…Ù† Ø¨Ø±Ø§ÛŒ Ø±Ø§Ø­ØªÛŒ Ú©Ø§Ø± Ù‡Ù…Ù‡ Ø¯Ø³ØªÙ‡ Ù‡Ø§ Ø±Ø§ ÛŒÚ© Ø§Ù†Ø¯Ø§Ø²Ù‡ Ú¯Ø±Ù�ØªÙ…. Ù…Ø§Ú©Ø³ÛŒÙ…Ù… Ø¨Ù‡ ØªØ¹Ø¯Ø§Ø¯ 
     k-1
-    داده ممکن است اصلا در ارزیابی وارد نشوند. بعدا درست می کنم.
+    Ø¯Ø§Ø¯Ù‡ Ù…Ù…Ú©Ù† Ø§Ø³Øª Ø§ØµÙ„Ø§ Ø¯Ø± Ø§Ø±Ø²ÛŒØ§Ø¨ÛŒ ÙˆØ§Ø±Ø¯ Ù†Ø´ÙˆÙ†Ø¯. Ø¨Ø¹Ø¯Ø§ Ø¯Ø±Ø³Øª Ù…ÛŒ Ú©Ù†Ù….
     
-    فعلا فرض کرده ام ستون آخر تارگت است
+    Ù�Ø¹Ù„Ø§ Ù�Ø±Ø¶ Ú©Ø±Ø¯Ù‡ Ø§Ù… Ø³ØªÙˆÙ† Ø¢Ø®Ø± ØªØ§Ø±Ú¯Øª Ø§Ø³Øª
     
     Parameters:
     -------
@@ -323,7 +323,7 @@ def plot_results(x_values , y_values, x_label, y_label):
     n_components = [20, 40, 64]
     Cs = np.logspace(-4, 4, 3)
     
-    #Parameters of pipelines can be set using ‘__’ separated parameter names:
+    #Parameters of pipelines can be set using â€˜__â€™ separated parameter names:
     
     estimator = GridSearchCV(pipe,
                              dict(pca__n_components=n_components,
@@ -540,12 +540,12 @@ def BN_for_discritized_data():
     
     #a = pd.read_csv(r"D:\data.csv")
     #print(a)
-    data = read_data_from_PCA_digitized_file(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv')#(r"D:\data.csv")
-    mul = range(1,20)
+    data = read_data_from_PCA_digitized_file(r'C:\Users\Cloud\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv')#(r"D:\data.csv")
+    mul = range(1,13)
     sample_sizes = np.zeros(len(mul))
     learning_times = np.zeros(len(mul))
     for i in mul:
-        step = i * 500
+        step = i * 10000
         sample_sizes[i-1] = step
         print(i)
         pd_data = pd.DataFrame(data[0:step,:] , columns=['c0','c1','c2','c3','c4','c5','Person'])#'c6','c7','c8','c9','c10','c11','c12','c13','c14','c15','c16','c17','c18','c19','c20','c21','c22','c23','c24','c25','c26','c27','c28','Person'])
