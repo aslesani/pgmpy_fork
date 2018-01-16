@@ -33,7 +33,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import f1_score
 
 import time
-from default_test.DimensionReductionandBNStructureLearning import create_BN_model_using_BayesianEstimator
+from DimensionReductionandBNStructureLearning import create_BN_model_using_BayesianEstimator
 from pandas.core.frame import DataFrame
 from builtins import int
 from numpy import dtype
@@ -231,18 +231,22 @@ def pgm_test(estimator, test_set, target_column_name):
     #y_true = test_set.iloc[:,target_column_name]
     #print(y_true)
     #y_true = pd.DataFrame.as_matrix(y_true)
-    print("@@@@@@@@@@@@@@@@@@@@@")
+    #print("@@@@@@@@@@@@@@@@@@@@@")
     #print(type(y_true.values))
     
     test_set = test_set.drop(target_column_name, axis=1, inplace=False)
 
     y_predicted = np.zeros(shape=y_true.shape , dtype = int)
     
+   # y_predicted = estimator.predict(test_set)
+
+    
+    
     rows , _ = test_set.shape
     
     for i in range (0 ,rows):
-        print("=================\ni:{}\n=================".format(i))
-        print("test data:\n {}".format(test_set.iloc[[i]]))
+        #print("=================\ni:{}\n=================".format(i))
+        #print("test data:\n {}".format(test_set.iloc[[i]]))
         a = estimator.predict(test_set.iloc[[i]])
         #y_predicted.iloc[[i]] = a
         y_predicted[i] = a.iloc[0].values
@@ -503,29 +507,54 @@ def read_Abdoolahi_data():
 def select_hyperparameters():
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
-        
+    details_of_each_repeat = []
+    max_validation_score = 0
+    the_best_model = 0
+    best_model_pd_test_set = 0
+                
     for repeat in range(20): # repaet the process of selecting hyperparameters
         print("repeat: {}".format(repeat))
         selected_delta = delta[random.randint(1,delta_length)]
         selected_n = random.randint(2,41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
     
-        data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
+        data = read_data_from_PCA_output_file(r"C:\dataset\casas7_dataset\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
 
+        
         for i in range(0,selected_n):# digitize each column seperately
             
             feature_set_length = len(set(data[:,i]))
-            print("column number: {}, number of states:{}".format(i, feature_set_length))
-            selected_bin = random.randint(2,feature_set_length)
-            print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
-            data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
+            #print("column number: {}, number of states:{}".format(i, feature_set_length))
+            selected_bin = random.randint(2, 1000)#feature_set_length)
+            #print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
+            data[:,i] = digitize_Dr_Amirkhani(data[:,i], 10)# selected_bin)
         
         data = data.astype(int)
+        train_set, validation_set, test_set = partition_data(data, train_ratio = 60, validation_ratio = 20, test_ratio = 20)
+        column_names = ['c' + str(i) for i in range(selected_n)]
+        column_names.append('Person')
+        pd_train_set = pd.DataFrame(train_set , columns=column_names)
         
-        score = kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro")
-        print("score:{}".format(score))
+        estimator , learning_time = create_BN_model(pd_train_set)
+       
+        pd_validation_set = pd.DataFrame(validation_set , columns=column_names)
+        
+        validation_score = pgm_test(estimator, pd_validation_set, 'Person')
+        
+        pd_test_set = pd.DataFrame(test_set , columns=column_names)
+
+        if validation_score > max_validation_score:
+            max_validation_score = validation_score
+            the_best_model = estimator
+            best_model_pd_test_set = pd_test_set
+    
+        print("validation_score: " , validation_score)
+        details_of_each_repeat.append([selected_delta, selected_n, learning_time , validation_score])
             
     
+    return (max_validation_score , the_best_model , best_model_pd_test_set, details_of_each_repeat)
+
+
 def profiling():
     
     cProfile.run('re.compile("foo|bar")')
@@ -582,9 +611,49 @@ def create_model_for_different_sample_size():
         #print("i={}, learning_time:{}".format(i , learning_time[i]))
         
     #plot_results(range[101], y_values = learning_time, x_label = "samples(i*500)", y_label = "total learning time")
+def test_create_BN_model(preffered_file , delta , n):
+    data = read_data_from_PCA_digitized_file(preffered_file)
     
+    _ , cols = data.shape
+    column_names = []
+
+    for names in range(1, cols):
+        column_names.append('c' + str(names))
+    column_names.append("Person")  
+
+    pd_data = pd.DataFrame(data[:,:] , columns= column_names , dtype = np.int)#'c6','c7','c8','c9','c10','c11','c12','c13','c14','c15','c16','c17','c18','c19','c20','c21','c22','c23','c24','c25','c26','c27','c28','Person'])
+
+    _ , learning_time = create_BN_model(pd_data)
+        
+    print("learning time for delta = " , delta , " and n=" , n , ": " , learning_time)
+    return learning_time
+    
+def test_create_BN_model_for_different_feature_numbers():
+    dest = r'C:\dataset\casas7_dataset\delta=15\PCA_n='#40.csv'
+    
+    my_range = range(2,41)
+    min_my_range = my_range[0]
+    feature_numbers = np.zeros(len(my_range))
+    learning_times = np.zeros(len(my_range))
+    
+
+    for num_of_features in my_range:
+        new_dest = dest + str(num_of_features) + ".csv"
+        test_create_BN_model(new_dest, delta = 15, n = num_of_features)
+    
+        feature_numbers[num_of_features-min_my_range] = num_of_features
+        lt = test_create_BN_model(new_dest, delta = 15, n = num_of_features)
+        learning_times[num_of_features -min_my_range] = float("{0:.2f}".format(lt))    
+        print("#features: " , num_of_features ,"learning time: " ,  lt)
+        
+    plot_results(feature_numbers, learning_times, "#features", "learning_time")
+    
+  
+     
 if __name__ == '__main__':
     
+   # test_create_BN_model_for_different_feature_numbers()
+    #test_create_BN_model(r'C:\dataset\casas7_dataset\delta=15\PCA_n=40.csv')
     #create_model_for_different_sample_size()
     #BN_for_discritized_data()
     #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
