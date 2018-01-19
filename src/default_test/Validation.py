@@ -522,7 +522,7 @@ def select_hyperparameters():
         
         data = data.astype(int)
         
-        score = kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro")
+        score = kfoldcrossvalidationForBNModelUsingNumpy(10, data, target_column_name = "Person", scoring = "f1_micro")
         print("score:{}".format(score))
             
     
