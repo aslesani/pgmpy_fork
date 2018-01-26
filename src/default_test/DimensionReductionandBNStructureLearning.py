@@ -36,7 +36,7 @@ dest_file = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 
 
 base_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\ '
 
-def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time, remove_activity_column):
+def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time):
     '''
     Parameter:
     =========
@@ -48,16 +48,13 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time,
     
     sensor_data = read_data_from_file(file_address, np.int, remove_date_and_time)
     
-    if remove_activity_column == True:
-        sensor_data = np.delete(sensor_data ,-1 , 1) # remove the work column
-    
-    #print(sensor_data)
     rows , cols = np.shape(sensor_data)
     print("cols={}".format(cols))
     target = np.zeros((rows, 1), dtype= int )
     for ind in range(rows):
-        target[ind][0] = sensor_data[ind,-1] # work number is considered as class
+        target[ind][0] = sensor_data[ind,-1] # person number is considered as class
    
+    print(target)
     sensor_data = np.delete(sensor_data ,-1 , 1) # remove the Person column
     for i in range(2,41):#cols):
         pca = PCA(n_components=i)
@@ -77,9 +74,9 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time,
         #print(pca.components_.shape)
         
         data_new = pca.fit_transform(sensor_data) #Fit the model with X and apply the dimensionality reduction on X.
-        # پس فیت فقط اعمال می کند ولی روی داده کاری نمی کند. ظاهرا فقط مقادیر ویژه را می یابد. 
-        #فیت ترنسفرم هم آن کار را انجام می دهد هم روی داده اعمال می کند و داده کاهش بعد پیدا می کند
-        # بعد از آن برای داده های جدید فقط باید ترنسفرم رو کال کنیم. چون قبلا مدل ساخته شده است فقط باید داده های جدید را به فضای جدید ببرد
+        # Ù¾Ø³ Ù�ÛŒØª Ù�Ù‚Ø· Ø§Ø¹Ù…Ø§Ù„ Ù…ÛŒ Ú©Ù†Ø¯ ÙˆÙ„ÛŒ Ø±ÙˆÛŒ Ø¯Ø§Ø¯Ù‡ Ú©Ø§Ø±ÛŒ Ù†Ù…ÛŒ Ú©Ù†Ø¯. Ø¸Ø§Ù‡Ø±Ø§ Ù�Ù‚Ø· Ù…Ù‚Ø§Ø¯ÛŒØ± ÙˆÛŒÚ˜Ù‡ Ø±Ø§ Ù…ÛŒ ÛŒØ§Ø¨Ø¯. 
+        #Ù�ÛŒØª ØªØ±Ù†Ø³Ù�Ø±Ù… Ù‡Ù… Ø¢Ù† Ú©Ø§Ø± Ø±Ø§ Ø§Ù†Ø¬Ø§Ù… Ù…ÛŒ Ø¯Ù‡Ø¯ Ù‡Ù… Ø±ÙˆÛŒ Ø¯Ø§Ø¯Ù‡ Ø§Ø¹Ù…Ø§Ù„ Ù…ÛŒ Ú©Ù†Ø¯ Ùˆ Ø¯Ø§Ø¯Ù‡ Ú©Ø§Ù‡Ø´ Ø¨Ø¹Ø¯ Ù¾ÛŒØ¯Ø§ Ù…ÛŒ Ú©Ù†Ø¯
+        # Ø¨Ø¹Ø¯ Ø§Ø² Ø¢Ù† Ø¨Ø±Ø§ÛŒ Ø¯Ø§Ø¯Ù‡ Ù‡Ø§ÛŒ Ø¬Ø¯ÛŒØ¯ Ù�Ù‚Ø· Ø¨Ø§ÛŒØ¯ ØªØ±Ù†Ø³Ù�Ø±Ù… Ø±Ùˆ Ú©Ø§Ù„ Ú©Ù†ÛŒÙ…. Ú†ÙˆÙ† Ù‚Ø¨Ù„Ø§ Ù…Ø¯Ù„ Ø³Ø§Ø®ØªÙ‡ Ø´Ø¯Ù‡ Ø§Ø³Øª Ù�Ù‚Ø· Ø¨Ø§ÛŒØ¯ Ø¯Ø§Ø¯Ù‡ Ù‡Ø§ÛŒ Ø¬Ø¯ÛŒØ¯ Ø±Ø§ Ø¨Ù‡ Ù�Ø¶Ø§ÛŒ Ø¬Ø¯ÛŒØ¯ Ø¨Ø¨Ø±Ø¯
         print(data_new.shape)
         print(target.shape)
         dest = base_address_to_save + 'PCA_n=' + str(i) +'.csv'
@@ -450,15 +447,15 @@ def discretization_equal_frequency():
 
 def create_PCA_for_different_bag_of_sensor_events():
     
-    for delta in [75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
-        directory = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=' + str(delta)
+        directory = r'C:\pgmpy\PCA on Bag of sensor events\delta=' + str(delta)
         if not os.path.exists(directory):
             os.makedirs(directory)
         
-        base_save_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events'  + r'\delta=' + str(delta) + '\\'
-        file_address = r'E:\Lesson s_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\Bag of sensor events based on different deltas\bag_of_sensor_events_delta_' + str(delta) + 'min.csv'
-        PCA_data_generation(file_address, base_save_address, remove_date_and_time = True, remove_activity_column=False)
+        base_save_address = r'C:\pgmpy\PCA on Bag of sensor events'  + r'\delta=' + str(delta) + '\\'
+        file_address = r'C:\pgmpy\Bag of sensor events based on different deltas\bag_of_sensor_events_delta_' + str(delta) + 'min.csv'
+        PCA_data_generation(file_address, base_save_address, remove_date_and_time = True)
         
 
 def test_discretization_on_different_PCA_data_files():  
@@ -488,13 +485,13 @@ if __name__ == "__main__":
     #myData = np.genfromtxt(dest_file , dtype=object,delimiter = ',')#, names=False)
     #PCA_data_generation(dest_file)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
-    #create_PCA_for_different_bag_of_sensor_events()
+    create_PCA_for_different_bag_of_sensor_events()
     #test_discretization_on_different_PCA_data_files()
     #f = r"\\localhost\E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\alaki.csv"
-    f = r"E:/Lessons_tutorials/Behavioural user profile articles/Datasets/7 twor.2009/twor.2009/converted/pgmpy/PCA on Bag of sensor events_Digitized/delta=15/PCA_n=9.csv"
+    #f = r"E:/Lessons_tutorials/Behavioural user profile articles/Datasets/7 twor.2009/twor.2009/converted/pgmpy/PCA on Bag of sensor events_Digitized/delta=15/PCA_n=9.csv"
 
     #f = "C:/alaki.csv"
-    read_data_from_PCA_digitized_file(f)
+    #read_data_from_PCA_digitized_file(f)
     '''try:
         result = pd.read_csv(filepath_or_buffer = f , header = None)# , dtype = np.int32)
         print(result)
