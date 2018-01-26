@@ -38,6 +38,8 @@ from pandas.core.frame import DataFrame
 from builtins import int
 from numpy import dtype
 from msilib import Feature
+from sklearn.metrics.classification import precision_score, recall_score,\
+    accuracy_score
 
 
 def partition_data(data, train_ratio, validation_ratio, test_ratio):
@@ -254,10 +256,27 @@ def pgm_test(estimator, test_set, target_column_name):
 
     
     print("y_true:\n{}\ny_predicted:\n{}".format( y_true, y_predicted))
-    score = f1_score(y_true, y_predicted, average='micro') 
+    #score = f1_score(y_true, y_predicted, average='micro') 
+    score = calculate_different_metrics(y_true, y_predicted)
     return score
     
-            
+def calculate_different_metrics(y_true , y_predicted):
+    f1_score_micro = f1_score(y_true, y_predicted, average='micro') 
+    f1_score_macro = f1_score(y_true, y_predicted, average='macro') 
+    precision = precision_score(y_true, y_predicted, average='micro') 
+    recall = recall_score(y_true, y_predicted, average='micro')
+    accuracy = accuracy_score(y_true, y_predicted)  
+    
+    scores = {'f1_score_micro': f1_score_micro, 
+              'f1_score_macro': f1_score_macro,
+              'precision' : precision,
+              'recall' : recall,
+              'accuracy' : accuracy
+              }
+    
+    return scores
+
+                
 def kfoldcrossvalidationUsingpgmpy(k , data, target, estimator_model, scoring='f1_micro' ):  
     scores = cross_val_score(estimator_model, data, target, cv=10 , scoring=scoring) ####10-fold cross validation 
     return scores
@@ -493,8 +512,8 @@ def read_Abdoolahi_data():
     column_names = []
 
     for names in range(1, cols):
-        column_names.append(str(names))
-    column_names.append("Person")  
+        column_names.append('c' + str(names))
+    column_names.append("res")  
        
     panda_result = pd.DataFrame(data=numpy_result , columns= column_names , dtype = np.int) 
     
@@ -544,7 +563,7 @@ def select_hyperparameters():
 
         pd_test_set = pd.DataFrame(test_set , columns=column_names)
 
-        if validation_score > max_validation_score:
+        if validation_score['f1_score_micro'] > max_validation_score:
             max_validation_score = validation_score
             the_best_model = estimator
             best_model_pd_test_set = pd_test_set
@@ -658,8 +677,7 @@ if __name__ == '__main__':
     #create_model_for_different_sample_size()
     #BN_for_discritized_data()
     #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
-    #save_discritized_data_to_csv()
-    select_hyperparameters()
+    #save_discritized_data_to_csv()select_hyperparameters()
     #data = iris_dicretization_Dr_Amirkhani()
     '''data = read_data_from_PCA_digitized_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv")
     #data = data[0:300 ,:]# data.iloc[0:1500 ,:]
@@ -698,4 +716,8 @@ if __name__ == '__main__':
     pr.print_stats(sort='time')
     print("learning_time:{}".format(learning_time))
     '''
-        
+    a = read_Abdoolahi_data()
+    train , validation , test = partition_data(data = a, train_ratio = 60, validation_ratio = 20, test_ratio = 20)
+    estimator , _ = create_BN_model(train)
+    result = pgm_test(estimator, test_set = validation, target_column_name = 'Person')
+    print(result)
