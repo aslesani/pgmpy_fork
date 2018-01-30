@@ -28,12 +28,15 @@ def bic(train,test,name,folder,resultlist,address):
 #    bdeu=BdeuScore(train,equivalent_sample_size=5)
     hc=HillClimbSearch(train, scoring_method=bic)
     best_model=hc.estimate()
-    #print(best_model.edges())
+    print(best_model.edges())
     edges=best_model.edges()
     model=BayesianModel(edges)
     model.fit(train,estimator=BayesianEstimator, prior_type="BDeu")
     trainend=time.time()-trainstart
-
+    
+    for n in model.nodes():
+        print(model.get_cpds(n))
+        
     print("nodes", model.nodes())
     print("column", test.columns)
 
@@ -45,18 +48,23 @@ def bic(train,test,name,folder,resultlist,address):
         result=model.predict(test).values.ravel()
         testend=time()-teststart
         pred=list(result)
+        print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
     else:
         indicator=list(set(test.columns)-set(model.nodes()))
-        print(indicator)
+        print("indicator:\n" , indicator)
         testchange=test.copy()
+        print(testchange)
+
         for f in range(len(indicator)):   
             print(f)
             del testchange[indicator[f]]
-        print(testchange)
+        print("after: \n" , testchange)
         teststart=time.time()
         result=model.predict(testchange).values.ravel()
         testend=time.time()-teststart
         pred=list(result)
+        print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
+
     
     model_data = XMLBIFWriter(model)
     model_data.write_xmlbif(address+name+'_bic.bif') 
@@ -85,4 +93,5 @@ if __name__ == "__main__":
     test = data[700:]
     resultlist = test['res'].values
     test = test.drop('res', axis=1, inplace=False)
-    bic(train = train, test = test, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "E:\\")
+    bic(train = train, test = test, name = "model", 
+        folder = "Abdollahi", resultlist = resultlist, address = "E:\\")

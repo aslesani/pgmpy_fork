@@ -132,7 +132,7 @@ def create_BN_model(data):
     #structure learning
     print("structure learning")
     start_time = time.time()
-    hc = HillClimbSearch(data, scoring_method= K2Score(data))#BicScore(data))#K2Score(data))BdeuScore(data)
+    hc = HillClimbSearch(data, scoring_method= BicScore(data))#K2Score(data))#BicScore(data))#K2Score(data))BdeuScore(data)
     best_model = hc.estimate()
     #print(hc.scoring_method)
     print(best_model.edges())
@@ -450,14 +450,14 @@ def discretization_equal_frequency():
 
 def create_PCA_for_different_bag_of_sensor_events():
     
-    for delta in [75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+    for delta in [45]:#[75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
         directory = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=' + str(delta)
         if not os.path.exists(directory):
             os.makedirs(directory)
         
         base_save_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events'  + r'\delta=' + str(delta) + '\\'
-        file_address = r'E:\Lesson s_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\Bag of sensor events based on different deltas\bag_of_sensor_events_delta_' + str(delta) + 'min.csv'
+        file_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\Bag of sensor events based on different deltas\bag_of_sensor_events_delta_' + str(delta) + 'min.csv'
         PCA_data_generation(file_address, base_save_address, remove_date_and_time = True, remove_activity_column=False)
         
 
@@ -484,6 +484,7 @@ def test_discretization_on_different_PCA_data_files():
         
 if __name__ == "__main__":
     
+    create_PCA_for_different_bag_of_sensor_events()
     #create_BN_model()
     #myData = np.genfromtxt(dest_file , dtype=object,delimiter = ',')#, names=False)
     #PCA_data_generation(dest_file)
@@ -491,10 +492,10 @@ if __name__ == "__main__":
     #create_PCA_for_different_bag_of_sensor_events()
     #test_discretization_on_different_PCA_data_files()
     #f = r"\\localhost\E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\alaki.csv"
-    f = r"E:/Lessons_tutorials/Behavioural user profile articles/Datasets/7 twor.2009/twor.2009/converted/pgmpy/PCA on Bag of sensor events_Digitized/delta=15/PCA_n=9.csv"
+    #f = r"E:/Lessons_tutorials/Behavioural user profile articles/Datasets/7 twor.2009/twor.2009/converted/pgmpy/PCA on Bag of sensor events_Digitized/delta=15/PCA_n=9.csv"
 
     #f = "C:/alaki.csv"
-    read_data_from_PCA_digitized_file(f)
+    #read_data_from_PCA_digitized_file(f)
     '''try:
         result = pd.read_csv(filepath_or_buffer = f , header = None)# , dtype = np.int32)
         print(result)

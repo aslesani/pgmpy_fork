@@ -626,6 +626,7 @@ def casas7_create_bag_of_sensor_events(deltaInMinutes , isSave):
     #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\activities+time_ordered.csv', 
      #          np.delete(all_features, -1 , 1), delimiter=',' , fmt='%s')# -1 is the number of col and 1 is the number of axis
     
+    print("aaaaa")
     for each_line in range(counter-1):
         #print("each_line:{}".format(each_line+1))
     
@@ -660,7 +661,7 @@ def casas7_create_bag_of_sensor_events(deltaInMinutes , isSave):
     #for i in range (1004):
         #print(all_features[i][-2])
     if isSave == True:
-        np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
+        np.savetxt(r'C:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
              all_features , delimiter=',' , fmt='%s')
     
     return all_features
@@ -917,7 +918,7 @@ if __name__ == '__main__':
     #replace_space_with_comma_in_file()
     #a = np.array([[1,2,3],[4,5,6],[0,0,1]]) 
     #a1 = a[a[:,-1].argsort()]
-    for i in [5000,10000]:#[30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000
+    for i in [30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         casas7_create_bag_of_sensor_events(deltaInMinutes=i , isSave= True)
     
     #casas7_to_csv_based_on_sensor_events_time_Ordered()

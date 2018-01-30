@@ -517,7 +517,7 @@ def read_Abdoolahi_data():
        
     panda_result = pd.DataFrame(data=numpy_result , columns= column_names , dtype = np.int) 
     
-    print(panda_result.columns)
+    #print(panda_result.columns)
     #print(panda_result)
     
     return panda_result
@@ -537,7 +537,7 @@ def select_hyperparameters():
         selected_n = random.randint(2,41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
     
-        data = read_data_from_PCA_output_file(r"C:\dataset\casas7_dataset\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
+        data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
 
         
         for i in range(0,selected_n):# digitize each column seperately
@@ -672,6 +672,7 @@ def test_create_BN_model_for_different_feature_numbers():
      
 if __name__ == '__main__':
     
+    select_hyperparameters()
    # test_create_BN_model_for_different_feature_numbers()
     #test_create_BN_model(r'C:\dataset\casas7_dataset\delta=15\PCA_n=40.csv')
     #create_model_for_different_sample_size()
@@ -716,8 +717,10 @@ if __name__ == '__main__':
     pr.print_stats(sort='time')
     print("learning_time:{}".format(learning_time))
     '''
+    '''
     a = read_Abdoolahi_data()
     train , validation , test = partition_data(data = a, train_ratio = 60, validation_ratio = 20, test_ratio = 20)
     estimator , _ = create_BN_model(train)
     result = pgm_test(estimator, test_set = validation, target_column_name = 'Person')
     print(result)
+    '''
