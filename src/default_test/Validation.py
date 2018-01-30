@@ -13,6 +13,8 @@ from DimensionReductionandBNStructureLearning import discretization_equal_width_
 from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani
 from DimensionReductionandBNStructureLearning import read_data_from_PCA_output_file
 
+from Abdollahi import bic
+
 import matplotlib.pyplot as plt
 import random
 
@@ -500,33 +502,6 @@ def iris_dicretization():
 
     #print(pd_data)
     #return pd_data
-def read_Abdoolahi_data():
-    dest_file = r"C:\f5_0_10.csv"
-    
-    with open(dest_file,'r') as dest_f:
-        data_iter = csv.reader(dest_f, 
-                               delimiter = ',')#quotechar = '"')
-    
-        data = [data for data in data_iter]
-    
-    
-    numpy_result = np.asarray(data, dtype = np.int)
-   
-    '''_ , cols = numpy_result.shape
-    column_names = []
-
-    for names in range(1, cols):
-        column_names.append('c' + str(names))
-    column_names.append("res")  
-       
-    panda_result = pd.DataFrame(data=numpy_result , columns= column_names , dtype = np.int) 
-    
-    print(panda_result.columns)
-    #print(panda_result)
-    
-    return panda_result
-    '''
-    return numpy_result
 
     
 def select_hyperparameters():
@@ -536,14 +511,16 @@ def select_hyperparameters():
     max_validation_score = 0
     the_best_model = 0
     best_model_pd_test_set = 0
+    best_delta = 0
+    best_n = 0
                 
-    for repeat in range(1): # repaet the process of selecting hyperparameters
+    for repeat in range(20): # repaet the process of selecting hyperparameters
         print("repeat: {}".format(repeat))
-        selected_delta = 15#delta[random.randint(1,delta_length)]
-        selected_n = 5#random.randint(2,20)#41)# n is # of features in PCA
+        selected_delta = delta[random.randint(1,delta_length)]
+        selected_n = random.randint(2,20)#41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
     
-        data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
+        data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
         
         #data = data[0:10000, :]
         
@@ -553,36 +530,60 @@ def select_hyperparameters():
             #print("column number: {}, number of states:{}".format(i, feature_set_length))
             selected_bin = random.randint(2, 1000)#feature_set_length)
             #print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
-            data[:,i] = digitize_Dr_Amirkhani(data[:,i], 10)# selected_bin)
+            data[:,i] = digitize_Dr_Amirkhani(data[:,i], 20)# selected_bin)
         
         data = data.astype(int)
         
         #yadet bashe shuffle ro comment kardi
-        train_set, validation_set, test_set = partition_data(data, train_ratio = 90, validation_ratio = 5, test_ratio = 5)
+        train_set, validation_set, test_set = partition_data(data, train_ratio = 80, validation_ratio = 10, test_ratio = 10)
         column_names = ['c' + str(i) for i in range(selected_n)]
         column_names.append('Person')
         pd_train_set = pd.DataFrame(train_set , columns=column_names)
-        
-        estimator , learning_time = create_BN_model(pd_train_set)
-       
         pd_validation_set = pd.DataFrame(validation_set , columns=column_names)
         
-        validation_score = pgm_test(estimator, pd_train_set.loc[0:10, :], 'Person')
+        #pd_validation_set = pd_validation_set[0:100]
+        resultlist = pd_validation_set['Person'].values
+        test = pd_validation_set.drop('Person', axis=1, inplace=False)
         
+        model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
 
+        print("Abd execution\n========================\n")
+        print(scores_abd , "\nlearning time: " , learning_time_abd , 
+              "\ntesting time: " , testing_time_abd)      
+       
+        #estimator , learning_time_adi = create_BN_model(pd_train_set)
+       
+        #validation_score_adi = pgm_test(estimator, pd_train_set, 'Person')
+        
         pd_test_set = pd.DataFrame(test_set , columns=column_names)
+        
+        #print("adele execution:\n======================\n")
+        #print("learning time: " , learning_time_adi , 
+        #      "\nscores:" , validation_score_adi)
 
-        if validation_score['f1_score_micro'] > max_validation_score:
-            max_validation_score = validation_score
-            the_best_model = estimator
+        if scores_abd['f1_score_micro'] > max_validation_score:
+            max_validation_score = scores_abd
+            the_best_model = model
             best_model_pd_test_set = pd_test_set
+            best_delta = selected_delta
+            best_n = selected_n
     
-        print("validation_score: " , validation_score)
-        details_of_each_repeat.append([selected_delta, selected_n, learning_time , validation_score])
-            
+        #print("validation_score: " , validation_score)
+        details_of_each_repeat.append([selected_delta, selected_n, learning_time_abd , testing_time_abd , scores_abd , model])
+        
     
-    return (max_validation_score , the_best_model , best_model_pd_test_set, details_of_each_repeat)
-
+    #test the best model with test set
+    resultlist = best_model_pd_test_set['Person'].values
+    test = best_model_pd_test_set.drop('Person', axis=1, inplace=False)
+    predicted = the_best_model.predict(test).values.ravel()
+    best_model_test_set_score = calculate_different_metrics(resultlist, predicted)
+    
+    print("=======Best Parameters:=======\n")
+    print("best delta= " , best_delta , " best n: " , best_n)
+    print("best validation score:" , max_validation_score , "\n best test score: " , best_model_test_set_score)
+        
+    
+    return (max_validation_score , the_best_model , best_model_pd_test_set, best_delta , best_n , details_of_each_repeat)
 
 def profiling():
     
@@ -687,7 +688,9 @@ if __name__ == '__main__':
     #BN_for_discritized_data()
     #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
     #save_discritized_data_to_csv()
-    select_hyperparameters()
+    max_validation_score, the_best_model, best_model_pd_test_set,best_delta , best_n, details_of_each_repeat = select_hyperparameters()
+    
+    
     #test_with_iris_dataset()
     #save_discritized_data_to_csv()select_hyperparameters()
     #data = iris_dicretization_Dr_Amirkhani()

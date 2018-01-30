@@ -5,7 +5,6 @@ Created on May 14, 2017
 '''
 import numpy as np
 import pandas as pd
-import numba 
 from sklearn.decomposition import PCA
 
 
@@ -20,8 +19,8 @@ from sklearn.feature_selection import chi2
 
 import csv
 import time
-from numpy import dtype
-from h5py._hl.datatype import Datatype
+#from numpy import dtype
+#from h5py._hl.datatype import Datatype
 import os.path
 #from default_test.parameter_learning_of_Aras_data import prior_type
 
