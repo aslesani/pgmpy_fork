@@ -11,6 +11,7 @@ an event per line are converted to full feature format
 
 '''
 
+# coding=utf8
 
 
 from os.path import join
@@ -129,7 +130,6 @@ def casas7_to_csv_time_Ordered():
     7. Because I know the final data has 138039 rows. i defined the array so...
     8. the first instance is name of features
     9. Events are labeled with time and date and the data is sorted based on datatime
-    10. اول داده ها رو بدون مرتب کردن تبدیل می کنیم. و تا جایی که کارخاصی شروع یا تمام نشده شماره کار و شخص قبلی را می دهیم. ولی در آخر بر اساس زمان مرتب می کنیم
     '''
     f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated","r")
     #lines = f.readlin()
@@ -199,9 +199,9 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
     0. It is important that the difference between this method and casas7_to_csv_time_Ordered
        is that in this method the si-on and si-off are considered as two different features. if they 
        are used, the corresponding feature is set to 1. else 0 .
-       در هر خط فقط یک ویژگی یک است تا بعدا روی ان بگ بسازم بر اساس دلتا تایم. 
-          ولی در قبلی ممکن است در یک خط دو تا سنسور یک باشند چون 
-    تا زمانی که یک سنسور تغییر حالت ندهد مقدار قبلی را حفظ می کند. روش این متد مانند بگ آف اکتیویتی است
+       Ø¯Ø± Ù‡Ø± Ø®Ø· Ù�Ù‚Ø· ÛŒÚ© ÙˆÛŒÚ˜Ú¯ÛŒ ÛŒÚ© Ø§Ø³Øª ØªØ§ Ø¨Ø¹Ø¯Ø§ Ø±ÙˆÛŒ Ø§Ù† Ø¨Ú¯ Ø¨Ø³Ø§Ø²Ù… Ø¨Ø± Ø§Ø³Ø§Ø³ Ø¯Ù„ØªØ§ ØªØ§ÛŒÙ…. 
+          ÙˆÙ„ÛŒ Ø¯Ø± Ù‚Ø¨Ù„ÛŒ Ù…Ù…Ú©Ù† Ø§Ø³Øª Ø¯Ø± ÛŒÚ© Ø®Ø· Ø¯Ùˆ ØªØ§ Ø³Ù†Ø³ÙˆØ± ÛŒÚ© Ø¨Ø§Ø´Ù†Ø¯ Ú†ÙˆÙ† 
+    ØªØ§ Ø²Ù…Ø§Ù†ÛŒ Ú©Ù‡ ÛŒÚ© Ø³Ù†Ø³ÙˆØ± ØªØºÛŒÛŒØ± Ø­Ø§Ù„Øª Ù†Ø¯Ù‡Ø¯ Ù…Ù‚Ø¯Ø§Ø± Ù‚Ø¨Ù„ÛŒ Ø±Ø§ Ø­Ù�Ø¸ Ù…ÛŒ Ú©Ù†Ø¯. Ø±ÙˆØ´ Ø§ÛŒÙ† Ù…ØªØ¯ Ù…Ø§Ù†Ù†Ø¯ Ø¨Ú¯ Ø¢Ù� Ø§Ú©ØªÛŒÙˆÛŒØªÛŒ Ø§Ø³Øª
     1. annotated file is processed
     2. just motion, item and door sensors are kept (binary sensors),
          others (i.e. burner, water,temprature and electricity usage) are not. 
@@ -224,7 +224,7 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
     7. Because I know the final data has 138039 rows. i defined the array so...
     8. the first instance is name of features
     9. Events are labeled with time and date and the data is sorted based on datatime
-    10. اول داده ها رو بدون مرتب کردن تبدیل می کنیم. و تا جایی که کارخاصی شروع یا تمام نشده شماره کار و شخص قبلی را می دهیم. ولی در آخر بر اساس زمان مرتب می کنیم
+
     
     '''
     f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated","r")
@@ -572,7 +572,9 @@ def casas7_create_bag_of_sensor_events(deltaInMinutes , isSave):
     isSave: Save the returned value to file
     
     '''
-    f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    
     #lines = f.readlin()
     #with open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\annotated" , 'w') as converted_file:
     
@@ -661,9 +663,15 @@ def casas7_create_bag_of_sensor_events(deltaInMinutes , isSave):
     #for i in range (1004):
         #print(all_features[i][-2])
     if isSave == True:
+<<<<<<< HEAD
         np.savetxt(r'C:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
+=======
+        #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
+        #    all_features , delimiter=',' , fmt='%s')
+        np.savetxt(r'C:\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
+>>>>>>> origin/master
              all_features , delimiter=',' , fmt='%s')
-    
+        
     return all_features
     
 
@@ -918,6 +926,10 @@ if __name__ == '__main__':
     #replace_space_with_comma_in_file()
     #a = np.array([[1,2,3],[4,5,6],[0,0,1]]) 
     #a1 = a[a[:,-1].argsort()]
+<<<<<<< HEAD
+=======
+    
+>>>>>>> origin/master
     for i in [30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         casas7_create_bag_of_sensor_events(deltaInMinutes=i , isSave= True)
     
