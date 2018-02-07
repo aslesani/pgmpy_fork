@@ -25,11 +25,12 @@ import pandas as pd
 import numpy as np
 #from pandas.core.resample import resample
 
-def bic(train,test,name,folder,resultlist,address):
+def bic(train,test, scoring_function, name, folder,resultlist,address):
     array=['Person']
     trainstart=time.time()
-    bic=BicScore(train)
-    hc=HillClimbSearch(train, scoring_method=bic)
+    #bic=BicScore(train)
+    sc = scoring_function(train)
+    hc=HillClimbSearch(train, scoring_method=sc)
     best_model=hc.estimate()
     print(best_model.edges())
     #edges=[('c3', 'c2'), ('c3', 'c5'), ('c3', 'c1'), ('c3', 'Person'), ('Person', 'c2'), ('Person', 'c5'), ('Person', 'c1')]
@@ -53,7 +54,7 @@ def bic(train,test,name,folder,resultlist,address):
         result=model.predict(test).values.ravel()
         testend=time.time()-teststart
         pred=list(result)
-        print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
+        #print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
     else:
         indicator=list(set(test.columns)-set(model.nodes()))
         print(indicator)
