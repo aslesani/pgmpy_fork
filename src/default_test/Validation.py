@@ -12,6 +12,8 @@ from DimensionReductionandBNStructureLearning import read_data_from_PCA_digitize
 from DimensionReductionandBNStructureLearning import discretization_equal_width_for_any_data
 from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani
 from DimensionReductionandBNStructureLearning import read_data_from_PCA_output_file
+from pgmpy.estimators import BdeuScore, K2Score, BicScore
+
 
 from Abdollahi import bic
 
@@ -514,25 +516,29 @@ def select_hyperparameters():
     best_delta = 0
     best_n = 0
                 
-    for repeat in range(20): # repaet the process of selecting hyperparameters
+    for repeat in range(1): # repaet the process of selecting hyperparameters
         print("repeat: {}".format(repeat))
-        selected_delta = delta[random.randint(1,delta_length)]
-        selected_n = random.randint(2,20)#41)# n is # of features in PCA
+        selected_delta = 1000#delta[random.randint(1,delta_length)]
+        selected_n = 5#random.randint(2,20)#41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
     
         data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
         
-        #data = data[0:10000, :]
+        #data = data[0:5000, :]
         
         for i in range(0,selected_n):# digitize each column seperately
             
             feature_set_length = len(set(data[:,i]))
             #print("column number: {}, number of states:{}".format(i, feature_set_length))
-            selected_bin = random.randint(2, 1000)#feature_set_length)
+            selected_bin = 20#random.randint(2, 1000)#feature_set_length)
             #print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
-            data[:,i] = digitize_Dr_Amirkhani(data[:,i], 20)# selected_bin)
+            data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
         
         data = data.astype(int)
+        
+        np.savetxt(r"C:\pgmpy\PCA on Bag of sensor events\digitized\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + "_Bin=" + str(selected_bin) +".csv", 
+               data, delimiter=',' , fmt='%s')
+
         
         #yadet bashe shuffle ro comment kardi
         train_set, validation_set, test_set = partition_data(data, train_ratio = 80, validation_ratio = 10, test_ratio = 10)
@@ -545,23 +551,34 @@ def select_hyperparameters():
         resultlist = pd_validation_set['Person'].values
         test = pd_validation_set.drop('Person', axis=1, inplace=False)
         
-        model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
-
-        print("Abd execution\n========================\n")
-        print(scores_abd , "\nlearning time: " , learning_time_abd , 
-              "\ntesting time: " , testing_time_abd)      
-       
-        #estimator , learning_time_adi = create_BN_model(pd_train_set)
-       
-        #validation_score_adi = pgm_test(estimator, pd_train_set, 'Person')
+        for sc in [BicScore , BdeuScore , K2Score]:
+            model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
+    
+            print(sc)
+            #print("Abd execution\n========================\n")
+            print(scores_abd , "\nlearning time: " , learning_time_abd , 
+                  "\ntesting time: " , testing_time_abd)      
+           
+            #estimator , learning_time_adi = create_BN_model(pd_train_set)
+           
+            #validation_score_adi = pgm_test(estimator, pd_train_set, 'Person')
         
-        pd_test_set = pd.DataFrame(test_set , columns=column_names)
+            pd_test_set = pd.DataFrame(test_set , columns=column_names)
+            resultlist = pd_test_set['Person'].values
+            test = pd_test_set.drop('Person', axis=1, inplace=False)
+            predicted = model.predict(test).values.ravel()
+            model_test_set_score = calculate_different_metrics(resultlist, predicted)
+            print("test set:")
+            print(model_test_set_score)
+            
+            
+            
         
         #print("adele execution:\n======================\n")
         #print("learning time: " , learning_time_adi , 
         #      "\nscores:" , validation_score_adi)
-
-        if scores_abd['f1_score_micro'] > max_validation_score:
+    '''
+        if scores_abd['f1_score_micro'] > max_validation_score['f1_score_micro']:
             max_validation_score = scores_abd
             the_best_model = model
             best_model_pd_test_set = pd_test_set
@@ -584,6 +601,8 @@ def select_hyperparameters():
         
     
     return (max_validation_score , the_best_model , best_model_pd_test_set, best_delta , best_n , details_of_each_repeat)
+    '''
+    return (0,0,0,0,0,0)
 
 def profiling():
     
@@ -669,7 +688,7 @@ def test_create_BN_model_for_different_feature_numbers():
 
     for num_of_features in my_range:
         new_dest = dest + str(num_of_features) + ".csv"
-        test_create_BN_model(new_dest, delta = 15, n = num_of_features)
+        #test_create_BN_model(new_dest, delta = 15, n = num_of_features)
     
         feature_numbers[num_of_features-min_my_range] = num_of_features
         lt = test_create_BN_model(new_dest, delta = 15, n = num_of_features)
@@ -678,7 +697,6 @@ def test_create_BN_model_for_different_feature_numbers():
         
     plot_results(feature_numbers, learning_times, "#features", "learning_time")
     
-  
      
 if __name__ == '__main__':
     
