@@ -470,7 +470,7 @@ def discretization_equal_frequency():
 
 def create_PCA_for_different_bag_of_sensor_events():
     
-    for delta in [30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
         directory = r'C:\pgmpy\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
         if not os.path.exists(directory):
@@ -483,6 +483,17 @@ def create_PCA_for_different_bag_of_sensor_events():
 
 
 
+def create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta():
+    
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+        
+        directory = r'C:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta=' + str(delta)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+        base_save_address = directory + '\\'
+        file_address = r'C:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_' + str(delta) + 'min.csv'
+        PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= True)
 
 
 def create_PCA_for_bag_of_sensor_events_based_on_activities():
@@ -491,6 +502,8 @@ def create_PCA_for_bag_of_sensor_events_based_on_activities():
     file_address = r'C:\pgmpy\Bag of sensor events_based on activities.csv'
     
     PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= True) # because there is not
+
+
 
 def test_discretization_on_different_PCA_data_files():  
     base_address = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events"
@@ -520,8 +533,9 @@ if __name__ == "__main__":
     #PCA_data_generation(dest_file)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
+    create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
     #create_PCA_for_different_bag_of_sensor_events()
-    print(shift_data(np.array([1,9])))
+    #print(shift_data(np.array([1,9])))
     #test_discretization_on_different_PCA_data_files()
     #f = r"\\localhost\E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\alaki.csv"
     #f = r"E:/Lessons_tutorials/Behavioural user profile articles/Datasets/7 twor.2009/twor.2009/converted/pgmpy/PCA on Bag of sensor events_Digitized/delta=15/PCA_n=9.csv"
