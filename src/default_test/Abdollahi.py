@@ -51,6 +51,7 @@ def bic(train,test, scoring_function, name, folder,resultlist,address):
         flag=1
     elif(set(model.nodes())-set(array) == set(test.columns)):
         teststart=time.time()
+        #print(test)
         result=model.predict(test).values.ravel()
         testend=time.time()-teststart
         pred=list(result)
@@ -60,9 +61,10 @@ def bic(train,test, scoring_function, name, folder,resultlist,address):
         print(indicator)
         testchange=test.copy()
         for f in range(len(indicator)):   
-            print(f)
+            #print(f)
             del testchange[indicator[f]]
-        print(testchange)
+        #print(testchange)
+        print("come in testchange***********************")
         teststart=time.time()
         result=model.predict(testchange).values.ravel()
         testend=time.time()-teststart
@@ -78,7 +80,7 @@ def bic(train,test, scoring_function, name, folder,resultlist,address):
     else:
         fscore=accuracy=precision=recall=trainend=testend=0
       
-    print("fscore:" , fscore,"accuracy:" ,accuracy,"precision:" ,precision, "recall: ",recall)    
+    #print("fscore:" , fscore,"accuracy:" ,accuracy,"precision:" ,precision, "recall: ",recall)    
     return (model , scores ,  trainend, testend)
 
 def calculate_different_metrics(y_true , y_predicted):
@@ -151,8 +153,9 @@ if __name__ == "__main__":
     test = data[700:]
     resultlist = test['Person'].values
     test = test.drop('Person', axis=1, inplace=False)
-    scores , learning_time = bic(train = train, test = test, name = "model", 
+    #scores , learning_time = 
+    bic(train = train, test = test, scoring_function=BicScore , name = "model", 
         folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
     
-    print(scores , learning_time)
+    #print(scores , learning_time)
     
