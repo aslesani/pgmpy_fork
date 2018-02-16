@@ -46,11 +46,14 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
     '''
     
     sensor_data = read_data_from_file(file_address, np.int, remove_date_and_time)
+    print(sensor_data)#:, -1])
+
     
-    if remove_activity_column:
+    if remove_activity_column == True:
         sensor_data = np.delete(sensor_data ,-1 , 1)
     
     rows , cols = np.shape(sensor_data)
+    print("file address: " , file_address)
     print("cols={}".format(cols))
     target = np.zeros((rows, 1), dtype= int )
     for ind in range(rows):
@@ -82,6 +85,7 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
         print(data_new.shape)
         print(target.shape)
         dest = base_address_to_save + 'PCA_n=' + str(i) +'.csv'
+        print(dest)
         
         np.savetxt(dest, np.concatenate((data_new, target), axis=1), delimiter=',' , fmt='%s')
     
@@ -426,7 +430,7 @@ def shift_data(data):
     for item in list_of_data:
         data[np.where(np.equal(data, item))] = list_of_data.index(item)
         
-    #print(data)
+    #print(set(data))
     return data 
 
 def digitize_Dr_Amirkhani(a, n):
@@ -451,10 +455,11 @@ def digitize_Dr_Amirkhani(a, n):
         b[ind] = i
     #print(b)
     #the max item is not considered, so set it manually
-    b[np.where(np.equal(a , mx))] = n-1
+    #b[np.where(np.equal(a , mx))] = n-1
     
-    #if len(set(b)) != max(list(set(b))) + 1 : # in natural condition, len = max(set) + 1 (because the elemetns start in 0)
-     #   b = shift_data(b)
+    if len(set(b)) != max(list(set(b))) + 1 : # in natural condition, len = max(set) + 1 (because the elemetns start in 0)
+        #print("yesssss")
+        b = shift_data(b)
         
     return b
 
@@ -465,16 +470,21 @@ def discretization_equal_frequency():
 
 def create_PCA_for_different_bag_of_sensor_events():
     
-    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+    for delta in [30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
-        directory = r'C:\pgmpy\PCA on Bag of sensor events\delta=' + str(delta)
+        directory = r'C:\pgmpy\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
         if not os.path.exists(directory):
             os.makedirs(directory)
         
-        base_save_address = r'C:\pgmpy\PCA on Bag of sensor events'  + r'\delta=' + str(delta) + '\\'
-        file_address = r'C:\pgmpy\Bag of sensor events based on different deltas\bag_of_sensor_events_delta_' + str(delta) + 'min.csv'
-        PCA_data_generation(file_address, base_save_address, remove_date_and_time = True)
+        base_save_address = directory + '\\'
+        file_address = r'C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_' + str(delta) + 'min.csv'
+        PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= False)
         
+
+
+
+
+
 def create_PCA_for_bag_of_sensor_events_based_on_activities():
         
     base_save_address = r'C:\pgmpy\PCA on bag of sensor events_based on activity\\'
@@ -509,7 +519,9 @@ if __name__ == "__main__":
     #myData = np.genfromtxt(dest_file , dtype=object,delimiter = ',')#, names=False)
     #PCA_data_generation(dest_file)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
-    create_PCA_for_bag_of_sensor_events_based_on_activities()    
+    #create_PCA_for_bag_of_sensor_events_based_on_activities()    
+    #create_PCA_for_different_bag_of_sensor_events()
+    print(shift_data(np.array([1,9])))
     #test_discretization_on_different_PCA_data_files()
     #f = r"\\localhost\E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\alaki.csv"
     #f = r"E:/Lessons_tutorials/Behavioural user profile articles/Datasets/7 twor.2009/twor.2009/converted/pgmpy/PCA on Bag of sensor events_Digitized/delta=15/PCA_n=9.csv"
