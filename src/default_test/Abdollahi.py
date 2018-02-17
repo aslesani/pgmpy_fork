@@ -79,6 +79,13 @@ def bic(train,test, scoring_function, name, folder,resultlist,address):
         #WriteData(address+"bicpred\\",name+".xlsx",name,pred)
     else:
         fscore=accuracy=precision=recall=trainend=testend=0
+        scores = {'f1_score_micro': 0, 
+              'f1_score_macro': 0,
+              'f1_score_binary': 0,
+              'precision' : 0,
+              'recall' : 0,
+              'accuracy' : 0
+              }
       
     #print("fscore:" , fscore,"accuracy:" ,accuracy,"precision:" ,precision, "recall: ",recall)    
     return (model , scores ,  trainend, testend)
