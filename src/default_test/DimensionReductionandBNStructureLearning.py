@@ -455,7 +455,7 @@ def digitize_Dr_Amirkhani(a, n):
         b[ind] = i
     #print(b)
     #the max item is not considered, so set it manually
-    #b[np.where(np.equal(a , mx))] = n-1
+    b[np.where(np.equal(a , mx))] = n-1
     
     if len(set(b)) != max(list(set(b))) + 1 : # in natural condition, len = max(set) + 1 (because the elemetns start in 0)
         #print("yesssss")
