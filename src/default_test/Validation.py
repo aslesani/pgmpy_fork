@@ -707,7 +707,15 @@ def test_create_BN_model_for_different_feature_numbers():
         
     plot_results(feature_numbers, learning_times, "#features", "learning_time")
     
-     
+def the_best_validation():
+    '''
+    a combination of split data and k-fold cross validation
+    
+    '''
+    
+    
+    
+    
 if __name__ == '__main__':
     
    # test_create_BN_model_for_different_feature_numbers()
