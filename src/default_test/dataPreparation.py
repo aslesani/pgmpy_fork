@@ -697,7 +697,7 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_enti
     
     first = True
     for line in f:
-        #print(line)
+        #print(counter)
         cells = line.split(',')
         cells[125] = cells[125].split('\n')[0]# the 0th element is the time, the next is empty
         #print(cells)
@@ -729,6 +729,7 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_enti
             all_features = np.vstack([all_features,converted_cells])
         
 
+    print("start separating person IDs")
     #seperate each person data in a list (-4 is the index of person column)
     person_IDs = list(set(all_features[: , -4]))
     #print(person_IDs)
@@ -746,6 +747,8 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_enti
 
     for each_person in range(number_of_residents):
         #print("each_line:{}".format(each_line+1))
+        print("start procesing resident: " , each_person)
+
         new_counter = 0
         each_line = 0
         #initialize 
@@ -1306,8 +1309,17 @@ if __name__ == '__main__':
     #replace_space_with_comma_in_file()
     #a = np.array([[1,2,3],[4,5,6],[0,0,1]]) 
     #a1 = a[a[:,-1].argsort()]
+    address_to_read = r"C:\pgmpy\separation of train and test\31_3\test_from_31_3_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+    #address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\test\based_on_activities.csv"
+
+    #casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+
     for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , isSave= True)
-        casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , isSave = True)
-    #casas7_create_bag_of_sensor_events_based_on_activity(isSave = True)
-    #casas7_to_csv_based_on_sensor_events_time_Ordered()
+        #address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv".format(i)
+        #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+        #print("i: " , i)
+        address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\test\delta_{}min.csv".format(i)
+        
+        casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes= i , number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+ 
