@@ -673,7 +673,7 @@ def casas7_create_bag_of_sensor_events(deltaInMinutes , isSave):
     return all_features
     
 
-def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_entire_rows, isSave):
+def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_entire_rows, address_to_read, address_for_save, isSave):
     '''
     1. The order of  features: sensor events (for each sensor on and off), 
                                Person,
@@ -689,8 +689,8 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_enti
     
     '''
     #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
-    f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
-    
+    #f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    f = open(address_to_read , "r")
     all_features = np.zeros((number_of_entire_rows, 126), dtype= object )#np.str)1003 +1
         
     counter = -1
@@ -788,14 +788,14 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_enti
     if isSave == True:
         #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
         #    all_features , delimiter=',' , fmt='%s')
-        np.savetxt(r'C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_' + str(deltaInMinutes) + 'min.csv', 
-            person_bag[0] , delimiter=',' , fmt='%s')
+        #np.savetxt(r'C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_' + str(deltaInMinutes) + 'min.csv', 
+        np.savetxt(address_for_save, person_bag[0] , delimiter=',' , fmt='%s')
     
     
     return person_bag[0]
 
 
-def casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows, isSave):
+def casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows, address_to_read, address_for_save, isSave):
     '''
     1. The order of  features: sensor events (for each sensor on and off), 
                                Person,
@@ -809,8 +809,8 @@ def casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows, 
     
     '''
     #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
-    f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
-    
+    #f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    f= open(address_to_read , "r")
     all_features = np.zeros((number_of_entire_rows, 124), dtype= object )#np.str)1003 +1
         
     counter = -1
@@ -901,13 +901,13 @@ def casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows, 
     if isSave == True:
         #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
         #    all_features , delimiter=',' , fmt='%s')
-        np.savetxt(r'C:\pgmpy\Bag of sensor events_based on activities.csv', 
-            person_bag[0] , delimiter=',' , fmt='%s')
+        #np.savetxt(r'C:\pgmpy\Bag of sensor events_based on activities.csv', 
+        np.savetxt(address_for_save, person_bag[0] , delimiter=',' , fmt='%s')
      
     return person_bag[0]
 
 
-def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes, number_of_entire_rows , isSave):
+def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes, number_of_entire_rows, address_to_read, address_for_save, isSave):
     '''
     1. The order of  features: sensor events (for each sensor on and off), 
                                Person,
@@ -924,8 +924,8 @@ def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinute
     
     '''
     #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
-    f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
-    
+    #f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    f = open(address_to_read, "r")
     all_features = np.zeros((number_of_entire_rows, 127), dtype= object )#np.str)1003 +1
         
     counter = -1
@@ -1048,8 +1048,8 @@ def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinute
     if isSave == True:
         #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
         #    all_features , delimiter=',' , fmt='%s')
-        np.savetxt(r'C:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_' + str(deltaInMinutes) + 'min.csv', 
-            person_bag[0] , delimiter=',' , fmt='%s')
+        #np.savetxt(r'C:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_' + str(deltaInMinutes) + 'min.csv', 
+        np.savetxt(address_for_save, person_bag[0] , delimiter=',' , fmt='%s')
      
     return person_bag[0]
 
@@ -1306,7 +1306,7 @@ if __name__ == '__main__':
     #replace_space_with_comma_in_file()
     #a = np.array([[1,2,3],[4,5,6],[0,0,1]]) 
     #a1 = a[a[:,-1].argsort()]
-    for i in [30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
+    for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , isSave= True)
         casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , isSave = True)
     #casas7_create_bag_of_sensor_events_based_on_activity(isSave = True)
