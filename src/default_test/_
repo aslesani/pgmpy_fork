@@ -1,0 +1,39 @@
+ Volume in drive E has no label.
+ Volume Serial Number is A854-959F
+
+ Directory of E:\Software\Oxygen\pgmpy_test\src\default_test
+
+2018-01-30  04:41 PM    <DIR>          .
+2018-01-30  04:41 PM    <DIR>          ..
+2018-01-30  04:39 PM             2,107 a.txt
+2018-01-28  01:46 AM             3,241 Abdollahi.py
+2018-01-27  12:42 AM             1,394 BayesianEstimator_test.py
+2018-01-27  01:36 AM               838 BayesianModel_predict_test.py
+2018-01-30  01:41 AM             2,816 custom_classifiers.py
+2018-01-24  05:06 PM            36,950 dataPreparation.py
+2017-10-24  09:51 PM               578 decorator_test.py
+2017-10-20  03:38 PM               693 decorator_test2.py
+2017-09-30  07:46 PM               364 digitize_test.py
+2018-01-26  11:10 PM            19,374 DimensionReductionandBNStructureLearning.py
+2017-08-20  09:33 AM             1,699 equal_probability_histogram.py
+2017-10-26  12:22 AM             4,987 gitIssueCode.py
+2017-10-27  10:32 PM               710 gitsamplecode.py
+2018-01-23  05:23 PM               831 inference_methods_test.py
+2017-09-22  11:54 AM             1,377 inference_test.py
+2017-09-21  07:47 PM             1,206 inference_test2.py
+2018-01-16  11:41 PM               371 Parallelism_test.py
+2017-07-13  02:16 AM             7,401 parameter_learning_of_Aras_data.py
+2017-09-20  12:15 AM               432 parameter_learning_test.py
+2017-09-04  09:56 AM               181 Read_Write_Model.py
+2017-09-30  08:41 PM               836 some_tests.py
+2017-05-15  04:31 PM               846 structure_learning.py
+2017-09-04  10:08 AM             1,821 structure_learning_bag_of_activities.py
+2017-07-12  03:30 PM             1,778 structure_learning_of_Aras_data.py
+2017-10-20  05:01 PM               290 test.py
+2017-07-13  01:47 AM               921 test_parameter_learning.py
+2018-01-28  02:33 AM            27,960 Validation.py
+2018-01-30  04:41 PM                 0 _
+2017-05-14  01:01 AM                 0 __init__.py
+2018-01-30  01:09 AM    <DIR>          __pycache__
+              29 File(s)        122,002 bytes
+               3 Dir(s)  69,725,667,328 bytes free

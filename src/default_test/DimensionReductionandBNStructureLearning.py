@@ -35,7 +35,7 @@ dest_file = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 
 
 base_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\ '
 
-def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time):
+def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time , remove_activity_column):
     '''
     Parameter:
     =========
@@ -46,8 +46,14 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time)
     '''
     
     sensor_data = read_data_from_file(file_address, np.int, remove_date_and_time)
+    print(sensor_data)#:, -1])
+
+    
+    if remove_activity_column == True:
+        sensor_data = np.delete(sensor_data ,-1 , 1)
     
     rows , cols = np.shape(sensor_data)
+    print("file address: " , file_address)
     print("cols={}".format(cols))
     target = np.zeros((rows, 1), dtype= int )
     for ind in range(rows):
@@ -79,6 +85,7 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time)
         print(data_new.shape)
         print(target.shape)
         dest = base_address_to_save + 'PCA_n=' + str(i) +'.csv'
+        print(dest)
         
         np.savetxt(dest, np.concatenate((data_new, target), axis=1), delimiter=',' , fmt='%s')
     
@@ -418,6 +425,13 @@ def discretization_equal_width_for_any_data(data):
 
     return data.astype(int)
 
+def shift_data(data):
+    list_of_data = list(sorted(set(data)))
+    for item in list_of_data:
+        data[np.where(np.equal(data, item))] = list_of_data.index(item)
+        
+    #print(set(data))
+    return data 
 
 def digitize_Dr_Amirkhani(a, n):
     '''
@@ -433,10 +447,20 @@ def digitize_Dr_Amirkhani(a, n):
     mx = np.max(a)
     
     step = (mx-mn)/n
+    #print("step:" , step)
     b = np.zeros_like(a)
     for i in range(n):
-        b[np.where(np.logical_and(np.greater_equal(a,mn+i*step),np.less(a,mn+(i+1)*step)))] = i
+        ind = np.where(np.logical_and(np.greater_equal(a,mn+i*step),np.less(a,mn+(i+1)*step)))
+        #print("i: {} , ind:{}".format(i , ind))
+        b[ind] = i
     #print(b)
+    #the max item is not considered, so set it manually
+    b[np.where(np.equal(a , mx))] = n-1
+    
+    if len(set(b)) != max(list(set(b))) + 1 : # in natural condition, len = max(set) + 1 (because the elemetns start in 0)
+        #print("yesssss")
+        b = shift_data(b)
+        
     return b
 
 
@@ -448,14 +472,40 @@ def create_PCA_for_different_bag_of_sensor_events():
     
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
-        directory = r'C:\pgmpy\PCA on Bag of sensor events\delta=' + str(delta)
+        directory = r'C:\pgmpy\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
         if not os.path.exists(directory):
             os.makedirs(directory)
         
-        base_save_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events'  + r'\delta=' + str(delta) + '\\'
-        file_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\Bag of sensor events based on different deltas\bag_of_sensor_events_delta_' + str(delta) + 'min.csv'
-        PCA_data_generation(file_address, base_save_address, remove_date_and_time = True, remove_activity_column=False)
+        base_save_address = directory + '\\'
+        file_address = r'C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_' + str(delta) + 'min.csv'
+        PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= False)
         
+
+
+
+def create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta():
+    
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+        
+        directory = r'C:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta=' + str(delta)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+
+        base_save_address = directory + '\\'
+        file_address = r'C:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_' + str(delta) + 'min.csv'
+        PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= True)
+
+
+def create_PCA_for_bag_of_sensor_events_based_on_activities():
+
+        
+    base_save_address = r'C:\pgmpy\PCA on bag of sensor events_based on activity\\'
+    file_address = r'C:\pgmpy\Bag of sensor events_based on activities.csv'
+    
+    PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= True) # because there is not
+
+
 
 def test_discretization_on_different_PCA_data_files():  
     base_address = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events"
@@ -485,7 +535,10 @@ if __name__ == "__main__":
     #myData = np.genfromtxt(dest_file , dtype=object,delimiter = ',')#, names=False)
     #PCA_data_generation(dest_file)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
-    create_PCA_for_different_bag_of_sensor_events()
+    #create_PCA_for_bag_of_sensor_events_based_on_activities()    
+    create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
+    #create_PCA_for_different_bag_of_sensor_events()
+    #print(shift_data(np.array([1,9])))
     #test_discretization_on_different_PCA_data_files()
     #f = r"\\localhost\E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\alaki.csv"
     #f = r"E:/Lessons_tutorials/Behavioural user profile articles/Datasets/7 twor.2009/twor.2009/converted/pgmpy/PCA on Bag of sensor events_Digitized/delta=15/PCA_n=9.csv"

@@ -24,6 +24,9 @@ import dateutil
 import datetime
 from datetime import timedelta
 from xml.sax.handler import all_features
+from builtins import int
+from numpy import dtype
+from matplotlib.pyplot import axis
 #from nntplib import lines
 
 
@@ -672,6 +675,391 @@ def casas7_create_bag_of_sensor_events(deltaInMinutes , isSave):
     return all_features
     
 
+def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_entire_rows, address_to_read, address_for_save, isSave):
+    '''
+    1. The order of  features: sensor events (for each sensor on and off), 
+                               Person,
+                               Date,
+                               Time
+        activity number is ignored, but exists in input file                                  
+    2. each row is constructed by considering the bag of sensor events, but no overlap exists in deltaT
+    
+    Parameters:
+    ===============
+    deltaInMinutes:
+    isSave: Save the returned value to file
+    
+    '''
+    #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    #f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    f = open(address_to_read , "r")
+    all_features = np.zeros((number_of_entire_rows, 126), dtype= object )#np.str)1003 +1
+        
+    counter = -1
+    
+    first = True
+    for line in f:
+        #print(counter)
+        cells = line.split(',')
+        cells[125] = cells[125].split('\n')[0]# the 0th element is the time, the next is empty
+        #print(cells)
+        
+        converted_cells = [int(i) for i in cells[0:123]]  
+        
+        if first == True:
+            print(len(converted_cells)) 
+        
+        converted_cells.append(cells[124]) #  is date
+        converted_cells.append(cells[125]) #  is time
+        #print("counter:{}".format(counter))
+        converted_cells.append(convert_string_to_datetime(cells[124], cells[125])) # 126 is datetime object that is used for comparision but is removed before saving file
+      
+        
+        counter+=1
+               
+        if first == True:
+            first  = False
+            #print(converted_cells[122])
+            #print(converted_cells[123])
+            #print(converted_cells[124])
+            #print(converted_cells[125])
+            
+      
+        if counter < number_of_entire_rows:
+            all_features[counter] = converted_cells
+        else:
+            all_features = np.vstack([all_features,converted_cells])
+        
+
+    print("start separating person IDs")
+    #seperate each person data in a list (-4 is the index of person column)
+    person_IDs = list(set(all_features[: , -4]))
+    #print(person_IDs)
+    number_of_residents = len(person_IDs)
+    person_data = np.zeros(number_of_residents, dtype = np.ndarray)
+    #print(type(person_data))
+    for i in range(number_of_residents):
+        person_data[i] = all_features[np.where(all_features[:,-4] == person_IDs[i])]
+        #print("*****************\n {}".format(i))
+        #print(type(person_data[i]))
+        #print(person_data[i].shape)
+     
+    #save bag of features in deltaT for each person   
+    person_bag = np.zeros(number_of_residents, dtype = np.ndarray)
+
+    for each_person in range(number_of_residents):
+        #print("each_line:{}".format(each_line+1))
+        print("start procesing resident: " , each_person)
+
+        new_counter = 0
+        each_line = 0
+        #initialize 
+        person_data_number_of_rows , _ = person_data[each_person].shape
+        # create a ndarray with size of all data of the person 
+        person_bag[each_person] = np.ndarray(shape = (person_data_number_of_rows , 122), dtype = int )
+        #print(person_bag[each_person].shape)
+        for i in range(122):
+            person_bag[each_person][0][i] = person_data[each_person][0][i]
+        #print(person_bag[each_person].shape)
+        
+        
+        for offset in range(1, len(person_data[each_person]), 1): # range(start, end, step) sharte end ine k bozorgtar bashe pas bayad yeki az akhari kamtar begiram
+                
+            timedelta_in_minutes = timedelta.total_seconds(person_data[each_person][offset][-1] - person_data[each_person][each_line][-1]) / 60
+            # compare delta time in minutes
+            if timedelta_in_minutes <= deltaInMinutes:
+                for i in range(122):# 120 is num of features
+                    person_bag[each_person][new_counter][i] += person_data[each_person][offset][i]
+
+            else:  
+                each_line = offset
+                new_counter += 1
+                for i in range(122):
+                    person_bag[each_person][new_counter][i] = person_data[each_person][each_line][i]
+                
+        #remove additional items (because when i created the person_bag[each_person], the size was number of rows )
+        person_bag[each_person] = np.delete(person_bag[each_person] , range(new_counter + 1 , person_data_number_of_rows + 1 ) , axis = 0)    
+         
+    #add person_ID column to data
+    for person in range(number_of_residents):
+        person_col = np.full(( len(person_bag[person]), 1) , person_IDs[person] , dtype = int)  
+        person_bag[person] = np.concatenate( (person_bag[person] , person_col) , axis = 1) 
+    #save all data in person_bag[0]
+    for person in range(1, number_of_residents):
+        print(person_bag[0].shape , person_bag[person].shape)
+        person_bag[0] = np.concatenate((person_bag[0], person_bag[person]), axis=0)
+
+    
+    if isSave == True:
+        #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
+        #    all_features , delimiter=',' , fmt='%s')
+        #np.savetxt(r'C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_' + str(deltaInMinutes) + 'min.csv', 
+        np.savetxt(address_for_save, person_bag[0] , delimiter=',' , fmt='%s')
+    
+    
+    return person_bag[0]
+
+
+def casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows, address_to_read, address_for_save, isSave):
+    '''
+    1. The order of  features: sensor events (for each sensor on and off), 
+                               Person,
+                               Date,
+                               Time
+    2. each row is constructed by considering the bag of sensor events for each activity
+    
+    Parameters:
+    ===============
+    isSave: Save the returned value to file
+    
+    '''
+    #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    #f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    f= open(address_to_read , "r")
+    all_features = np.zeros((number_of_entire_rows, 124), dtype= object )#np.str)1003 +1
+        
+    counter = -1
+    
+    first = True
+    for line in f:
+        #print(line)
+        cells = line.split(',')
+        
+        converted_cells = [int(i) for i in cells[0:124]]  
+        
+        counter+=1
+               
+        if first == True:
+            first  = False
+            print(len(converted_cells))
+            print(converted_cells[123])
+            
+      
+        if counter < number_of_entire_rows:
+            all_features[counter] = converted_cells
+        else:
+            all_features = np.vstack([all_features,converted_cells])
+        
+    #seperate each person data in a list (-4 is the index of person column)
+    person_IDs = list(set(all_features[: , -2]))
+    #print(person_IDs)
+    number_of_residents = len(person_IDs)
+    person_data = np.zeros(number_of_residents, dtype = np.ndarray)
+    #print(type(person_data))
+    for i in range(number_of_residents):
+        person_data[i] = all_features[np.where(all_features[:,-2] == person_IDs[i])]
+        #print("*****************\n {}".format(i))
+        #print(type(person_data[i]))
+        #print(person_data[i].shape)
+     
+    #save bag of features in deltaT for each person   
+    person_bag = np.zeros(number_of_residents, dtype = np.ndarray)
+
+    for each_person in range(number_of_residents):
+        #print("each_line:{}".format(each_line+1))
+        new_counter = 0
+        each_line = 0
+        #initialize 
+        person_data_number_of_rows , _ = person_data[each_person].shape
+        # create a ndarray with size of all data of the person 
+        person_bag[each_person] = np.ndarray(shape = (person_data_number_of_rows , 124), dtype = int )
+        #print(person_bag[each_person].shape)
+        for i in range(122):
+            person_bag[each_person][0][i] = person_data[each_person][0][i]
+        #print(person_bag[each_person].shape)
+        last_activity = person_data[each_person][0][-1]
+        
+        for offset in range(1, len(person_data[each_person]), 1): # range(start, end, step) sharte end ine k bozorgtar bashe pas bayad yeki az akhari kamtar begiram
+                
+            # compare delta time in minutes
+            if person_data[each_person][offset][-1] == last_activity:
+                for i in range(122):# 120 is num of features
+                    person_bag[each_person][new_counter][i] += person_data[each_person][offset][i]
+
+            else:  
+                each_line = offset
+                
+                # add activity column value
+                person_bag[each_person][new_counter][-1] = last_activity
+                #add person column value
+                person_bag[each_person][new_counter][-2] = person_IDs[each_person] 
+                
+                last_activity = person_data[each_person][offset][-1]
+                
+                new_counter += 1
+                for i in range(122):
+                    person_bag[each_person][new_counter][i] = person_data[each_person][each_line][i]
+                
+        #update last row column and activity number
+        person_bag[each_person][new_counter][-1] = last_activity
+        person_bag[each_person][new_counter][-2] = person_IDs[-1] 
+                
+        #remove additional items (because when i created the person_bag[each_person], the size was number of rows )
+        person_bag[each_person] = np.delete(person_bag[each_person] , range(new_counter + 1 , person_data_number_of_rows + 1 ) , axis = 0)    
+         
+    #save all data in person_bag[0]
+    for person in range(1, number_of_residents):
+        print(person_bag[0].shape , person_bag[person].shape)
+        person_bag[0] = np.concatenate((person_bag[0], person_bag[person]), axis=0)
+
+    
+    if isSave == True:
+        #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
+        #    all_features , delimiter=',' , fmt='%s')
+        #np.savetxt(r'C:\pgmpy\Bag of sensor events_based on activities.csv', 
+        np.savetxt(address_for_save, person_bag[0] , delimiter=',' , fmt='%s')
+     
+    return person_bag[0]
+
+
+def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes, number_of_entire_rows, address_to_read, address_for_save, isSave):
+    '''
+    1. The order of  features: sensor events (for each sensor on and off), 
+                               Person,
+                               Date,
+                               Time
+        activity number is ignored, but exists in input file                                  
+    2. each row is constructed by considering the bag of sensor events for each activity
+     +  a delta for devide an activity
+    
+    Parameters:
+    ===============
+    deltaInMinutes: the time delta for dividing the activity
+    isSave: Save the returned value to file
+    
+    '''
+    #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    #f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
+    f = open(address_to_read, "r")
+    all_features = np.zeros((number_of_entire_rows, 127), dtype= object )#np.str)1003 +1
+        
+    counter = -1
+    
+    first = True
+    for line in f:
+        #print(line)
+        cells = line.split(',')
+        cells[125] = cells[125].split('\n')[0]# the 0th element is the time, the next is empty
+        #print(cells)
+        
+        converted_cells = [int(i) for i in cells[0:124]]  
+        
+        #if first == True:
+            #print(len(converted_cells)) 
+        
+        converted_cells.append(cells[124]) #  is date
+        converted_cells.append(cells[125]) #  is time
+        #print("counter:{}".format(counter))
+        converted_cells.append(convert_string_to_datetime(cells[124], cells[125])) # 126 is datetime object that is used for comparision but is removed before saving file
+      
+        
+        counter+=1
+               
+        if first == True:
+            first  = False
+            print(converted_cells[121])
+            print(converted_cells[122])#person
+            print(converted_cells[123])#activity
+            print(converted_cells[124])
+            print(converted_cells[125])
+            print(converted_cells[126])
+
+            
+      
+        if counter < number_of_entire_rows:
+            all_features[counter] = converted_cells
+        else:
+            all_features = np.vstack([all_features,converted_cells])
+        
+    #seperate each person data in a list (-4 is the index of person column)
+    person_IDs = list(set(all_features[: , -5]))
+    #print(person_IDs)
+    number_of_residents = len(person_IDs)
+    person_data = np.zeros(number_of_residents, dtype = np.ndarray)
+    #print(type(person_data))
+    for i in range(number_of_residents):
+        person_data[i] = all_features[np.where(all_features[:,-5] == person_IDs[i])]
+        #print("*****************\n {}".format(i))
+        #print(type(person_data[i]))
+        #print(person_data[i].shape)
+     
+    #save bag of features in deltaT for each person   
+    person_bag = np.zeros(number_of_residents, dtype = np.ndarray)
+
+    for each_person in range(number_of_residents):
+        #print("each_line:{}".format(each_line+1))
+        new_counter = 0
+        #initialize 
+        person_data_number_of_rows , _ = person_data[each_person].shape
+        # create a ndarray with size of all data of the person 
+        person_bag[each_person] = np.ndarray(shape = (person_data_number_of_rows , 124), dtype = int )
+        #print(person_bag[each_person].shape)
+        for i in range(122):
+            person_bag[each_person][0][i] = person_data[each_person][0][i]
+        #print(person_bag[each_person].shape)
+        
+        last_activity = person_data[each_person][0][-4]
+        last_calculated_row_for_delta = 0
+        
+        for offset in range(1, len(person_data[each_person]), 1): # range(start, end, step) sharte end ine k bozorgtar bashe pas bayad yeki az akhari kamtar begiram
+                
+            if person_data[each_person][offset][-4] == last_activity:
+                timedelta_in_minutes = timedelta.total_seconds(person_data[each_person][offset][-1] - person_data[each_person][last_calculated_row_for_delta][-1]) / 60
+                # compare delta time in minutes
+                if timedelta_in_minutes <= deltaInMinutes:
+                    for i in range(122):# 120 is num of features
+                        person_bag[each_person][new_counter][i] += person_data[each_person][offset][i]
+                
+                else:
+                    last_calculated_row_for_delta = offset
+                    # add activity column value
+                    person_bag[each_person][new_counter][-1] = last_activity
+                    #add person column value
+                    person_bag[each_person][new_counter][-2] = person_IDs[each_person] 
+                    
+                    last_activity = person_data[each_person][offset][-4]
+                    
+                    new_counter += 1
+                    for i in range(122):
+                        person_bag[each_person][new_counter][i] = person_data[each_person][offset][i]    
+                    
+            else:                  
+                last_calculated_row_for_delta = offset
+                # add activity column value
+                person_bag[each_person][new_counter][-1] = last_activity
+                #add person column value
+                person_bag[each_person][new_counter][-2] = person_IDs[each_person] 
+                
+                last_activity = person_data[each_person][offset][-4]
+                
+                new_counter += 1
+                for i in range(122):
+                    person_bag[each_person][new_counter][i] = person_data[each_person][offset][i]
+                
+        
+        #update last row column and activity number
+        person_bag[each_person][new_counter][-1] = last_activity
+        person_bag[each_person][new_counter][-2] = person_IDs[-1] 
+        
+        #remove additional items (because when i created the person_bag[each_person], the size was number of rows )
+        person_bag[each_person] = np.delete(person_bag[each_person] , range(new_counter + 1 , person_data_number_of_rows + 1 ) , axis = 0)    
+         
+    #save all data in person_bag[0]
+    for person in range(1, number_of_residents):
+        print(person_bag[0].shape , person_bag[person].shape)
+        person_bag[0] = np.concatenate((person_bag[0], person_bag[person]), axis=0)
+
+    
+    if isSave == True:
+        #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
+        #    all_features , delimiter=',' , fmt='%s')
+        #np.savetxt(r'C:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_' + str(deltaInMinutes) + 'min.csv', 
+        np.savetxt(address_for_save, person_bag[0] , delimiter=',' , fmt='%s')
+     
+    return person_bag[0]
+
+
+
 
 def get_feature_column(sensor_name):
     '''
@@ -923,7 +1311,19 @@ if __name__ == '__main__':
     #replace_space_with_comma_in_file()
     #a = np.array([[1,2,3],[4,5,6],[0,0,1]]) 
     #a1 = a[a[:,-1].argsort()]
-    for i in [30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
-        casas7_create_bag_of_sensor_events(deltaInMinutes=i , isSave= True)
-    
     #casas7_to_csv_based_on_sensor_events_time_Ordered()
+
+    address_to_read = r"C:\pgmpy\separation of train and test\31_3\test_from_31_3_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+    #address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\test\based_on_activities.csv"
+
+    #casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+
+    for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
+        #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , isSave= True)
+        #address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv".format(i)
+        #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+        #print("i: " , i)
+        address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\test\delta_{}min.csv".format(i)
+        
+        casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes= i , number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+ 

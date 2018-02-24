@@ -10,9 +10,13 @@ import csv
 from DimensionReductionandBNStructureLearning import create_BN_model
 from DimensionReductionandBNStructureLearning import read_data_from_PCA_digitized_file
 from DimensionReductionandBNStructureLearning import discretization_equal_width_for_any_data
-from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani
+from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani, shift_data
 from DimensionReductionandBNStructureLearning import read_data_from_PCA_output_file
+
 from custom_classifiers import test_different_classifiers
+
+from pgmpy.estimators import BdeuScore, K2Score, BicScore
+
 
 from Abdollahi import bic
 
@@ -414,13 +418,6 @@ def kaggle_dataset():
     print(titanic.predict(dtest[["Survived", "Sex", "Pclass"]]))
     pgm_test(titanic, dtest, "PassengerId")
    
-def shift_data(data):
-    list_of_data = list(sorted(set(data)))
-    for item in list_of_data:
-        data[np.where(np.equal(data, item))] = list_of_data.index(item)
-        
-    #print(data)
-    return data    
     
     
 def disretization_Dr_Amirkhani(data):
@@ -508,88 +505,119 @@ def select_hyperparameters():
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
     details_of_each_repeat = []
-    max_validation_score = 0
+    max_validation_score = {'f1_score_micro': 0, 
+                              'f1_score_macro': 0,
+                              'f1_score_binary': 0,
+                              'precision' : 0,
+                              'recall' : 0,
+                              'accuracy' : 0
+                              }
     the_best_model = 0
     best_model_pd_test_set = 0
     best_delta = 0
     best_n = 0
-                
-    for repeat in range(0,1): # repaet the process of selecting hyperparameters
-        print("repeat: {}".format(repeat))
-        selected_delta = 1000#delta[random.randint(1,delta_length)]
-        selected_n = 5#random.randint(2,20)#41)# n is # of features in PCA
+          
+    feature_engineering_names = ["delta_no overlap" , "activity" , "activity and delta"]      
+    for repeat in range(2,41): # repaet the process of selecting hyperparameters
+        #print("repeat: {}".format(repeat))
+        selected_delta = delta[random.randint(1,delta_length)]
+        selected_n = random.randint(2,10)#41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+        #print("n = " , selected_n)
     
-        data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
+        #data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on bag of sensor events_based on activity\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
+        #data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on Bag of sensor events_no overlap\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
+        #data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
 
+        based_on_delta_no_overlap = r"C:\pgmpy\PCA on Bag of sensor events_no overlap\delta={}\PCA_n={}.csv".format(selected_delta , selected_n)
+        based_on_activity = r"C:\pgmpy\PCA on bag of sensor events_based on activity\PCA_n={}.csv".format(selected_n)
+        based_on_activity_and_delta = r"C:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={}\PCA_n={}.csv".format(selected_delta , selected_n)
+        #data = read_data_from_PCA_digitized_file(r"C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_" + str(selected_delta) + "min.csv")
+        #data = data[0:5000, :]
+        #print(data.shape)
         
-        #data = data[0:10000, :]
-        
-        for i in range(0,selected_n):# digitize each column seperately
+        addresses = [based_on_activity_and_delta]#based_on_delta_no_overlap]# , based_on_activity , based_on_activity_and_delta]
+        for data_address , feature_engineering_name in zip(addresses , feature_engineering_names):
             
-            feature_set_length = len(set(data[:,i]))
-            #print("column number: {}, number of states:{}".format(i, feature_set_length))
-            selected_bin = random.randint(2, 1000)#feature_set_length)
-            #print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
-            data[:,i] = digitize_Dr_Amirkhani(data[:,i], 20)# selected_bin)
-        
-        data = data.astype(int)
-        
-        #yadet bashe shuffle ro comment kardi
-        train_set, validation_set, test_set = partition_data(data, train_ratio = 80, validation_ratio = 10, test_ratio = 10)
-        column_names = ['c' + str(i) for i in range(selected_n)]
-        column_names.append('Person')
-        pd_train_set = pd.DataFrame(train_set , columns=column_names)
-        pd_validation_set = pd.DataFrame(validation_set , columns=column_names)
-        
-        #pd_validation_set = pd_validation_set[0:100]
-        resultlist = pd_validation_set['Person'].values
-        test = pd_validation_set.drop('Person', axis=1, inplace=False)
-        test_different_classifiers(train_features = pd_train_set.loc[:, pd_train_set.columns != 'Person'], train_target = pd_train_set[['Person']], test = pd_validation_set)
 
+            data = read_data_from_PCA_output_file(data_address)
+            
+            for i in range(0,selected_n):# digitize each column seperately
+                
+                feature_set_length = len(set(data[:,i]))
+                #print("column number: {}, number of states:{}".format(i, feature_set_length))
+                selected_bin = 10#random.randint(2, 1000)#feature_set_length)
+                #print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
+                data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
+            
+            data = data.astype(int)
+            
+            #np.savetxt(r"C:\pgmpy\PCA on Bag of sensor events\digitized\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + "_Bin=" + str(selected_bin) +".csv", 
+            #       data, delimiter=',' , fmt='%s')
+    
+            
+            #yadet bashe shuffle ro comment kardi
+            train_set, validation_set, test_set = partition_data(data, train_ratio = 80, validation_ratio = 10, test_ratio = 10)
+            column_names = ['c' + str(i) for i in range(selected_n)]
+            column_names.append('Person')
+            pd_train_set = pd.DataFrame(train_set , columns=column_names)
+            pd_validation_set = pd.DataFrame(validation_set , columns=column_names)
+            
+            #pd_validation_set = pd_validation_set[0:100]
+            resultlist = pd_validation_set['Person'].values
+            test = pd_validation_set.drop('Person', axis=1, inplace=False)
+            
+            for sc in [BicScore]:# , BdeuScore , K2Score]:
+                model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
         
-
-'''        
-        model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
-
-        print("Abd execution\n========================\n")
-        print(scores_abd , "\nlearning time: " , learning_time_abd , 
-              "\ntesting time: " , testing_time_abd)      
-       
-        #estimator , learning_time_adi = create_BN_model(pd_train_set)
-       
-        #validation_score_adi = pgm_test(estimator, pd_train_set, 'Person')
-        
-        pd_test_set = pd.DataFrame(test_set , columns=column_names)
-        
-        #print("adele execution:\n======================\n")
-        #print("learning time: " , learning_time_adi , 
-        #      "\nscores:" , validation_score_adi)
-
-        if scores_abd['f1_score_micro'] > max_validation_score:
+                #print(sc)
+                #print("Abd execution\n========================\n")
+                print( feature_engineering_name , scores_abd)# , "\nlearning time: " , learning_time_abd , 
+                    #"\ntesting time: " , testing_time_abd)      
+               
+                #estimator , learning_time_adi = create_BN_model(pd_train_set)
+               
+                #validation_score_adi = pgm_test(estimator, pd_train_set, 'Person')
+            
+                '''
+                pd_test_set = pd.DataFrame(test_set , columns=column_names)
+                resultlist = pd_test_set['Person'].values
+                test = pd_test_set.drop('Person', axis=1, inplace=False)
+                predicted = model.predict(test).values.ravel()
+                model_test_set_score = calculate_different_metrics(resultlist, predicted)
+                print("test set:")
+                print(model_test_set_score)
+                '''
+              
+        #print(scores_abd['f1_score_micro'])
+        #print( max_validation_score['f1_score_micro'])
+        if scores_abd['f1_score_micro'] > max_validation_score['f1_score_micro']:
             max_validation_score = scores_abd
             the_best_model = model
-            best_model_pd_test_set = pd_test_set
+            #best_model_pd_test_set = pd_test_set
             best_delta = selected_delta
             best_n = selected_n
     
         #print("validation_score: " , validation_score)
         details_of_each_repeat.append([selected_delta, selected_n, learning_time_abd , testing_time_abd , scores_abd , model])
         
-    
+    '''
     #test the best model with test set
     resultlist = best_model_pd_test_set['Person'].values
     test = best_model_pd_test_set.drop('Person', axis=1, inplace=False)
     predicted = the_best_model.predict(test).values.ravel()
     best_model_test_set_score = calculate_different_metrics(resultlist, predicted)
-    
+    '''
     print("=======Best Parameters:=======\n")
     print("best delta= " , best_delta , " best n: " , best_n)
-    print("best validation score:" , max_validation_score , "\n best test score: " , best_model_test_set_score)
+    print("best validation score:" , max_validation_score )#, "\n best test score: " , best_model_test_set_score)
         
     
     return (max_validation_score , the_best_model , best_model_pd_test_set, best_delta , best_n , details_of_each_repeat)
-'''
+    
+    return (0,0,0,0,0,0)
+
+
 def profiling():
     
     cProfile.run('re.compile("foo|bar")')
@@ -674,7 +702,7 @@ def test_create_BN_model_for_different_feature_numbers():
 
     for num_of_features in my_range:
         new_dest = dest + str(num_of_features) + ".csv"
-        test_create_BN_model(new_dest, delta = 15, n = num_of_features)
+        #test_create_BN_model(new_dest, delta = 15, n = num_of_features)
     
         feature_numbers[num_of_features-min_my_range] = num_of_features
         lt = test_create_BN_model(new_dest, delta = 15, n = num_of_features)
@@ -683,8 +711,15 @@ def test_create_BN_model_for_different_feature_numbers():
         
     plot_results(feature_numbers, learning_times, "#features", "learning_time")
     
-  
-     
+def the_best_validation():
+    '''
+    a combination of split data and k-fold cross validation
+    
+    '''
+    
+    
+    
+    
 if __name__ == '__main__':
     
     select_hyperparameters()
@@ -694,8 +729,16 @@ if __name__ == '__main__':
     #BN_for_discritized_data()
     #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
     #save_discritized_data_to_csv()
-    max_validation_score, the_best_model, best_model_pd_test_set,best_delta , best_n, details_of_each_repeat = select_hyperparameters()
+    '''
+    a = [1.5,2.5,3.5]
+    b = [1.5 , 2.5 , 50 , 100]
+    for i in [a,b]:
+        print(digitize_Dr_Amirkhani(i, n = 3))
+        print(digitize_Dr_Amirkhani(i, n = 4))
+    ''' 
     
+    #max_validation_score, the_best_model, best_model_pd_test_set,best_delta , best_n, details_of_each_repeat = select_hyperparameters()
+    select_hyperparameters()
     
     #test_with_iris_dataset()
     #save_discritized_data_to_csv()select_hyperparameters()

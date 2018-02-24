@@ -25,11 +25,12 @@ import pandas as pd
 import numpy as np
 #from pandas.core.resample import resample
 
-def bic(train,test,name,folder,resultlist,address):
+def bic(train,test, scoring_function, name, folder,resultlist,address):
     array=['Person']
     trainstart=time.time()
-    bic=BicScore(train)
-    hc=HillClimbSearch(train, scoring_method=bic)
+    #bic=BicScore(train)
+    sc = scoring_function(train)
+    hc=HillClimbSearch(train, scoring_method=sc)
     best_model=hc.estimate()
     print(best_model.edges())
 
@@ -52,10 +53,11 @@ def bic(train,test,name,folder,resultlist,address):
         flag=1
     elif(set(model.nodes())-set(array) == set(test.columns)):
         teststart=time.time()
+        #print(test)
         result=model.predict(test).values.ravel()
         testend=time.time()-teststart
         pred=list(result)
-        print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
+        #print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
     else:
         indicator=list(set(test.columns)-set(model.nodes()))
         print("indicator:\n" , indicator)
@@ -63,9 +65,10 @@ def bic(train,test,name,folder,resultlist,address):
         print(testchange)
 
         for f in range(len(indicator)):   
-            print(f)
+            #print(f)
             del testchange[indicator[f]]
-        print("after: \n" , testchange)
+        #print(testchange)
+        print("come in testchange***********************")
         teststart=time.time()
         result=model.predict(testchange).values.ravel()
         testend=time.time()-teststart
@@ -82,8 +85,15 @@ def bic(train,test,name,folder,resultlist,address):
         #WriteData(address+"bicpred\\",name+".xlsx",name,pred)
     else:
         fscore=accuracy=precision=recall=trainend=testend=0
+        scores = {'f1_score_micro': 0, 
+              'f1_score_macro': 0,
+              'f1_score_binary': 0,
+              'precision' : 0,
+              'recall' : 0,
+              'accuracy' : 0
+              }
       
-    print("fscore:" , fscore,"accuracy:" ,accuracy,"precision:" ,precision, "recall: ",recall)    
+    #print("fscore:" , fscore,"accuracy:" ,accuracy,"precision:" ,precision, "recall: ",recall)    
     return (model , scores ,  trainend, testend)
 
 def calculate_different_metrics(y_true , y_predicted):
@@ -158,7 +168,9 @@ if __name__ == "__main__":
     test = data[700:]
     resultlist = test['Person'].values
     test = test.drop('Person', axis=1, inplace=False)
-    model , scores , learning_time , testing_time = bic(train = train, test = test, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
+
+    #scores , learning_time = 
+    bic(train = train, test = test, scoring_function=BicScore , name = "model", 
+        folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
     
-    print(scores , learning_time , testing_time)
-    
+    #print(scores , learning_time)
