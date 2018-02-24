@@ -32,26 +32,18 @@ def bic(train,test,name,folder,resultlist,address):
     hc=HillClimbSearch(train, scoring_method=bic)
     best_model=hc.estimate()
     print(best_model.edges())
-<<<<<<< HEAD
-    edges=best_model.edges()
-=======
+
     #edges=[('c3', 'c2'), ('c3', 'c5'), ('c3', 'c1'), ('c3', 'Person'), ('Person', 'c2'), ('Person', 'c5'), ('Person', 'c1')]
     edges = best_model.edges()
->>>>>>> origin/master
     model=BayesianModel(edges)
     model.fit(train,estimator=BayesianEstimator, prior_type="BDeu")
     trainend=time.time()-trainstart
     
-<<<<<<< HEAD
-    for n in model.nodes():
-        print(model.get_cpds(n))
-        
-=======
+
     #for n in model.nodes():
     #    print(model.get_cpds(n))
         
 
->>>>>>> origin/master
     print("nodes", model.nodes())
     print("column", test.columns)
 
@@ -125,7 +117,7 @@ def calscore(result,predict):
 
 
 def read_Abdoolahi_data():
-    dest_file = r"C:\f5_0_10.csv"
+    dest_file = r"C:\f5_0_10_no_col.csv"
     
     with open(dest_file,'r') as dest_f:
         data_iter = csv.reader(dest_f, 
@@ -134,6 +126,7 @@ def read_Abdoolahi_data():
         data = [data for data in data_iter]
     
     
+    #print(data)
     numpy_result = np.asarray(data, dtype = np.int)
    
     _ , cols = numpy_result.shape
@@ -161,18 +154,11 @@ if __name__ == "__main__":
     
     #print(data)
     train = data[0:700] 
+    #print(train)
     test = data[700:]
-<<<<<<< HEAD
-    resultlist = test['res'].values
-    test = test.drop('res', axis=1, inplace=False)
-    bic(train = train, test = test, name = "model", 
-        folder = "Abdollahi", resultlist = resultlist, address = "E:\\")
-=======
     resultlist = test['Person'].values
     test = test.drop('Person', axis=1, inplace=False)
-    scores , learning_time = bic(train = train, test = test, name = "model", 
-        folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
+    model , scores , learning_time , testing_time = bic(train = train, test = test, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
     
-    print(scores , learning_time)
+    print(scores , learning_time , testing_time)
     
->>>>>>> origin/master
