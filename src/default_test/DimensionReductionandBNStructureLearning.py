@@ -446,25 +446,15 @@ def discretization_equal_frequency():
 
 def create_PCA_for_different_bag_of_sensor_events():
     
-<<<<<<< HEAD
-    for delta in [45]:#[75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
-=======
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
->>>>>>> origin/master
         
         directory = r'C:\pgmpy\PCA on Bag of sensor events\delta=' + str(delta)
         if not os.path.exists(directory):
             os.makedirs(directory)
         
-<<<<<<< HEAD
         base_save_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events'  + r'\delta=' + str(delta) + '\\'
         file_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\Bag of sensor events based on different deltas\bag_of_sensor_events_delta_' + str(delta) + 'min.csv'
         PCA_data_generation(file_address, base_save_address, remove_date_and_time = True, remove_activity_column=False)
-=======
-        base_save_address = r'C:\pgmpy\PCA on Bag of sensor events'  + r'\delta=' + str(delta) + '\\'
-        file_address = r'C:\pgmpy\Bag of sensor events based on different deltas\bag_of_sensor_events_delta_' + str(delta) + 'min.csv'
-        PCA_data_generation(file_address, base_save_address, remove_date_and_time = True)
->>>>>>> origin/master
         
 
 def test_discretization_on_different_PCA_data_files():  
