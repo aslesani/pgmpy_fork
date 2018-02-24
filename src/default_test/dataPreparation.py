@@ -673,7 +673,7 @@ def casas7_create_bag_of_sensor_events(deltaInMinutes , isSave):
     return all_features
     
 
-def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes , isSave):
+def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_entire_rows, isSave):
     '''
     1. The order of  features: sensor events (for each sensor on and off), 
                                Person,
@@ -691,7 +691,7 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes , isSave):
     #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
     f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
     
-    all_features = np.zeros((130337, 126), dtype= object )#np.str)1003 +1
+    all_features = np.zeros((number_of_entire_rows, 126), dtype= object )#np.str)1003 +1
         
     counter = -1
     
@@ -723,11 +723,12 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes , isSave):
             #print(converted_cells[125])
             
       
-        if counter < 130337:
+        if counter < number_of_entire_rows:
             all_features[counter] = converted_cells
         else:
             all_features = np.vstack([all_features,converted_cells])
         
+
     #seperate each person data in a list (-4 is the index of person column)
     person_IDs = list(set(all_features[: , -4]))
     #print(person_IDs)
@@ -789,11 +790,12 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes , isSave):
         #    all_features , delimiter=',' , fmt='%s')
         np.savetxt(r'C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_' + str(deltaInMinutes) + 'min.csv', 
             person_bag[0] , delimiter=',' , fmt='%s')
-     
+    
+    
     return person_bag[0]
 
 
-def casas7_create_bag_of_sensor_events_based_on_activity(isSave):
+def casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows, isSave):
     '''
     1. The order of  features: sensor events (for each sensor on and off), 
                                Person,
@@ -809,7 +811,7 @@ def casas7_create_bag_of_sensor_events_based_on_activity(isSave):
     #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
     f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
     
-    all_features = np.zeros((130337, 124), dtype= object )#np.str)1003 +1
+    all_features = np.zeros((number_of_entire_rows, 124), dtype= object )#np.str)1003 +1
         
     counter = -1
     
@@ -828,7 +830,7 @@ def casas7_create_bag_of_sensor_events_based_on_activity(isSave):
             print(converted_cells[123])
             
       
-        if counter < 130337:
+        if counter < number_of_entire_rows:
             all_features[counter] = converted_cells
         else:
             all_features = np.vstack([all_features,converted_cells])
@@ -905,7 +907,7 @@ def casas7_create_bag_of_sensor_events_based_on_activity(isSave):
     return person_bag[0]
 
 
-def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes , isSave):
+def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes, number_of_entire_rows , isSave):
     '''
     1. The order of  features: sensor events (for each sensor on and off), 
                                Person,
@@ -924,7 +926,7 @@ def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinute
     #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
     f = open( r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv","r")
     
-    all_features = np.zeros((130337, 127), dtype= object )#np.str)1003 +1
+    all_features = np.zeros((number_of_entire_rows, 127), dtype= object )#np.str)1003 +1
         
     counter = -1
     
@@ -959,7 +961,7 @@ def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinute
 
             
       
-        if counter < 130337:
+        if counter < number_of_entire_rows:
             all_features[counter] = converted_cells
         else:
             all_features = np.vstack([all_features,converted_cells])
