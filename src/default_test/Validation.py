@@ -12,6 +12,7 @@ from DimensionReductionandBNStructureLearning import read_data_from_PCA_digitize
 from DimensionReductionandBNStructureLearning import discretization_equal_width_for_any_data
 from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani
 from DimensionReductionandBNStructureLearning import read_data_from_PCA_output_file
+from custom_classifiers import test_different_classifiers
 
 from Abdollahi import bic
 
@@ -502,35 +503,6 @@ def iris_dicretization():
 
     #print(pd_data)
     #return pd_data
-<<<<<<< HEAD
-def read_Abdoolahi_data():
-    dest_file = r"D:\f5_0_10.csv"
-    
-    with open(dest_file,'r') as dest_f:
-        data_iter = csv.reader(dest_f, 
-                               delimiter = ',')#quotechar = '"')
-    
-        data = [data for data in data_iter]
-    
-    
-    numpy_result = np.asarray(data, dtype = np.int)
-   
-    _ , cols = numpy_result.shape
-    column_names = []
-
-    for names in range(1, cols):
-        column_names.append('c' + str(names))
-    column_names.append("res")  
-       
-    panda_result = pd.DataFrame(data=numpy_result , columns= column_names , dtype = np.int) 
-    
-    #print(panda_result.columns)
-    #print(panda_result)
-    
-    return panda_result
-=======
->>>>>>> origin/master
-
     
 def select_hyperparameters():
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
@@ -542,20 +514,16 @@ def select_hyperparameters():
     best_delta = 0
     best_n = 0
                 
-    for repeat in range(20): # repaet the process of selecting hyperparameters
+    for repeat in range(0,1): # repaet the process of selecting hyperparameters
         print("repeat: {}".format(repeat))
-        selected_delta = delta[random.randint(1,delta_length)]
-        selected_n = random.randint(2,20)#41)# n is # of features in PCA
+        selected_delta = 1000#delta[random.randint(1,delta_length)]
+        selected_n = 5#random.randint(2,20)#41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
     
-<<<<<<< HEAD
         data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")
 
-=======
-        data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
         
         #data = data[0:10000, :]
->>>>>>> origin/master
         
         for i in range(0,selected_n):# digitize each column seperately
             
@@ -577,7 +545,11 @@ def select_hyperparameters():
         #pd_validation_set = pd_validation_set[0:100]
         resultlist = pd_validation_set['Person'].values
         test = pd_validation_set.drop('Person', axis=1, inplace=False)
+        test_different_classifiers(train_features = pd_train_set.loc[:, pd_train_set.columns != 'Person'], train_target = pd_train_set[['Person']], test = pd_validation_set)
+
         
+
+'''        
         model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
 
         print("Abd execution\n========================\n")
@@ -617,7 +589,7 @@ def select_hyperparameters():
         
     
     return (max_validation_score , the_best_model , best_model_pd_test_set, best_delta , best_n , details_of_each_repeat)
-
+'''
 def profiling():
     
     cProfile.run('re.compile("foo|bar")')

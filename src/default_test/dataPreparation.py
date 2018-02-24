@@ -663,13 +663,10 @@ def casas7_create_bag_of_sensor_events(deltaInMinutes , isSave):
     #for i in range (1004):
         #print(all_features[i][-2])
     if isSave == True:
-<<<<<<< HEAD
+
         np.savetxt(r'C:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
-=======
         #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
         #    all_features , delimiter=',' , fmt='%s')
-        np.savetxt(r'C:\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
->>>>>>> origin/master
              all_features , delimiter=',' , fmt='%s')
         
     return all_features
@@ -926,10 +923,6 @@ if __name__ == '__main__':
     #replace_space_with_comma_in_file()
     #a = np.array([[1,2,3],[4,5,6],[0,0,1]]) 
     #a1 = a[a[:,-1].argsort()]
-<<<<<<< HEAD
-=======
-    
->>>>>>> origin/master
     for i in [30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         casas7_create_bag_of_sensor_events(deltaInMinutes=i , isSave= True)
     
