@@ -6,7 +6,6 @@ Created on September 02, 2017
 
 import numpy as np
 import pandas as pd
-import csv
 from DimensionReductionandBNStructureLearning import create_BN_model
 from DimensionReductionandBNStructureLearning import read_data_from_PCA_digitized_file
 from DimensionReductionandBNStructureLearning import discretization_equal_width_for_any_data
@@ -27,11 +26,7 @@ from sklearn import datasets
 from sklearn.utils import shuffle
 
 import cProfile
-import re
 
-
-from pgmpy.inference import BeliefPropagation
-from pgmpy.inference import VariableElimination
 
 from pgmpy.models import BayesianModel
 from pgmpy.estimators import BayesianEstimator
@@ -39,21 +34,20 @@ from pgmpy.estimators import BayesianEstimator
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import f1_score
 
-import time
-from DimensionReductionandBNStructureLearning import create_BN_model_using_BayesianEstimator
 from pandas.core.frame import DataFrame
 from builtins import int
-from numpy import dtype
-from msilib import Feature
 from sklearn.metrics.classification import precision_score, recall_score,\
     accuracy_score
+from numba.tests.npyufunc.test_ufunc import dtype
 
 
 def partition_data(data, train_ratio, validation_ratio, test_ratio):
     '''
     partition data to train, validation and test sets according to proportion
+   
     Parameters:
-    data:
+    ===========
+    data: numpy ndarray
     train_ratio, validation_ratio, test_ratio: the % of each set (a number less than 100)
     
     '''
@@ -72,10 +66,6 @@ def partition_data(data, train_ratio, validation_ratio, test_ratio):
     
     return(train_set, validation_set, test_set)
 
-def test_estimator(estimator_model , testset, inference_object):
-    '''
-    get a pgm model and test it on testset
-    '''
     
     
 def kfoldcrossvalidationForBNModelUsingNumpy(k , data, target_column_name, scoring='f1_micro' ):  
@@ -218,7 +208,62 @@ def kfoldcrossvalidationForBNModel_UsingPanda(k , data, target_column_name, scor
     print("scores:{}".format(scores))
     return scores.mean()# , learning_time  
 
+def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_column_name ):  
+    '''
     
+    the function is used for creating and testing the models. models are created by Abd function
+    
+    Parameters:
+    -------
+    k: the value of k in k-fold
+    data: numpy ndarray
+          
+    #scoring: the scoring method , default value:'f1_micro'
+    
+    Returns
+    -------
+    scores: a vector of scores, the length of the vector is k.
+    
+    ''' 
+    data_length , data_features = np.shape(data)
+    #print(data_features)
+    #print("data_length: {}".format(data_length))
+    part_length = int(data_length / k)
+    
+    #p = np.zeros((k, part_length, data_features), dtype= np.int)
+    #print(np.shape(p))
+    partition = np.zeros(k , dtype = pd.DataFrame)#pd.DataFrame(p , columns=['1','2','3','4'])
+    
+    index = 0
+    
+    # the last k is partitioned manually, because maybe the data_length was not devided on k
+    for i in range(0, k): 
+        end = (i+1) * part_length
+        print("index:{}, end: {}".format(index, end))
+        partition[i] = pd.DataFrame(data[index:end] , dtype = np.int, columns = data_column_names)
+        index = end
+    
+    scores = np.zeros(k , dtype = np.object)
+    
+    for i in range(0,k):
+        validation_set = partition[i]
+        train_set =  np.delete(partition, i, 0)  
+        train_set = pd.concat(train_set)#[partition(p) for p in len(train_set)]
+        #print(type(test_set))
+        #validation_set = pd.DataFrame(test_set , columns=data_column_names)    
+        resultlist = validation_set[target_column_name].values
+        test_final = validation_set.drop(target_column_name, axis=1, inplace=False)
+        
+        print(train_set)
+        print(test_final)
+        
+        
+        _ , scores[i], _ , _ = bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        
+        
+    return scores    
+    
+
 def pgm_test(estimator, test_set, target_column_name):
     '''
     test the pgm model. the model is trained by a train_set. 
@@ -568,6 +613,124 @@ def select_hyperparameters():
             test = pd_validation_set.drop('Person', axis=1, inplace=False)
             
             for sc in [BicScore]:# , BdeuScore , K2Score]:
+                #model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
+                model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, resultlist = resultlist)
+
+                #print(sc)
+                #print("Abd execution\n========================\n")
+                print( feature_engineering_name , scores_abd)# , "\nlearning time: " , learning_time_abd , 
+                    #"\ntesting time: " , testing_time_abd)      
+               
+                #estimator , learning_time_adi = create_BN_model(pd_train_set)
+               
+                #validation_score_adi = pgm_test(estimator, pd_train_set, 'Person')
+            
+                '''
+                pd_test_set = pd.DataFrame(test_set , columns=column_names)
+                resultlist = pd_test_set['Person'].values
+                test = pd_test_set.drop('Person', axis=1, inplace=False)
+                predicted = model.predict(test).values.ravel()
+                model_test_set_score = calculate_different_metrics(resultlist, predicted)
+                print("test set:")
+                print(model_test_set_score)
+                '''
+              
+        #print(scores_abd['f1_score_micro'])
+        #print( max_validation_score['f1_score_micro'])
+        if scores_abd['f1_score_micro'] > max_validation_score['f1_score_micro']:
+            max_validation_score = scores_abd
+            the_best_model = model
+            #best_model_pd_test_set = pd_test_set
+            best_delta = selected_delta
+            best_n = selected_n
+    
+        #print("validation_score: " , validation_score)
+        details_of_each_repeat.append([selected_delta, selected_n, learning_time_abd , testing_time_abd , scores_abd , model])
+        
+    '''
+    #test the best model with test set
+    resultlist = best_model_pd_test_set['Person'].values
+    test = best_model_pd_test_set.drop('Person', axis=1, inplace=False)
+    predicted = the_best_model.predict(test).values.ravel()
+    best_model_test_set_score = calculate_different_metrics(resultlist, predicted)
+    '''
+    print("=======Best Parameters:=======\n")
+    print("best delta= " , best_delta , " best n: " , best_n)
+    print("best validation score:" , max_validation_score )#, "\n best test score: " , best_model_test_set_score)
+        
+    
+    return (max_validation_score , the_best_model , best_model_pd_test_set, best_delta , best_n , details_of_each_repeat)
+    
+    return (0,0,0,0,0,0)
+
+
+def select_hyperparameters_with_hillclimb_strategy_and_split_train_test():
+    
+    delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
+    delta_length = len(delta)-1
+    details_of_each_repeat = []
+    max_validation_score = {'f1_score_micro': 0.0, 
+                              'f1_score_macro': 0.0,
+                              'f1_score_binary': 0.0,
+                              'precision' : 0.0,
+                              'recall' : 0.0,
+                              'accuracy' : 0.0
+                              }
+    the_best_model = 0
+    best_model_pd_test_set = 0
+    best_delta = 0
+    best_n = 0
+          
+    feature_engineering_names = ["delta_no overlap" , "activity" , "activity and delta"]      
+    for repeat in range(2,41): # repaet the process of selecting hyperparameters
+        #print("repeat: {}".format(repeat))
+        selected_delta = delta[random.randint(1,delta_length)]
+        selected_n = random.randint(2,10)#41)# n is # of features in PCA
+        print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+        #print("n = " , selected_n)
+    
+        #data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on bag of sensor events_based on activity\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
+        #data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on Bag of sensor events_no overlap\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
+        #data = read_data_from_PCA_output_file(r"C:\pgmpy\PCA on Bag of sensor events\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + ".csv")#r"C:\f5_0_10.csv")
+
+        based_on_delta_no_overlap = r"C:\pgmpy\PCA on Bag of sensor events_no overlap\delta={}\PCA_n={}.csv".format(selected_delta , selected_n)
+        based_on_activity = r"C:\pgmpy\PCA on bag of sensor events_based on activity\PCA_n={}.csv".format(selected_n)
+        based_on_activity_and_delta = r"C:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={}\PCA_n={}.csv".format(selected_delta , selected_n)
+        #data = read_data_from_PCA_digitized_file(r"C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_" + str(selected_delta) + "min.csv")
+        #data = data[0:5000, :]
+        #print(data.shape)
+        
+        addresses = [based_on_activity_and_delta]#based_on_delta_no_overlap]# , based_on_activity , based_on_activity_and_delta]
+        for data_address , feature_engineering_name in zip(addresses , feature_engineering_names):
+            
+            data = read_data_from_PCA_output_file(data_address)
+            
+            for i in range(0,selected_n):# digitize each column seperately
+                
+                feature_set_length = len(set(data[:,i]))
+                #print("column number: {}, number of states:{}".format(i, feature_set_length))
+                selected_bin = 10#random.randint(2, 1000)#feature_set_length)
+                #print("feature_set_length:{}, selected_bin:{}".format(feature_set_length, selected_bin))
+                data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
+            
+            data = data.astype(int)
+            
+            #np.savetxt(r"C:\pgmpy\PCA on Bag of sensor events\digitized\delta=" + str(selected_delta) + "\PCA_n=" + str(selected_n) + "_Bin=" + str(selected_bin) +".csv", 
+            #       data, delimiter=',' , fmt='%s')
+    
+            
+            #yadet bashe shuffle ro comment kardi
+            train_set, validation_set, test_set = partition_data(data, train_ratio = 80, validation_ratio = 10, test_ratio = 10)
+            column_names = ['c' + str(i) for i in range(selected_n)]
+            column_names.append('Person')
+            pd_train_set = pd.DataFrame(train_set , columns=column_names)
+            pd_validation_set = pd.DataFrame(validation_set , columns=column_names)
+            
+            #pd_validation_set = pd_validation_set[0:100]
+            resultlist = pd_validation_set['Person'].values
+            test = pd_validation_set.drop('Person', axis=1, inplace=False)
+            
+            for sc in [BicScore]:# , BdeuScore , K2Score]:
                 model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
         
                 #print(sc)
@@ -711,71 +874,50 @@ def test_create_BN_model_for_different_feature_numbers():
         
     plot_results(feature_numbers, learning_times, "#features", "learning_time")
     
-def the_best_validation():
+def the_best_validation_strategy(data, data_column_names, target_column_name):
     '''
     a combination of split data and k-fold cross validation
+    Imagine the final  test set is seperated and the final train set is available. 
+    Our validation approach split the data to validation and test set (90% and 10%)
+    and then apply 10-fold cross validation on validation set.
+    
+    Parameters:
+    =========== 
+    data: numpy ndarray
     
     '''
     
+    _ , validation_set , test_set =  partition_data(data, train_ratio = 0, validation_ratio = 90, test_ratio = 10)
     
+    final_scores = kfoldcrossvalidation_for_abd_function(k = 10, data = validation_set, data_column_names = data_column_names, target_column_name = target_column_name)
+    print(final_scores)
+
+
+def test_the_best_validation_strategy():
     
+    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta=1000\PCA_n=10.csv"
+    data = read_data_from_PCA_output_file(data_address)
+    _ , cols = np.shape(data)
+    for i in range(0,cols-1):# digitize each column seperately
+        selected_bin = 10#random.randint(2, 1000)#feature_set_length)
+        data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
+   
+    data = data.astype(int)
+
+    data_column_names = ['c' + str(i) for i in range(cols-1)]
+    data_column_names.append('Person')
+    
+    #print(data_column_names)
+    #print(data[0:10,:])
+    target_column_name = 'Person'
+    
+    the_best_validation_strategy(data = data, data_column_names = data_column_names, target_column_name = target_column_name)
     
 if __name__ == '__main__':
     
-    select_hyperparameters()
-   # test_create_BN_model_for_different_feature_numbers()
-    #test_create_BN_model(r'C:\dataset\casas7_dataset\delta=15\PCA_n=40.csv')
-    #create_model_for_different_sample_size()
-    #BN_for_discritized_data()
-    #plot_results([1,2,3,4], y_values = [1,4,9,16], x_label = "x", y_label = "y")
-    #save_discritized_data_to_csv()
-    '''
-    a = [1.5,2.5,3.5]
-    b = [1.5 , 2.5 , 50 , 100]
-    for i in [a,b]:
-        print(digitize_Dr_Amirkhani(i, n = 3))
-        print(digitize_Dr_Amirkhani(i, n = 4))
-    ''' 
-    
-    #max_validation_score, the_best_model, best_model_pd_test_set,best_delta , best_n, details_of_each_repeat = select_hyperparameters()
-    select_hyperparameters()
-    
-    #test_with_iris_dataset()
-    #save_discritized_data_to_csv()select_hyperparameters()
-    #data = iris_dicretization_Dr_Amirkhani()
-    '''data = read_data_from_PCA_digitized_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv")
-    #data = data[0:300 ,:]# data.iloc[0:1500 ,:]
-    print("before")
-    for i in range(data.shape[1]):
-        print(set(data[: , i]))
-        
-    data = disretization_Dr_Amirkhani(data)
-    print("after")
-    for i in range(data.shape[1]):
-        print(set(data.iloc[: , i]))
-    '''
-    
-    #cProfile.run('re.compile("kfoldcrossvalidationForBNModel_UsingPanda|10, data, target_column_name = "Person", scoring = "f1_micro"")')
-    #data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=100\PCA_n=6.csv")
-    
-    #train_set = disretization_Dr_Amirkhani(data[0:2500, :])
-    #print(train_set)
-    '''
-    iris = datasets.load_iris()
-    data = iris.data
-    target = iris.target
-    target.shape = (150,1)
-    data = disretization_Dr_Amirkhani(np.concatenate((data, target), axis=1))
-    data = data.values
-    
-    train_set, validation_set, test_set = partition_data(data, train_ratio = 60, validation_ratio = 20, test_ratio = 20)
-    train_set = pd.DataFrame(train_set , columns=['c1','c2','c3','c4' , 'Person'])
-    
-    pr = cProfile.Profile()
-    pr.enable()
-    estimator , learning_time = create_BN_model(train_set)
-    
+
     #print(kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro"))#data.iloc[0:100 ,:]
+    '''
     pr.disable()
     pr.print_stats(sort='time')
     print("learning_time:{}".format(learning_time))
@@ -784,10 +926,6 @@ if __name__ == '__main__':
     a = read_Abdoolahi_data()
     train , validtion , test = partition_data(a, train_ratio = 60, validation_ratio = 20, test_ratio = 20) 
     estimator , _ = create_BN_model(train)
-<<<<<<< HEAD
     result = pgm_test(estimator, test_set = validation, target_column_name = 'Person')
     print(result)
-=======
-    result = pgm_test(estimator, test_set = validtion, target_column_name = 'Person' )  
->>>>>>> origin/master
     '''

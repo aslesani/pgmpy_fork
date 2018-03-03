@@ -22,6 +22,7 @@ import time
 #from numpy import dtype
 #from h5py._hl.datatype import Datatype
 import os.path
+from numpy.core.numeric import False_
 #from default_test.parameter_learning_of_Aras_data import prior_type
 
 feature_names = ["M01", "M02", "M03", "M04" , "M05" , "M06" , "M07" , "M08" , "M09" , "M10"
@@ -63,20 +64,7 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
     sensor_data = np.delete(sensor_data ,-1 , 1) # remove the Person column
     for i in range(2,41):#cols):
         pca = PCA(n_components=i)
-        #pca.fit(data)
-        #end_time = time.time()
-        #print("PCA execution time in seconds:{}".format(end_time-start_time))
-        '''
-        print("explained_variance_:")
-        print(pca.explained_variance_)
-        print("explained_variance_ratio_:")
-        print(pca.explained_variance_ratio_)
-        print("pca.components_:")
-        print(pca.components_)
-        print("pca.n_components_:")
-        print(pca.n_components_)
-        '''
-        #print(pca.components_.shape)
+        
         
         data_new = pca.fit_transform(sensor_data) #Fit the model with X and apply the dimensionality reduction on X.
         # Ù¾Ø³ Ù�ÛŒØª Ù�Ù‚Ø· Ø§Ø¹Ù…Ø§Ù„ Ù…ÛŒ Ú©Ù†Ø¯ ÙˆÙ„ÛŒ Ø±ÙˆÛŒ Ø¯Ø§Ø¯Ù‡ Ú©Ø§Ø±ÛŒ Ù†Ù…ÛŒ Ú©Ù†Ø¯. Ø¸Ø§Ù‡Ø±Ø§ Ù�Ù‚Ø· Ù…Ù‚Ø§Ø¯ÛŒØ± ÙˆÛŒÚ˜Ù‡ Ø±Ø§ Ù…ÛŒ ÛŒØ§Ø¨Ø¯. 
@@ -89,6 +77,65 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
         
         np.savetxt(dest, np.concatenate((data_new, target), axis=1), delimiter=',' , fmt='%s')
     
+
+def PCA_data_generation_on_separated_train_and_test(file_address,base_address_to_save, remove_date_and_time , remove_activity_column, test_file_address, base_address_of_test_file_to_save):
+    '''
+    Parameter:
+    =========
+    file_address:
+    base_address_to_save:
+    remove_date_and_time: if is true, the time and date columns are removed
+    remove_activity_column: if is true, the activity/work column is removed
+    '''
+    
+    sensor_data = read_data_from_file(file_address, np.int, remove_date_and_time)
+    test_data = read_data_from_file(test_file_address, np.int, remove_date_and_time)
+    print(sensor_data)#:, -1])
+
+    
+    if remove_activity_column == True:
+        sensor_data = np.delete(sensor_data ,-1 , 1)
+        test_data = np.delete(test_data ,-1 , 1)
+    
+    train_rows , train_cols = np.shape(sensor_data)
+    train_target = np.zeros((train_rows, 1), dtype= int )
+    
+    for ind in range(train_rows):
+        train_target[ind][0] = sensor_data[ind,-1] # person number is considered as class
+   
+   
+    test_rows , test_cols = np.shape(test_data)
+    test_target = np.zeros((test_rows, 1), dtype= int )
+    for ind in range(test_rows):
+        test_target[ind][0] = test_data[ind , -1]
+    
+    
+    sensor_data = np.delete(sensor_data ,-1 , 1) # remove the Person column
+    test_data = np.delete(test_data ,-1 , 1) # remove the Person column
+
+    for i in range(2,41):#cols):
+        pca = PCA(n_components=i)
+        
+        
+        train_data_new = pca.fit_transform(sensor_data) #Fit the model with X and apply the dimensionality reduction on X.
+        print(train_data_new.shape)
+        print(train_target.shape)
+        dest = base_address_to_save + 'PCA_n=' + str(i) +'.csv'
+        print(dest)
+        
+        np.savetxt(dest, np.concatenate((train_data_new, train_target), axis=1), delimiter=',' , fmt='%s')
+        
+        #transform test data
+        print(sensor_data.shape)
+        print(test_data.shape)
+        test_data_new = pca.transform(test_data)
+        test_dest = base_address_of_test_file_to_save + 'PCA_n=' + str(i) +'.csv'
+        print(test_dest)
+        
+        np.savetxt(test_dest, np.concatenate((test_data_new, test_target), axis=1), delimiter=',' , fmt='%s')
+
+        
+
 
 def create_BN_model(data): 
     '''
@@ -468,18 +515,26 @@ def discretization_equal_frequency():
     pass
 
 
-def create_PCA_for_different_bag_of_sensor_events():
+def create_PCA_for_different_bag_of_sensor_events_no_overlap():
     
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
-        directory = r'C:\pgmpy\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        train_directory_for_save = r'C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta=' + str(delta)
+        test_directory_for_save = r'C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\test\delta=' + str(delta)
+        for directory in [train_directory_for_save , test_directory_for_save]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
         
-        base_save_address = directory + '\\'
-        file_address = r'C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_' + str(delta) + 'min.csv'
-        PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= False)
+        train_directory_for_save = train_directory_for_save + '\\'
+        test_directory_for_save = test_directory_for_save + '\\'
         
+        train_file_address = r'C:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv'.format(delta)
+        test_file_address = r'C:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\test\delta_{}min.csv'.format(delta)
+
+
+        PCA_data_generation_on_separated_train_and_test(file_address = train_file_address, base_address_to_save = train_directory_for_save, remove_date_and_time = False, remove_activity_column = False, test_file_address = test_file_address, base_address_of_test_file_to_save = test_directory_for_save)
+
+
 
 
 
@@ -487,25 +542,41 @@ def create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta():
     
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
-        directory = r'C:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta=' + str(delta)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        train_directory_for_save = r'C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta=' + str(delta)
+        test_directory_for_save = r'C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\test\delta=' + str(delta)
+        for directory in [train_directory_for_save , test_directory_for_save]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
         
 
-        base_save_address = directory + '\\'
-        file_address = r'C:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_' + str(delta) + 'min.csv'
-        PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= True)
+        train_directory_for_save = train_directory_for_save + '\\'
+        test_directory_for_save = test_directory_for_save + '\\'
+        
+        train_file_address = r'C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv'.format(delta)
+        test_file_address = r'C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\test\delta_{}min.csv'.format(delta)
+
+
+        PCA_data_generation_on_separated_train_and_test(file_address = train_file_address, base_address_to_save = train_directory_for_save, remove_date_and_time = False, remove_activity_column = True, test_file_address = test_file_address, base_address_of_test_file_to_save = test_directory_for_save)
 
 
 def create_PCA_for_bag_of_sensor_events_based_on_activities():
 
         
-    base_save_address = r'C:\pgmpy\PCA on bag of sensor events_based on activity\\'
-    file_address = r'C:\pgmpy\Bag of sensor events_based on activities.csv'
+    train_directory_for_save = r'C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train'
+    test_directory_for_save = r'C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\test'
+    for directory in [train_directory_for_save , test_directory_for_save]:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+    train_directory_for_save = train_directory_for_save + '\\'
+    test_directory_for_save = test_directory_for_save + '\\'
     
-    PCA_data_generation(file_address, base_save_address, remove_date_and_time = False , remove_activity_column= True) # because there is not
+    train_file_address = r'C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv'
+    test_file_address = r'C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\test\based_on_activities.csv'
+    
+    PCA_data_generation_on_separated_train_and_test(file_address = train_file_address, base_address_to_save = train_directory_for_save, remove_date_and_time = False, remove_activity_column = True, test_file_address = test_file_address, base_address_of_test_file_to_save = test_directory_for_save)
 
-
+    
 
 def test_discretization_on_different_PCA_data_files():  
     base_address = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events"
@@ -530,13 +601,15 @@ def test_discretization_on_different_PCA_data_files():
         
 if __name__ == "__main__":
     
-    create_PCA_for_different_bag_of_sensor_events()
+    #create_PCA_for_different_bag_of_sensor_events()
     #create_BN_model()
     #myData = np.genfromtxt(dest_file , dtype=object,delimiter = ',')#, names=False)
     #PCA_data_generation(dest_file)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
-    create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
+    #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
+    create_PCA_for_different_bag_of_sensor_events_no_overlap()
+    #create_PCA_for_bag_of_sensor_events_based_on_activities()
     #create_PCA_for_different_bag_of_sensor_events()
     #print(shift_data(np.array([1,9])))
     #test_discretization_on_different_PCA_data_files()

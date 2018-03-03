@@ -25,7 +25,7 @@ import pandas as pd
 import numpy as np
 #from pandas.core.resample import resample
 
-def bic(train,test, scoring_function, name, folder,resultlist,address):
+def bic(train,test, scoring_function,resultlist):
     array=['Person']
     trainstart=time.time()
     #bic=BicScore(train)
