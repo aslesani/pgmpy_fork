@@ -1321,5 +1321,5 @@ if __name__ == '__main__':
         #print("i: " , i)
         address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\test\delta_{}min.csv".format(i)
         
-        casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes= i , number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+        casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes= i , number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
  
