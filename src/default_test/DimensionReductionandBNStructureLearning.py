@@ -510,7 +510,73 @@ def digitize_Dr_Amirkhani(a, n):
         
     return b
 
+def digitize_dataset(data_address, selected_bin, address_to_save):
+    
+    '''
+    digitize a dataset based on selected_bin
+    the source data file is an exported  PCA file
+    
+    Parameters:
+    ===========
+    data_address:
+    selected_bin:
+    address_to_save: 
+    
+    '''
+    
+    data = read_data_from_PCA_output_file(data_address)
+    _ , cols = np.shape(data)
+    
+    for i in range(0,cols-1):# digitize each column seperately
+        data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
+   
+    data = data.astype(int)
+    
+    np.savetxt(address_to_save, data , delimiter=',' , fmt='%s')
+    
 
+def test_digitize_dataset():
+    
+    base_file_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\test\delta={}\PCA_n={}.csv"
+    address_to_save = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\test\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
+  
+   
+    selected_bin = 10
+    
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#
+        for n in range(2,41):
+            
+            base = base_file_address.format(delta , n)
+            save = address_to_save.format(delta ,selected_bin )
+            
+            
+            if not os.path.exists(save):
+                os.makedirs(save)
+                
+            save = save + r"\PCA_n=" + str(n) + ".csv"
+            digitize_dataset(data_address = base, selected_bin = selected_bin, address_to_save = save)
+
+    
+def test_digitize_dataset_based_on_activity():
+    
+    base_file_address = r"C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\PCA_n={}.csv"
+    address_to_save = r"C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\digitize_bin_{}"#\PCA_n={}.csv"
+  
+    selected_bin = 10
+    
+    for n in range(2,41):
+        
+        base = base_file_address.format(n)
+        save = address_to_save.format(selected_bin )
+        
+        
+        if not os.path.exists(save):
+            os.makedirs(save)
+            
+        save = save + r"\PCA_n=" + str(n) + ".csv"
+        digitize_dataset(data_address = base, selected_bin = selected_bin, address_to_save = save)
+
+    
 def discretization_equal_frequency():
     pass
 
@@ -605,7 +671,8 @@ if __name__ == "__main__":
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
-    create_PCA_for_different_bag_of_sensor_events_no_overlap()
+    #create_PCA_for_different_bag_of_sensor_events_no_overlap()
+    test_digitize_dataset_based_on_activity()
     #create_PCA_for_bag_of_sensor_events_based_on_activities()
     #create_PCA_for_different_bag_of_sensor_events()
     #print(shift_data(np.array([1,9])))
