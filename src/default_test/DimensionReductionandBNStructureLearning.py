@@ -537,10 +537,16 @@ def digitize_dataset(data_address, selected_bin, address_to_save):
 
 def test_digitize_dataset():
     
-    base_file_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\test\delta={}\PCA_n={}.csv"
-    address_to_save = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\test\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
+    '''
+    just for digitizing 2 feature engineering methods: (no overlap and activity + delta)
+    both train and test
+    '''
+    base_file_address_activity_and_delta = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\{}\delta={}\PCA_n={}.csv"
+    address_to_save_activity_and_delta = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\{}\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
   
-   
+    base_file_address_no_overlap = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\{}\delta={}\PCA_n={}.csv"
+    address_to_save_no_overlap = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\{}\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
+  
     selected_bin = 10
     
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#
@@ -562,7 +568,7 @@ def test_digitize_dataset_based_on_activity():
     base_file_address = r"C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\PCA_n={}.csv"
     address_to_save = r"C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\digitize_bin_{}"#\PCA_n={}.csv"
   
-    selected_bin = 10
+    selected_bin = 200
     
     for n in range(2,41):
         
