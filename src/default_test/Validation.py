@@ -236,7 +236,7 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     # the last k is partitioned manually, because maybe the data_length was not devided on k
     for i in range(0, k): 
         end = (i+1) * part_length
-        print("index:{}, end: {}".format(index, end))
+        #print("index:{}, end: {}".format(index, end))
         partition[i] = pd.DataFrame(data[index:end] , dtype = np.int, columns = data_column_names)
         index = end
     
@@ -251,8 +251,8 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
         resultlist = validation_set[target_column_name].values
         test_final = validation_set.drop(target_column_name, axis=1, inplace=False)
         
-        print("train_set:\n" , train_set)
-        print("test_final:\n" , test_final)
+        #print("train_set:\n" , train_set)
+        #print("test_final:\n" , test_final)
         
         
         _ , scores[i], _ , _ = bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
@@ -562,7 +562,7 @@ def select_hyperparameters():
           
     feature_engineering_names = ["delta_no overlap" , "activity" , "activity and delta"]      
     for repeat in range(2,41): # repaet the process of selecting hyperparameters
-        #print("repeat: {}".format(repeat))
+        print("repeat: {}".format(repeat))
         selected_delta = delta[random.randint(1,delta_length)]
         selected_n = random.randint(2,10)#41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
@@ -873,7 +873,7 @@ def test_create_BN_model_for_different_feature_numbers():
 def the_best_validation_strategy(data, data_column_names, target_column_name):
     '''
     a combination of split data and k-fold cross validation
-    Imagine the final  test set is seperated and the final train set is available. 
+    Imagine the final  test set is separated and the final train set is available. 
     Our validation approach split the data to validation and test set (90% and 10%)
     and then apply 10-fold cross validation on validation set.
     
@@ -892,7 +892,7 @@ def the_best_validation_strategy(data, data_column_names, target_column_name):
 def test_the_best_validation_strategy():
     
     #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta=1000\PCA_n=10.csv"
-    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta=1000\PCA_n=10.csv"
+    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta=1000\digitize_bin_10\PCA_n=10.csv"
     data = read_data_from_PCA_digitized_file(data_address)
     
     _ , cols = np.shape(data)
@@ -907,7 +907,7 @@ def test_the_best_validation_strategy():
     
 if __name__ == '__main__':
     
-    #select_hyperparameters()
-    test_the_best_validation_strategy()
+    select_hyperparameters()
+    #test_the_best_validation_strategy()
     #cProfile.run('re.compile("kfoldcrossvalidationForBNModel_UsingPanda|10, data, target_column_name = "Person", scoring = "f1_micro"")')
     
