@@ -254,8 +254,8 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
         resultlist = validation_set[target_column_name].values
         test_final = validation_set.drop(target_column_name, axis=1, inplace=False)
         
-        print(train_set)
-        print(test_final)
+        print("train_set:\n" , train_set)
+        print("test_final:\n" , test_final)
         
         
         _ , scores[i], _ , _ = bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
@@ -895,15 +895,11 @@ def the_best_validation_strategy(data, data_column_names, target_column_name):
 
 def test_the_best_validation_strategy():
     
-    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta=1000\PCA_n=10.csv"
-    data = read_data_from_PCA_output_file(data_address)
+    #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta=1000\PCA_n=10.csv"
+    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta=1000\PCA_n=10.csv"
+    data = read_data_from_PCA_digitized_file(data_address)
+    
     _ , cols = np.shape(data)
-    for i in range(0,cols-1):# digitize each column seperately
-        selected_bin = 10#random.randint(2, 1000)#feature_set_length)
-        data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
-   
-    data = data.astype(int)
-
     data_column_names = ['c' + str(i) for i in range(cols-1)]
     data_column_names.append('Person')
     
