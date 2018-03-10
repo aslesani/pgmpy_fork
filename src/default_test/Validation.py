@@ -915,7 +915,7 @@ def test_the_best_validation_strategy():
     
 if __name__ == '__main__':
     
-
+    test_the_best_validation_strategy()
     #print(kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro"))#data.iloc[0:100 ,:]
     '''
     pr.disable()
