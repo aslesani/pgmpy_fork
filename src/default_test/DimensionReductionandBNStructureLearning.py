@@ -23,6 +23,7 @@ import time
 #from h5py._hl.datatype import Datatype
 import os.path
 from numpy.core.numeric import False_
+from numpy import string_
 #from default_test.parameter_learning_of_Aras_data import prior_type
 
 feature_names = ["M01", "M02", "M03", "M04" , "M05" , "M06" , "M07" , "M08" , "M09" , "M10"
@@ -319,6 +320,7 @@ def read_data_from_PCA_output_file(dest_file):
     array: numpy 2d array
     
     '''
+    print(dest_file)
     with open(dest_file,'r') as dest_f:
         data_iter = csv.reader(dest_f, 
                                delimiter = ',')#quotechar = '"')
@@ -535,7 +537,7 @@ def digitize_dataset(data_address, selected_bin, address_to_save):
     np.savetxt(address_to_save, data , delimiter=',' , fmt='%s')
     
 
-def test_digitize_dataset():
+def test_digitize_dataset_for_feature_enginnering_with_delta():
     
     '''
     just for digitizing 2 feature engineering methods: (no overlap and activity + delta)
@@ -547,20 +549,26 @@ def test_digitize_dataset():
     base_file_address_no_overlap = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\{}\delta={}\PCA_n={}.csv"
     address_to_save_no_overlap = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\{}\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
   
-    selected_bin = 10
+    selected_bin = 20
+    
+    list_of_base_addresses = [base_file_address_activity_and_delta , base_file_address_no_overlap]
+    list_of_save_addresses = [address_to_save_activity_and_delta , address_to_save_no_overlap]
+    base = np.zeros(len(list_of_base_addresses) , dtype = object)
+    save = np.zeros(len(list_of_save_addresses) , dtype = object)
+          
     
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#
         for n in range(2,41):
+              
+            for b , s ,i in zip(list_of_base_addresses, list_of_save_addresses , range(len(list_of_base_addresses))) :
+                base[i] = b.format('train', delta , n)
+                save[i] = s.format('train', delta ,selected_bin )
             
-            base = base_file_address.format(delta , n)
-            save = address_to_save.format(delta ,selected_bin )
-            
-            
-            if not os.path.exists(save):
-                os.makedirs(save)
+                if not os.path.exists(save[i]):
+                    os.makedirs(save[i])
                 
-            save = save + r"\PCA_n=" + str(n) + ".csv"
-            digitize_dataset(data_address = base, selected_bin = selected_bin, address_to_save = save)
+                save[i] = save[i] + r"\PCA_n=" + str(n) + ".csv"
+                digitize_dataset(data_address = base[i], selected_bin = selected_bin, address_to_save = save[i])
 
     
 def test_digitize_dataset_based_on_activity():
@@ -678,7 +686,7 @@ if __name__ == "__main__":
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
-    test_digitize_dataset_based_on_activity()
+    test_digitize_dataset_for_feature_enginnering_with_delta()
     #create_PCA_for_bag_of_sensor_events_based_on_activities()
     #create_PCA_for_different_bag_of_sensor_events()
     #print(shift_data(np.array([1,9])))
