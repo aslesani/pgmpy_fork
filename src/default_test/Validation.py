@@ -52,7 +52,9 @@ def convert_numpy_dataset_to_pandas(data):
     =======
     Dataframe
     '''
-    
+    if type(data) == pd.DataFrame:
+        return data
+        
     _ , cols = data.shape
     column_names = ['c' + str(i) for i in range(cols-1)]
     column_names.append('Person')
@@ -956,8 +958,8 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     #r"C:\f5_0_10.csv"
     
     #badan az comment kharej shavad
-    #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta=1000\digitize_bin_2\PCA_n=5.csv"
-    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
+    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\digitize_bin_10\PCA_n={n}.csv"
+    #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
     
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
@@ -967,15 +969,15 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     best_delta = 0
     best_n = 0
     
-    for repeat in range(50):
+    for repeat in range(1):
         print("repaet: " , repeat)
         selected_delta = delta[random.randint(1,delta_length)]
         selected_n = random.randint(2,15)#41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
 
 
-        data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
-        #read_data_from_PCA_digitized_file(data_address)
+        #data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
+        data = read_data_from_PCA_digitized_file(data_address.format(delta = selected_delta, n = selected_n))
         
         _ , cols = np.shape(data)
         data_column_names = ['c' + str(i) for i in range(cols-1)]
