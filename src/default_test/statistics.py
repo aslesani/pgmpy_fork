@@ -6,7 +6,7 @@ Created on Feb 23, 2018
 import csv
 import numpy as np
 import pandas as pd
-from default_test.DimensionReductionandBNStructureLearning import read_data_from_PCA_digitized_file
+from DimensionReductionandBNStructureLearning import read_data_from_PCA_digitized_file
 from collections import Counter
 import collections
 
@@ -70,10 +70,16 @@ def get_group_statistics(dest,data_rows ,feature_column_numbers,feature_column_n
     
     print(data.groupby(feature_for_grouping).agg(['count']))
 
-def get_set_of_features_in_each_column(file_address, number_of_columns):
+def get_set_of_features_in_each_column(file_address, data , read_data_from_file):
     
-    data = read_data_from_PCA_digitized_file(file_address)
-    
+    if read_data_from_file:
+        data = read_data_from_PCA_digitized_file(file_address)
+    else:
+        if type(data) == pd.DataFrame :#core.frame.DataFrame:
+            data = data.as_matrix()
+            print(data)
+        
+    _ , number_of_columns = data.shape
     for i in range(0, number_of_columns):
         print("column number: ", i )
         print(collections.Counter(data[: , i]))
