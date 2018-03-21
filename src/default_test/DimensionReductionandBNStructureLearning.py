@@ -369,21 +369,32 @@ def read_data_from_PCA_digitized_file(dest_file):
     '''
     return numpy_result
 
-def featureSelection_based_on_Variance(dest_file,threshold, remove_date_and_time = False , isSave , path_to_save):
+def featureSelection_based_on_Variance(dest_file,threshold, remove_date_and_time = False , isSave , path_to_save , column_indexes_to_keep):
     '''suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
        Boolean features are Bernoulli random variables, and the variance of such variables is given by var[x] = p(1-p)
+    
+    Parameteres:
+    ========
+    dest_file
+    threshold
+    remove_date_and_time = False
+    isSave
+    path_to_save
+    column_indexes_to_keep: the column indexes that want to be kept and the feature selection method does not apply on
     '''
     data = read_data_from_file(dest_file, np.int, remove_date_and_time=remove_date_and_time)
     #print(data)
     # remove person, work, date and time columns
     #sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
 
-    print(data.shape)
+    rows , cols = data.shape
+    print(rows , cols)
+    column_indexes_to_apply_feature_selection = range(cols) - column_indexes_to_keep 
 
     #threshold=0.7 * (1 - 0.7)
     select_features = VarianceThreshold(threshold=threshold)# 80% of the data
     #select_features.
-    data_new = select_features.fit(data)
+    data_new = select_features.fit(data[])
     print(data_new.shape)
     #print(sensor_data)
     four_last_columns = data[:, [-4,-3,-2,-1]]#np.select(data,[-1,-2,-3,-4])
