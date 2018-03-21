@@ -23,6 +23,7 @@ import time
 #from h5py._hl.datatype import Datatype
 import os.path
 from numpy.core.numeric import False_
+from numpy import string_
 #from default_test.parameter_learning_of_Aras_data import prior_type
 
 feature_names = ["M01", "M02", "M03", "M04" , "M05" , "M06" , "M07" , "M08" , "M09" , "M10"
@@ -319,6 +320,7 @@ def read_data_from_PCA_output_file(dest_file):
     array: numpy 2d array
     
     '''
+    print(dest_file)
     with open(dest_file,'r') as dest_f:
         data_iter = csv.reader(dest_f, 
                                delimiter = ',')#quotechar = '"')
@@ -367,30 +369,41 @@ def read_data_from_PCA_digitized_file(dest_file):
     '''
     return numpy_result
 
-def featureSelection_based_on_Variance():
+def featureSelection_based_on_Variance(dest_file,threshold, remove_date_and_time = False , isSave , path_to_save , column_indexes_to_keep):
     '''suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
        Boolean features are Bernoulli random variables, and the variance of such variables is given by var[x] = p(1-p)
+    
+    Parameteres:
+    ========
+    dest_file
+    threshold
+    remove_date_and_time = False
+    isSave
+    path_to_save
+    column_indexes_to_keep: the column indexes that want to be kept and the feature selection method does not apply on
     '''
-    data = read_data_from_file(dest_file, np.int, remove_date_and_time=True)
+    data = read_data_from_file(dest_file, np.int, remove_date_and_time=remove_date_and_time)
     #print(data)
     # remove person, work, date and time columns
-    sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
+    #sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
 
-    print(sensor_data.shape)
+    rows , cols = data.shape
+    print(rows , cols)
+    column_indexes_to_apply_feature_selection = range(cols) - column_indexes_to_keep 
 
-    threshold=0.7 * (1 - 0.7)
+    #threshold=0.7 * (1 - 0.7)
     select_features = VarianceThreshold(threshold=threshold)# 80% of the data
     #select_features.
-    sensor_data = select_features.fit_transform(sensor_data)
-    print(sensor_data.shape)
+    data_new = select_features.fit(data[])
+    print(data_new.shape)
     #print(sensor_data)
     four_last_columns = data[:, [-4,-3,-2,-1]]#np.select(data,[-1,-2,-3,-4])
     #print(four_last_columns)
-    data_new = np.concatenate((sensor_data, four_last_columns), axis=1)
+    data_new = np.concatenate((data_new, four_last_columns), axis=1)
     #print(select_features.variances_)
 
-    np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_featureSelection_threshhold=' + str(threshold) +'.csv', 
-                data_new, delimiter=',' , fmt='%s')
+    if(isSave):
+        np.savetxt(path_to_save, data_new, delimiter=',' , fmt='%s')
 
 
 def featureSelection_Kbest(k):
@@ -510,7 +523,7 @@ def digitize_Dr_Amirkhani(a, n):
         
     return b
 
-def digitize_dataset(data_address, selected_bin, address_to_save):
+def digitize_dataset(data_address, selected_bin, address_to_save , isSave = True):
     
     '''
     digitize a dataset based on selected_bin
@@ -532,29 +545,44 @@ def digitize_dataset(data_address, selected_bin, address_to_save):
    
     data = data.astype(int)
     
-    np.savetxt(address_to_save, data , delimiter=',' , fmt='%s')
+    if isSave:
+        np.savetxt(address_to_save, data , delimiter=',' , fmt='%s')
+        
+    return data
     
 
-def test_digitize_dataset():
+def test_digitize_dataset_for_feature_enginnering_with_delta():
     
-    base_file_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\test\delta={}\PCA_n={}.csv"
-    address_to_save = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\test\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
+    '''
+    just for digitizing 2 feature engineering methods: (no overlap and activity + delta)
+    both train and test
+    '''
+    base_file_address_activity_and_delta = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\{}\delta={}\PCA_n={}.csv"
+    address_to_save_activity_and_delta = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\{}\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
   
-   
-    selected_bin = 10
+    base_file_address_no_overlap = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\{}\delta={}\PCA_n={}.csv"
+    address_to_save_no_overlap = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\{}\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
+  
+    selected_bin = 5
+    
+    list_of_base_addresses = [base_file_address_activity_and_delta , base_file_address_no_overlap]
+    list_of_save_addresses = [address_to_save_activity_and_delta , address_to_save_no_overlap]
+    base = np.zeros(len(list_of_base_addresses) , dtype = object)
+    save = np.zeros(len(list_of_save_addresses) , dtype = object)
+          
     
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#
         for n in range(2,41):
+              
+            for b , s ,i in zip(list_of_base_addresses, list_of_save_addresses , range(len(list_of_base_addresses))) :
+                base[i] = b.format('train', delta , n)
+                save[i] = s.format('train', delta ,selected_bin )
             
-            base = base_file_address.format(delta , n)
-            save = address_to_save.format(delta ,selected_bin )
-            
-            
-            if not os.path.exists(save):
-                os.makedirs(save)
+                if not os.path.exists(save[i]):
+                    os.makedirs(save[i])
                 
-            save = save + r"\PCA_n=" + str(n) + ".csv"
-            digitize_dataset(data_address = base, selected_bin = selected_bin, address_to_save = save)
+                save[i] = save[i] + r"\PCA_n=" + str(n) + ".csv"
+                digitize_dataset(data_address = base[i], selected_bin = selected_bin, address_to_save = save[i])
 
     
 def test_digitize_dataset_based_on_activity():
@@ -562,7 +590,7 @@ def test_digitize_dataset_based_on_activity():
     base_file_address = r"C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\PCA_n={}.csv"
     address_to_save = r"C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\digitize_bin_{}"#\PCA_n={}.csv"
   
-    selected_bin = 10
+    selected_bin = 200
     
     for n in range(2,41):
         
@@ -675,7 +703,9 @@ if __name__ == "__main__":
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
-    test_digitize_dataset_based_on_activity()
+    #test_digitize_dataset_for_feature_enginnering_with_delta()
+    a = [87, 1 , 2 , 0 , 13]
+    print(digitize_Dr_Amirkhani(a, 10))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()
     #create_PCA_for_different_bag_of_sensor_events()
     #print(shift_data(np.array([1,9])))

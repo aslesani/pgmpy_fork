@@ -26,7 +26,7 @@ from sklearn import datasets
 from sklearn.utils import shuffle
 
 import cProfile
-
+import logging
 
 from pgmpy.models import BayesianModel
 from pgmpy.estimators import BayesianEstimator
@@ -39,7 +39,31 @@ from builtins import int
 from sklearn.metrics.classification import precision_score, recall_score,\
     accuracy_score
 from numba.tests.npyufunc.test_ufunc import dtype
+from numpy import number
+from statistics import get_set_of_features_in_each_column
+from DimensionReductionandBNStructureLearning import digitize_dataset
 
+
+def convert_numpy_dataset_to_pandas(data):
+    '''
+    get a numpy dataset and convert it to pandas dataframe
+    Parameters:
+    ==========
+    data: an ndarray numpy 
+    
+    Retrun:
+    =======
+    Dataframe
+    '''
+    if type(data) == pd.DataFrame:
+        return data
+        
+    _ , cols = data.shape
+    column_names = ['c' + str(i) for i in range(cols-1)]
+    column_names.append('Person')
+    pd_data_set = pd.DataFrame(data , columns=column_names)
+    return pd_data_set
+            
 
 def partition_data(data, train_ratio, validation_ratio, test_ratio):
     '''
@@ -211,7 +235,8 @@ def kfoldcrossvalidationForBNModel_UsingPanda(k , data, target_column_name, scor
 def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_column_name ):  
     '''
     
-    the function is used for creating and testing the models. models are created by Abd function
+    the function is used for creating and testing the models. 
+    models are created by Abd function
     
     Parameters:
     -------
@@ -239,13 +264,14 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     # the last k is partitioned manually, because maybe the data_length was not devided on k
     for i in range(0, k): 
         end = (i+1) * part_length
-        print("index:{}, end: {}".format(index, end))
+        #print("index:{}, end: {}".format(index, end))
         partition[i] = pd.DataFrame(data[index:end] , dtype = np.int, columns = data_column_names)
         index = end
     
     scores = np.zeros(k , dtype = np.object)
     
-    for i in range(0,k):
+    i = 0
+    while i < k:
         validation_set = partition[i]
         train_set =  np.delete(partition, i, 0)  
         train_set = pd.concat(train_set)#[partition(p) for p in len(train_set)]
@@ -254,12 +280,25 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
         resultlist = validation_set[target_column_name].values
         test_final = validation_set.drop(target_column_name, axis=1, inplace=False)
         
-        print("train_set:\n" , train_set)
-        print("test_final:\n" , test_final)
-        
-        
-        _ , scores[i], _ , _ = bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
-        
+        #print("train_set:\n" , train_set)
+        #print("test_final:\n" , test_final)
+        #print(type(validation_set))
+        #get_set_of_features_in_each_column(file_address ="", data = validation_set, read_data_from_file = False)
+        try:
+            _ , scores[i], _ , _ = bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+            print("No exception:")
+            #get_set_of_features_in_each_column(file_address = " ", data = train_set, read_data_from_file = False)
+
+            
+        except Exception as e:
+            #print("try again for k ={} in k-fold cross validation".format(i))
+            print("exception")
+            logger = logging.Logger('catch_all')
+            logger.error(e , exc_info = True)
+            scores[i] = 0
+            #get_set_of_features_in_each_column(file_address = " ", data = train_set, read_data_from_file = False)
+            
+        i = i + 1   
         
     return scores    
     
@@ -557,16 +596,17 @@ def select_hyperparameters():
                               'recall' : 0,
                               'accuracy' : 0
                               }
+    scores_abd = max_validation_score.copy()
     the_best_model = 0
     best_model_pd_test_set = 0
     best_delta = 0
     best_n = 0
           
     feature_engineering_names = ["delta_no overlap" , "activity" , "activity and delta"]      
-    for repeat in range(2,41): # repaet the process of selecting hyperparameters
-        #print("repeat: {}".format(repeat))
-        selected_delta = delta[random.randint(1,delta_length)]
-        selected_n = random.randint(2,10)#41)# n is # of features in PCA
+    for repeat in range(2,3): # repaet the process of selecting hyperparameters
+        print("repeat: {}".format(repeat))
+        selected_delta = 90#delta[random.randint(1,delta_length)]
+        selected_n = 8#random.randint(2,10)#41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
         #print("n = " , selected_n)
     
@@ -614,8 +654,12 @@ def select_hyperparameters():
             
             for sc in [BicScore]:# , BdeuScore , K2Score]:
                 #model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
-                model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, resultlist = resultlist)
-
+                
+                try:
+                    model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, resultlist = resultlist)
+                except ValueError:
+                    print("pd_train_set:\n " ,pd_train_set)
+                    print("test:\n" , test)
                 #print(sc)
                 #print("Abd execution\n========================\n")
                 print( feature_engineering_name , scores_abd)# , "\nlearning time: " , learning_time_abd , 
@@ -654,7 +698,7 @@ def select_hyperparameters():
     predicted = the_best_model.predict(test).values.ravel()
     best_model_test_set_score = calculate_different_metrics(resultlist, predicted)
     '''
-    print("=======Best Parameters:=======\n")
+    print("\n=======Best Parameters:=======\n")
     print("best delta= " , best_delta , " best n: " , best_n)
     print("best validation score:" , max_validation_score )#, "\n best test score: " , best_model_test_set_score)
         
@@ -874,10 +918,10 @@ def test_create_BN_model_for_different_feature_numbers():
         
     plot_results(feature_numbers, learning_times, "#features", "learning_time")
     
-def the_best_validation_strategy(data, data_column_names, target_column_name):
+def the_best_validation_strategy(data, data_column_names, target_column_name , k = 10):
     '''
     a combination of split data and k-fold cross validation
-    Imagine the final  test set is seperated and the final train set is available. 
+    Imagine the final  test set is separated and the final train set is available. 
     Our validation approach split the data to validation and test set (90% and 10%)
     and then apply 10-fold cross validation on validation set.
     
@@ -888,30 +932,87 @@ def the_best_validation_strategy(data, data_column_names, target_column_name):
     '''
     
     _ , validation_set , test_set =  partition_data(data, train_ratio = 0, validation_ratio = 90, test_ratio = 10)
+    #_ , cols = validation_set.shape 
+    #get_set_of_features_in_each_column(file_address= " " , data = validation_set , read_data_from_file= False)
+    final_scores = kfoldcrossvalidation_for_abd_function(k = k, data = validation_set, data_column_names = data_column_names, target_column_name = target_column_name)
+    final_validation_f1_scores_micro_avg = 0
+    number_of_zeros = 0
+    for i in range (0,k):
+        if final_scores[i] != 0 :
+            final_validation_f1_scores_micro_avg = final_validation_f1_scores_micro_avg + final_scores[i]['f1_score_micro'] 
+        else:
+            number_of_zeros = number_of_zeros + 1
+            
+    if number_of_zeros == k:
+        print("all of scores are zero!")
+        final_validation_f1_scores_micro_avg = 0
+    else:
+        final_validation_f1_scores_micro_avg = final_validation_f1_scores_micro_avg / (k - number_of_zeros)
     
-    final_scores = kfoldcrossvalidation_for_abd_function(k = 10, data = validation_set, data_column_names = data_column_names, target_column_name = target_column_name)
-    print(final_scores)
+    print("validation scores:" , final_scores)
+    print("f1 score micro average:" , final_validation_f1_scores_micro_avg)
+    
+            
+    return validation_set,test_set , final_validation_f1_scores_micro_avg
+    
+
+def select_hyper_parameters_using_the_best_validation_strategy():
+    
+    #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta=1000\PCA_n=5.csv"
+    #r"C:\f5_0_10.csv"
+    
+    #badan az comment kharej shavad
+    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\digitize_bin_10\PCA_n={n}.csv"
+    #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
+    
+    delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
+    delta_length = len(delta)-1
+    max_validation_f1_score = 0
+    the_best_model = 0
+    best_model_test_set = 0
+    best_delta = 0
+    best_n = 0
+    
+    for repeat in range(1):
+        print("repaet: " , repeat)
+        selected_delta = delta[random.randint(1,delta_length)]
+        selected_n = random.randint(2,15)#41)# n is # of features in PCA
+        print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
 
 
-def test_the_best_validation_strategy():
+        #data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
+        data = read_data_from_PCA_digitized_file(data_address.format(delta = selected_delta, n = selected_n))
+        
+        _ , cols = np.shape(data)
+        data_column_names = ['c' + str(i) for i in range(cols-1)]
+        data_column_names.append('Person')
+        target_column_name = 'Person'
+        
+        validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = data_column_names, target_column_name = target_column_name , k=2)
+        
+        if final_validation_f1_scores_micro_avg > max_validation_f1_score:
+            max_validation_f1_score = final_validation_f1_scores_micro_avg
+            best_model_test_set = test_set
+            best_delta = selected_delta
+            best_n = selected_n
     
-    #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta=1000\PCA_n=10.csv"
-    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta=1000\PCA_n=10.csv"
-    data = read_data_from_PCA_digitized_file(data_address)
+    if max_validation_f1_score != 0:
+        pd_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
+        pd_validation_set = convert_numpy_dataset_to_pandas(validation_set)
+        resultlist = pd_test_set[target_column_name].values
+        test_final = pd_test_set.drop(target_column_name, axis=1, inplace=False)
     
-    _ , cols = np.shape(data)
-    data_column_names = ['c' + str(i) for i in range(cols-1)]
-    data_column_names.append('Person')
+        
+        _ , test_set_score, _ , _ = bic(train = pd_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        print("test score:" , test_set_score)
     
-    #print(data_column_names)
-    #print(data[0:10,:])
-    target_column_name = 'Person'
     
-    the_best_validation_strategy(data = data, data_column_names = data_column_names, target_column_name = target_column_name)
-    
+    print("best_delta:" , best_delta, "best_n:" , best_n)
+
+
 if __name__ == '__main__':
     
-    test_the_best_validation_strategy()
+
     #print(kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro"))#data.iloc[0:100 ,:]
     '''
     pr.disable()
@@ -925,3 +1026,7 @@ if __name__ == '__main__':
     result = pgm_test(estimator, test_set = validation, target_column_name = 'Person')
     print(result)
     '''
+    #select_hyperparameters()
+    select_hyper_parameters_using_the_best_validation_strategy()
+    #cProfile.run('re.compile("kfoldcrossvalidationForBNModel_UsingPanda|10, data, target_column_name = "Person", scoring = "f1_micro"")')
+    
