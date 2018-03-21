@@ -992,15 +992,17 @@ def select_hyper_parameters_using_the_best_validation_strategy():
             best_delta = selected_delta
             best_n = selected_n
     
+    if max_validation_f1_score != 0:
+        pd_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
+        pd_validation_set = convert_numpy_dataset_to_pandas(validation_set)
+        resultlist = pd_test_set[target_column_name].values
+        test_final = pd_test_set.drop(target_column_name, axis=1, inplace=False)
     
-    pd_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
-    pd_validation_set = convert_numpy_dataset_to_pandas(validation_set)
-    resultlist = pd_test_set[target_column_name].values
-    test_final = pd_test_set.drop(target_column_name, axis=1, inplace=False)
-
+        
+        _ , test_set_score, _ , _ = bic(train = pd_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        print("test score:" , test_set_score)
     
-    _ , test_set_score, _ , _ = bic(train = pd_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
-    print("test score:" , test_set_score)
+    
     print("best_delta:" , best_delta, "best_n:" , best_n)
 
 

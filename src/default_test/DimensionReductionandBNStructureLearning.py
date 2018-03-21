@@ -369,30 +369,30 @@ def read_data_from_PCA_digitized_file(dest_file):
     '''
     return numpy_result
 
-def featureSelection_based_on_Variance():
+def featureSelection_based_on_Variance(dest_file,threshold, remove_date_and_time = False , isSave , path_to_save):
     '''suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
        Boolean features are Bernoulli random variables, and the variance of such variables is given by var[x] = p(1-p)
     '''
-    data = read_data_from_file(dest_file, np.int, remove_date_and_time=True)
+    data = read_data_from_file(dest_file, np.int, remove_date_and_time=remove_date_and_time)
     #print(data)
     # remove person, work, date and time columns
-    sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
+    #sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
 
-    print(sensor_data.shape)
+    print(data.shape)
 
-    threshold=0.7 * (1 - 0.7)
+    #threshold=0.7 * (1 - 0.7)
     select_features = VarianceThreshold(threshold=threshold)# 80% of the data
     #select_features.
-    sensor_data = select_features.fit_transform(sensor_data)
-    print(sensor_data.shape)
+    data_new = select_features.fit(data)
+    print(data_new.shape)
     #print(sensor_data)
     four_last_columns = data[:, [-4,-3,-2,-1]]#np.select(data,[-1,-2,-3,-4])
     #print(four_last_columns)
-    data_new = np.concatenate((sensor_data, four_last_columns), axis=1)
+    data_new = np.concatenate((data_new, four_last_columns), axis=1)
     #print(select_features.variances_)
 
-    np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_featureSelection_threshhold=' + str(threshold) +'.csv', 
-                data_new, delimiter=',' , fmt='%s')
+    if(isSave):
+        np.savetxt(path_to_save, data_new, delimiter=',' , fmt='%s')
 
 
 def featureSelection_Kbest(k):
@@ -512,7 +512,7 @@ def digitize_Dr_Amirkhani(a, n):
         
     return b
 
-def digitize_dataset(data_address, selected_bin, address_to_save):
+def digitize_dataset(data_address, selected_bin, address_to_save , isSave = True):
     
     '''
     digitize a dataset based on selected_bin
@@ -534,7 +534,10 @@ def digitize_dataset(data_address, selected_bin, address_to_save):
    
     data = data.astype(int)
     
-    np.savetxt(address_to_save, data , delimiter=',' , fmt='%s')
+    if isSave:
+        np.savetxt(address_to_save, data , delimiter=',' , fmt='%s')
+        
+    return data
     
 
 def test_digitize_dataset_for_feature_enginnering_with_delta():
@@ -549,7 +552,7 @@ def test_digitize_dataset_for_feature_enginnering_with_delta():
     base_file_address_no_overlap = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\{}\delta={}\PCA_n={}.csv"
     address_to_save_no_overlap = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\{}\delta={}\digitize_bin_{}"#\PCA_n={}.csv"
   
-    selected_bin = 20
+    selected_bin = 5
     
     list_of_base_addresses = [base_file_address_activity_and_delta , base_file_address_no_overlap]
     list_of_save_addresses = [address_to_save_activity_and_delta , address_to_save_no_overlap]
@@ -686,7 +689,9 @@ if __name__ == "__main__":
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
-    test_digitize_dataset_for_feature_enginnering_with_delta()
+    #test_digitize_dataset_for_feature_enginnering_with_delta()
+    a = [87, 1 , 2 , 0 , 13]
+    print(digitize_Dr_Amirkhani(a, 10))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()
     #create_PCA_for_different_bag_of_sensor_events()
     #print(shift_data(np.array([1,9])))
