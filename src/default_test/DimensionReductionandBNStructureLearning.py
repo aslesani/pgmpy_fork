@@ -359,7 +359,7 @@ def read_data_from_PCA_digitized_file(dest_file):
 '''
 
 
-def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_save , column_indexes_not_apply_feature_selection, remove_date_and_time = False):
+def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_save , column_indexes_not_apply_feature_selection , has_header ,is_Panda_dataFrame ):
     '''suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
        Boolean features are Bernoulli random variables, and the variance of such variables is given by var[x] = p(1-p)
     
@@ -372,15 +372,18 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
     path_to_save
     column_indexes_to_keep: the column indexes that want to be kept and the feature selection method does not apply on
     '''
-    data = read_data_from_file(dest_file, np.int, remove_date_and_time=remove_date_and_time)
+    data = read_data_from_CSV_file(dest_file = dest_file, data_type = np.int, has_header= has_header , return_as_pandas_data_frame = is_Panda_dataFrame)
     # remove person, work, date and time columns
     #sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
-
+    if is_Panda_dataFrame:
+        columns = data.columns
+        data = data.as_matrix()
+        
     rows , cols = data.shape
-   # for i in range(cols):
-    #    print(str(i) , ":" , set(data[: , i]))
+  
     print("======================")
     print("original data shape: " , rows , cols)
+    
     column_indexes_to_apply_feature_selection = list( set(range(cols)) - set(column_indexes_not_apply_feature_selection))
     #print("column_indexes_to_apply_feature_selection:" , column_indexes_to_apply_feature_selection)
     #threshold=0.7 * (1 - 0.7)
@@ -393,6 +396,14 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
     data_new = np.concatenate((data_new, data_columns_not_meet_featrue_selection), axis=1)
     #print(select_features.variances_)
 
+    if is_Panda_dataFrame:
+        columns_are_kept = select_features.get_support(indices=True)
+        selected_fetures_labels = [columns[x] for x in columns_are_kept]
+        column_labels_not_apply_feature_selection = [columns[x] for x in column_indexes_not_apply_feature_selection]
+        final_labels = np.concatenate((selected_fetures_labels , column_labels_not_apply_feature_selection) , axis = 0)
+        print(final_labels)
+        data_new = pd.DataFrame(data_new , columns = final_labels)
+    
     if(isSave):
         np.savetxt(path_to_save, data_new, delimiter=',' , fmt='%s')
     
@@ -716,9 +727,8 @@ def featureSelection_based_on_Variance_on_pandas_data(dest_file , threshold , is
     
     
 if __name__ == "__main__":
-    #featureSelection_based_on_Variance_on_pandas_data()
     
-    a = read_data_from_CSV_file(dest_file = r'E:\test.csv' , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
+    a = featureSelection_based_on_Variance(dest_file = r'E:\test.csv' , threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [5] , has_header = True ,is_Panda_dataFrame = False)
     print(a)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
