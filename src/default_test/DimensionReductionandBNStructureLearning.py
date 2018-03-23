@@ -697,39 +697,24 @@ def test_discretization_on_different_PCA_data_files():
 
 def test_featureSelection_based_on_Variance():
     #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
-    #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv"
-    dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv"
+    dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv"
+    #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv"
 
     for delta in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         
-        for i in range(1):#21):
+        for i in range(21):
             t = i * 5
-            result = featureSelection_based_on_Variance(dest_file = dest_file.format(delta) ,threshold = t , isSave = False , path_to_save = " " , column_indexes_not_apply_feature_selection = [122] )
+            result = featureSelection_based_on_Variance(dest_file = dest_file.format(delta) ,threshold = t , isSave = False , path_to_save = " " , column_indexes_not_apply_feature_selection = [122 , 123] , has_header = False, is_Panda_dataFrame = False )
             print("delta" , delta)
             print("threshold =" ,  t)
             print(result.shape)
     
-            
-def featureSelection_based_on_Variance_on_pandas_data(dest_file , threshold , isSave , path_to_save):
-    
-    select_features = VarianceThreshold(threshold=0)
-    data = pd.DataFrame([[1,2,3 , 0] , [1,5,6,0]] , columns = ["a1" , "a2" , "a3" , "a4"])
-    columns = data.columns
-    data_new = select_features.fit_transform(data)
-    which_columns_are_kept = select_features.get_support(indices=True)
-    
-    labels = [columns[x] for x in which_columns_are_kept]
-
-    print(which_columns_are_kept)
-    print(labels)
-    print(type(data_new))
-    print(data_new)
-    
+              
     
 if __name__ == "__main__":
     
-    a = featureSelection_based_on_Variance(dest_file = r'E:\test.csv' , threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [5] , has_header = True ,is_Panda_dataFrame = False)
-    print(a)
+    test_featureSelection_based_on_Variance()
+    #a = featureSelection_based_on_Variance(dest_file = r'E:\test.csv' , threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [5] , has_header = True ,is_Panda_dataFrame = False)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
