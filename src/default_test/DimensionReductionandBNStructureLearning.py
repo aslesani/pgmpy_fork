@@ -369,7 +369,7 @@ def read_data_from_PCA_digitized_file(dest_file):
     '''
     return numpy_result
 
-def featureSelection_based_on_Variance(dest_file,threshold, remove_date_and_time = False , isSave , path_to_save , column_indexes_to_keep):
+def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_save , column_indexes_not_apply_feature_selection, remove_date_and_time = False):
     '''suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
        Boolean features are Bernoulli random variables, and the variance of such variables is given by var[x] = p(1-p)
     
@@ -389,17 +389,17 @@ def featureSelection_based_on_Variance(dest_file,threshold, remove_date_and_time
 
     rows , cols = data.shape
     print(rows , cols)
-    column_indexes_to_apply_feature_selection = range(cols) - column_indexes_to_keep 
+    column_indexes_to_apply_feature_selection = range(cols) - column_indexes_not_apply_feature_selection 
 
     #threshold=0.7 * (1 - 0.7)
     select_features = VarianceThreshold(threshold=threshold)# 80% of the data
-    #select_features.
-    data_new = select_features.fit(data[])
+    
+    data_new = select_features.fit(data[: , column_indexes_to_apply_feature_selection])
     print(data_new.shape)
-    #print(sensor_data)
-    four_last_columns = data[:, [-4,-3,-2,-1]]#np.select(data,[-1,-2,-3,-4])
-    #print(four_last_columns)
-    data_new = np.concatenate((data_new, four_last_columns), axis=1)
+    
+    data_columns_not_meet_featrue_selection = data[:, column_indexes_to_apply_feature_selection]
+    
+    data_new = np.concatenate((data_new, data_columns_not_meet_featrue_selection), axis=1)
     #print(select_features.variances_)
 
     if(isSave):
