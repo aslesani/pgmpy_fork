@@ -300,74 +300,64 @@ def read_data_from_file(dest_file, data_type , remove_date_and_time = True ):
     if remove_date_and_time == True:
         data = np.delete(np.delete(data, -1, 1), -1 , 1)
     
-    rows = len(data)
-    print(rows)
+    #rows = len(data)
+    #print(rows)
     
     return_value= np.asarray(data, dtype = data_type)#np.int)
     #print(return_value)
     return return_value
 
-def read_data_from_PCA_output_file(dest_file):
+def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return_as_pandas_data_frame = False):
     '''
-    this function is used to read PCA output files
-    the output type of this function is float
+    this function is a replacement for read_data_from_PCA_output_file and read_data_from_PCA_digitized_file
+    with more capabalities.
     
     Parameters:
     ==========
+    dest_file: 
+    data_type: type of data that should be read  
+    has_header = if the file has header, it is set to True. The header is the first line that starts whit '#' character 
+    return_as_pandas_data_frame = if True, the return_value is pandas Dataframe, else numpy ndaaray
     
     Returns:
     ========
-    array: numpy 2d array
+    return_value: type of it is pandas Dataframe or numpy ndaaray
     
     '''
-    print(dest_file)
+    header = ""
     with open(dest_file,'r') as dest_f:
         data_iter = csv.reader(dest_f, 
                                delimiter = ',')#quotechar = '"')
     
+        if has_header:
+            header = next(data_iter)
+            header[0] = header[0].split('# ')[1] # remove # from first element
+            
         data = [data for data in data_iter]
     
     
-    return_value= np.asarray(data, dtype = np.float)
+    return_value= np.asarray(data, dtype = data_type)
+    
+    if return_as_pandas_data_frame:
+        return_value = pd.DataFrame(return_value , columns = header)
+        
+        
     return return_value
-    
+ 
+'''    
 def read_data_from_PCA_digitized_file(dest_file):
-    '''
-    this function is used to read PCA digitized files
-    the output type of this function is int
     
-    Parameters:
-    ==========
-    
-    Returns:
-    =======
-    array: panda dataframe which have column name. the last column is named "Person"
-    
-    '''
     with open(dest_file,'r') as dest_f:
         data_iter = csv.reader(dest_f, 
-                               delimiter = ',')#quotechar = '"')
+                               delimiter = ',')
     
         data = [data for data in data_iter]
     
     
     numpy_result = np.asarray(data, dtype = np.int)
-    '''
-    _ , cols = numpy_result.shape
-    column_names = []
-
-    for names in range(1, cols):
-        column_names.append(str(names))
-    column_names.append("Person")  
-       
-    panda_result = pd.DataFrame(data=numpy_result , columns= column_names , dtype = np.int) 
-    
-    print(panda_result.columns)
-    #print(panda_result)
-    
-    return panda_result
-    '''
     return numpy_result
+'''
+
 
 def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_save , column_indexes_not_apply_feature_selection, remove_date_and_time = False):
     '''suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
@@ -383,27 +373,30 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
     column_indexes_to_keep: the column indexes that want to be kept and the feature selection method does not apply on
     '''
     data = read_data_from_file(dest_file, np.int, remove_date_and_time=remove_date_and_time)
-    #print(data)
     # remove person, work, date and time columns
     #sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
 
     rows , cols = data.shape
-    print(rows , cols)
-    column_indexes_to_apply_feature_selection = range(cols) - column_indexes_not_apply_feature_selection 
-
+   # for i in range(cols):
+    #    print(str(i) , ":" , set(data[: , i]))
+    print("======================")
+    print("original data shape: " , rows , cols)
+    column_indexes_to_apply_feature_selection = list( set(range(cols)) - set(column_indexes_not_apply_feature_selection))
+    #print("column_indexes_to_apply_feature_selection:" , column_indexes_to_apply_feature_selection)
     #threshold=0.7 * (1 - 0.7)
     select_features = VarianceThreshold(threshold=threshold)# 80% of the data
     
-    data_new = select_features.fit(data[: , column_indexes_to_apply_feature_selection])
-    print(data_new.shape)
+    data_new = select_features.fit_transform(data[: , column_indexes_to_apply_feature_selection])
     
-    data_columns_not_meet_featrue_selection = data[:, column_indexes_to_apply_feature_selection]
+    data_columns_not_meet_featrue_selection = data[:, column_indexes_not_apply_feature_selection]
     
     data_new = np.concatenate((data_new, data_columns_not_meet_featrue_selection), axis=1)
     #print(select_features.variances_)
 
     if(isSave):
         np.savetxt(path_to_save, data_new, delimiter=',' , fmt='%s')
+    
+    return data_new
 
 
 def featureSelection_Kbest(k):
@@ -450,7 +443,7 @@ def discretization_equal_width(file_path):
     data
     
     '''
-    data = read_data_from_PCA_output_file(file_path)
+    data = read_data_from_CSV_file(dest_file=file_path , data_type = np.float)
     _, cols = np.shape(data)
     
     for i in range(cols-1): # the last column is Person and is not processed
@@ -537,7 +530,7 @@ def digitize_dataset(data_address, selected_bin, address_to_save , isSave = True
     
     '''
     
-    data = read_data_from_PCA_output_file(data_address)
+    data = read_data_from_CSV_file(dest_file = data_address , data_type = np.float)
     _ , cols = np.shape(data)
     
     for i in range(0,cols-1):# digitize each column seperately
@@ -691,34 +684,52 @@ def test_discretization_on_different_PCA_data_files():
             #print(save_address) 
             np.savetxt(save_address , data, delimiter=',' , fmt='%s')
 
-                 
+def test_featureSelection_based_on_Variance():
+    #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
+    #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv"
+    dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv"
+
+    for delta in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         
-if __name__ == "__main__":
+        for i in range(1):#21):
+            t = i * 5
+            result = featureSelection_based_on_Variance(dest_file = dest_file.format(delta) ,threshold = t , isSave = False , path_to_save = " " , column_indexes_not_apply_feature_selection = [122] )
+            print("delta" , delta)
+            print("threshold =" ,  t)
+            print(result.shape)
     
-    #create_PCA_for_different_bag_of_sensor_events()
-    #create_BN_model()
-    #myData = np.genfromtxt(dest_file , dtype=object,delimiter = ',')#, names=False)
-    #PCA_data_generation(dest_file)
+            
+def featureSelection_based_on_Variance_on_pandas_data(dest_file , threshold , isSave , path_to_save):
+    
+    select_features = VarianceThreshold(threshold=0)
+    data = pd.DataFrame([[1,2,3 , 0] , [1,5,6,0]] , columns = ["a1" , "a2" , "a3" , "a4"])
+    columns = data.columns
+    data_new = select_features.fit_transform(data)
+    which_columns_are_kept = select_features.get_support(indices=True)
+    
+    labels = [columns[x] for x in which_columns_are_kept]
+
+    print(which_columns_are_kept)
+    print(labels)
+    print(type(data_new))
+    print(data_new)
+    
+    
+if __name__ == "__main__":
+    #featureSelection_based_on_Variance_on_pandas_data()
+    
+    a = read_data_from_CSV_file(dest_file = r'E:\test.csv' , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
+    print(a)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
     #test_digitize_dataset_for_feature_enginnering_with_delta()
-    a = [87, 1 , 2 , 0 , 13]
-    print(digitize_Dr_Amirkhani(a, 10))
-    #create_PCA_for_bag_of_sensor_events_based_on_activities()
-    #create_PCA_for_different_bag_of_sensor_events()
-    #print(shift_data(np.array([1,9])))
-    #test_discretization_on_different_PCA_data_files()
-    #f = r"\\localhost\E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events_Digitized\delta=15\alaki.csv"
-    #f = r"E:/Lessons_tutorials/Behavioural user profile articles/Datasets/7 twor.2009/twor.2009/converted/pgmpy/PCA on Bag of sensor events_Digitized/delta=15/PCA_n=9.csv"
-
-    #f = "C:/alaki.csv"
-    #read_data_from_PCA_digitized_file(f)
+   
     '''try:
         result = pd.read_csv(filepath_or_buffer = f , header = None)# , dtype = np.int32)
         print(result)
     except ValueError:
         print(ValueError)
        ''' 
-    #read_data_from_PCA_digitized_file(f)
+    

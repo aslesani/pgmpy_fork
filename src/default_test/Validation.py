@@ -7,10 +7,9 @@ Created on September 02, 2017
 import numpy as np
 import pandas as pd
 from DimensionReductionandBNStructureLearning import create_BN_model
-from DimensionReductionandBNStructureLearning import read_data_from_PCA_digitized_file
 from DimensionReductionandBNStructureLearning import discretization_equal_width_for_any_data
 from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani, shift_data
-from DimensionReductionandBNStructureLearning import read_data_from_PCA_output_file
+from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
 
 from custom_classifiers import test_different_classifiers
 
@@ -407,7 +406,7 @@ def prepare_data_to_create_model_and_test(delta):
     scores = np.zeros(39)
     learning_time = np.zeros(39)
     for n in range(2,41):
-        data = read_data_from_PCA_digitized_file(base_address + "\PCA_n=" + str(n) +".csv")
+        data = read_data_from_CSV_file(dest_file = base_address + "\PCA_n=" + str(n) +".csv" , data_type = np.int)
         sc , learning_time[n-2] = kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro")
         scores[n-2] = sc.mean()
         
@@ -841,7 +840,7 @@ def BN_for_discritized_data():
     
     #a = pd.read_csv(r"D:\data.csv")
     #print(a)
-    data = read_data_from_PCA_digitized_file(r'C:\Users\Cloud\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv')#(r"D:\data.csv")
+    data = read_data_from_CSV_file(dest_file = r'C:\Users\Cloud\PCA on Bag of sensor events_Digitized\delta=15\PCA_n=6.csv' , data_type = np.int)#(r"D:\data.csv")
     mul = range(1,13)
     sample_sizes = np.zeros(len(mul))
     learning_times = np.zeros(len(mul))
@@ -857,7 +856,7 @@ def BN_for_discritized_data():
     plot_results(sample_sizes, learning_times, "sample_sizes", "learning_times")
     
 def create_model_for_different_sample_size():
-    data = read_data_from_PCA_output_file(r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=100\PCA_n=6.csv")#("D:\data.csv")#
+    data = read_data_from_CSV_file(dest_file = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\PCA on Bag of sensor events\delta=100\PCA_n=6.csv" , data_type = np.float)#("D:\data.csv")#
     data = disretization_Dr_Amirkhani(data)
     #learning_time = np.zeros_like(range(101), dtype = np.int)
     for i in range(2 , 138):#(1,101):
@@ -882,7 +881,7 @@ def create_model_for_different_sample_size():
         
     #plot_results(range[101], y_values = learning_time, x_label = "samples(i*500)", y_label = "total learning time")
 def test_create_BN_model(preffered_file , delta , n):
-    data = read_data_from_PCA_digitized_file(preffered_file)
+    data = read_data_from_CSV_file(dest_file = preffered_file , data_type = np.int)
     
     _ , cols = data.shape
     column_names = []
@@ -981,7 +980,7 @@ def select_hyper_parameters_using_the_best_validation_strategy():
 
 
         #data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
-        data = read_data_from_PCA_digitized_file(data_address.format(delta = selected_delta, n = selected_n))
+        data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int)
         
         _ , cols = np.shape(data)
         data_column_names = ['c' + str(i) for i in range(cols-1)]
