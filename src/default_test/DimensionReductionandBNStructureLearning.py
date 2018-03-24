@@ -33,6 +33,8 @@ feature_names = ["M01", "M02", "M03", "M04" , "M05" , "M06" , "M07" , "M08" , "M
                        , "M41", "M42", "M43", "M44" , "M45" , "M46" , "M47" , "M48" , "M49" , "M50"
                        , "M51", "I03", "D03", "D05" , "D07" , "D08" , "D09" , "D10" , "D12" , "D14"
                        , "D15", "PNo", "WNo", "Date" , "Time"]
+
+
 dest_file = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data+time_ordered.csv'   
 
 base_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\ '
@@ -697,14 +699,14 @@ def test_discretization_on_different_PCA_data_files():
 
 def test_featureSelection_based_on_Variance():
     #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
-    dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv"
-    #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv"
-
+    #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv"
+    dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv"
+    #dest_file = r"E:\pgmpy\separation of train and test\31_3\train_untill_31_3_each_row_one_features_is_one_on_and_off+time_ordered_header.csv"
     for delta in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         
         for i in range(21):
             t = i * 5
-            result = featureSelection_based_on_Variance(dest_file = dest_file.format(delta) ,threshold = t , isSave = False , path_to_save = " " , column_indexes_not_apply_feature_selection = [122 , 123] , has_header = False, is_Panda_dataFrame = False )
+            result = featureSelection_based_on_Variance(dest_file = dest_file.format(delta) ,threshold = t , isSave = False , path_to_save = " " , column_indexes_not_apply_feature_selection = [122] , has_header = True, is_Panda_dataFrame = True )
             print("delta" , delta)
             print("threshold =" ,  t)
             print(result.shape)
