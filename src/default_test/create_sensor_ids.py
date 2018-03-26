@@ -12,12 +12,12 @@ header_string = ""
 for i in a:
      b.append(i + "_on")
      b.append(i + "_off")
-     header_string = header_string + str(i) + "_on, "
-     header_string = header_string + str(i) + "_off, "
+     header_string = header_string + str(i) + "_on,"
+     header_string = header_string + str(i) + "_off,"
 
 b.append('Person')
 b.append('Work') 
-header_string = header_string + "Person, "
+header_string = header_string + "Person,"
 header_string = header_string + "Work"
 
 
