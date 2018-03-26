@@ -6,7 +6,6 @@ Created on Feb 23, 2018
 import csv
 import numpy as np
 import pandas as pd
-from DimensionReductionandBNStructureLearning import read_data_from_PCA_digitized_file
 from collections import Counter
 import collections
 

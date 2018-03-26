@@ -6,11 +6,13 @@ Created on Sat Mar 24 00:42:37 2018
 """
 import numpy as np
 import csv
+from remove_first_line_from_file import remove_first_line_from_file
 
 dest = r'E:\test.csv'
 np.savetxt(dest, 
                 [[1,2,3 , 4,5,6] , [7,8,9, 4,5,6]], delimiter=',' , fmt='%s' , header = "a1,a2,a3, a4 , a5,a6")
 
+#remove_first_line_from_file(dest)
 
 with open(dest,'r') as dest_f:
         data_iter = csv.reader(dest_f, 

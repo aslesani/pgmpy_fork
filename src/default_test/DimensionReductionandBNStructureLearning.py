@@ -379,7 +379,7 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
     #sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
     if is_Panda_dataFrame:
         columns = data.columns
-        data = data.as_matrix()
+        data = data.values
         
     rows , cols = data.shape
   
@@ -387,7 +387,7 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
     print("original data shape: " , rows , cols)
     
     column_indexes_to_apply_feature_selection = list( set(range(cols)) - set(column_indexes_not_apply_feature_selection))
-    #print("column_indexes_to_apply_feature_selection:" , column_indexes_to_apply_feature_selection)
+    print("column_indexes_to_apply_feature_selection:" , column_indexes_to_apply_feature_selection)
     #threshold=0.7 * (1 - 0.7)
     select_features = VarianceThreshold(threshold=threshold)# 80% of the data
     
@@ -401,6 +401,7 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
     if is_Panda_dataFrame:
         columns_are_kept = select_features.get_support(indices=True)
         selected_fetures_labels = [columns[x] for x in columns_are_kept]
+        print("selected_fetures_labels:" , selected_fetures_labels)
         column_labels_not_apply_feature_selection = [columns[x] for x in column_indexes_not_apply_feature_selection]
         final_labels = np.concatenate((selected_fetures_labels , column_labels_not_apply_feature_selection) , axis = 0)
         print(final_labels)
