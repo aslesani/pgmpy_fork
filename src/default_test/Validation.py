@@ -79,8 +79,10 @@ def partition_data(data, train_ratio, validation_ratio, test_ratio):
     if type(data) == pd.DataFrame :
         isPandas = True
         columns = data.columns
-        data = data.as_matrix
+        data = data.values
         
+    #print("isPandas:" , isPandas , type(data))
+    #print(data)
     np.random.shuffle(data)
     data_length = len(data)
     print("data_length: {}".format(data_length))
@@ -251,7 +253,7 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     Parameters:
     -------
     k: the value of k in k-fold
-    data: numpy ndarray
+    data: numpy ndarray or pandas Dataframe
           
     #scoring: the scoring method , default value:'f1_micro'
     
@@ -260,6 +262,10 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     scores: a vector of scores, the length of the vector is k.
     
     ''' 
+    if type(data) == pd.DataFrame:
+        data_column_names = data.columns
+        data = data.values
+        
     data_length , data_features = np.shape(data)
     #print(data_features)
     #print("data_length: {}".format(data_length))
@@ -270,7 +276,7 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     partition = np.zeros(k , dtype = pd.DataFrame)#pd.DataFrame(p , columns=['1','2','3','4'])
     
     index = 0
-    
+    #print("data_column_names:" , data_column_names)
     # the last k is partitioned manually, because maybe the data_length was not devided on k
     for i in range(0, k): 
         end = (i+1) * part_length
@@ -286,7 +292,14 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
         train_set =  np.delete(partition, i, 0)  
         train_set = pd.concat(train_set)#[partition(p) for p in len(train_set)]
         #print(type(test_set))
-        #validation_set = pd.DataFrame(test_set , columns=data_column_names)    
+        #validation_set = pd.DataFrame(test_set , columns=data_column_names)
+        #print("target_column_name:" , target_column_name , type(target_column_name))
+        #print("validation_set.columns:" , validation_set.columns)
+        if target_column_name in validation_set.columns:
+            print("yesssssssssssssssssssssssssssssssssss")
+        else:
+            print("noooooooooooooooooooooooooooooooooooooooooo")
+            print(len(target_column_name) , len(validation_set.columns[-2]))
         resultlist = validation_set[target_column_name].values
         test_final = validation_set.drop(target_column_name, axis=1, inplace=False)
         
@@ -937,7 +950,7 @@ def the_best_validation_strategy(data, data_column_names, target_column_name , k
     
     Parameters:
     =========== 
-    data: numpy ndarray
+    data: numpy ndarray or pandas Dataframe
     
     '''
     
@@ -973,7 +986,7 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     
     #badan az comment kharej shavad
     #data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\digitize_bin_10\PCA_n={n}.csv"
-    data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
+    data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
 
     #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
     
@@ -988,19 +1001,22 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     for repeat in range(1):
         print("repaet: " , repeat)
         selected_delta = delta[random.randint(1,delta_length)]
-        selected_n = random.randint(2,15)#41)# n is # of features in PCA
-        print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+        #selected_n = random.randint(2,15)#41)# n is # of features in PCA
+        #print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+        print("selected_delta:{}".format(selected_delta))
 
 
         #data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
-        data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
+        #data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
+        #feature selection based on variance
         
-        _ , cols = np.shape(data)
+        data = featureSelection_based_on_Variance(dest_file = data_address.format(delta = selected_delta),threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
+        #_ , cols = np.shape(data)
         #data_column_names = ['c' + str(i) for i in range(cols-1)]
         #data_column_names.append('Person')
-        #target_column_name = 'Person'
+        target_column_name = 'Person'
         
-        validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = data_column_names, target_column_name = target_column_name , k=2)
+        validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=2)
         
         if final_validation_f1_scores_micro_avg > max_validation_f1_score:
             max_validation_f1_score = final_validation_f1_scores_micro_avg
