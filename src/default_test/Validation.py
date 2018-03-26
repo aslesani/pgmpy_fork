@@ -10,6 +10,7 @@ from DimensionReductionandBNStructureLearning import create_BN_model
 from DimensionReductionandBNStructureLearning import discretization_equal_width_for_any_data
 from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani, shift_data
 from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
+from DimensionReductionandBNStructureLearning import featureSelection_based_on_Variance
 
 from custom_classifiers import test_different_classifiers
 
@@ -70,11 +71,16 @@ def partition_data(data, train_ratio, validation_ratio, test_ratio):
    
     Parameters:
     ===========
-    data: numpy ndarray
+    data: numpy ndarray or pandas Dataframe
     train_ratio, validation_ratio, test_ratio: the % of each set (a number less than 100)
     
     '''
-    
+    isPandas = False
+    if type(data) == pd.DataFrame :
+        isPandas = True
+        columns = data.columns
+        data = data.as_matrix
+        
     np.random.shuffle(data)
     data_length = len(data)
     print("data_length: {}".format(data_length))
@@ -86,6 +92,11 @@ def partition_data(data, train_ratio, validation_ratio, test_ratio):
     train_set = data[0:train_length]
     validation_set = data[train_length: (train_length + validation_length)]
     test_set = data[(train_length + validation_length) : data_length]
+    
+    if isPandas == True:
+        train_set = pd.DataFrame(train_set , columns = columns)
+        validation_set = pd.DataFrame(validation_set , columns = columns)
+        test_set = pd.DataFrame(test_set , columns = columns)
     
     return(train_set, validation_set, test_set)
 
@@ -961,7 +972,9 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     #r"C:\f5_0_10.csv"
     
     #badan az comment kharej shavad
-    data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\digitize_bin_10\PCA_n={n}.csv"
+    #data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\digitize_bin_10\PCA_n={n}.csv"
+    data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
+
     #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
     
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
@@ -980,12 +993,12 @@ def select_hyper_parameters_using_the_best_validation_strategy():
 
 
         #data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
-        data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int)
+        data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
         
         _ , cols = np.shape(data)
-        data_column_names = ['c' + str(i) for i in range(cols-1)]
-        data_column_names.append('Person')
-        target_column_name = 'Person'
+        #data_column_names = ['c' + str(i) for i in range(cols-1)]
+        #data_column_names.append('Person')
+        #target_column_name = 'Person'
         
         validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = data_column_names, target_column_name = target_column_name , k=2)
         
