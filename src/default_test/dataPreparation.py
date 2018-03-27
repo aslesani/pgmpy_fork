@@ -33,7 +33,7 @@ from numpy import dtype
 
 work_lists = ["0"]
 
-file_header = 'M01_on, M01_off, M02_on, M02_off, M03_on, M03_off, M04_on, M04_off, M05_on, M05_off, M06_on, M06_off, M07_on, M07_off, M08_on, M08_off, M09_on, M09_off, M10_on, M10_off, M11_on, M11_off, M12_on, M12_off, M13_on, M13_off, M14_on, M14_off, M15_on, M15_off, M16_on, M16_off, M17_on, M17_off, M18_on, M18_off, M19_on, M19_off, M20_on, M20_off, M21_on, M21_off, M22_on, M22_off, M23_on, M23_off, M24_on, M24_off, M25_on, M25_off, M26_on, M26_off, M27_on, M27_off, M28_on, M28_off, M29_on, M29_off, M30_on, M30_off, M31_on, M31_off, M32_on, M32_off, M33_on, M33_off, M34_on, M34_off, M35_on, M35_off, M36_on, M36_off, M37_on, M37_off, M38_on, M38_off, M39_on, M39_off, M40_on, M40_off, M41_on, M41_off, M42_on, M42_off, M43_on, M43_off, M44_on, M44_off, M45_on, M45_off, M46_on, M46_off, M47_on, M47_off, M48_on, M48_off, M49_on, M49_off, M50_on, M50_off, M51_on, M51_off, I03_on, I03_off, D03_on, D03_off, D05_on, D05_off, D07_on, D07_off, D08_on, D08_off, D09_on, D09_off, D10_on, D10_off, D12_on, D12_off, D14_on, D14_off, D15_on, D15_off, Person, Work'
+file_header = "M01_on,M01_off,M02_on,M02_off,M03_on,M03_off,M04_on,M04_off,M05_on,M05_off,M06_on,M06_off,M07_on,M07_off,M08_on,M08_off,M09_on,M09_off,M10_on,M10_off,M11_on,M11_off,M12_on,M12_off,M13_on,M13_off,M14_on,M14_off,M15_on,M15_off,M16_on,M16_off,M17_on,M17_off,M18_on,M18_off,M19_on,M19_off,M20_on,M20_off,M21_on,M21_off,M22_on,M22_off,M23_on,M23_off,M24_on,M24_off,M25_on,M25_off,M26_on,M26_off,M27_on,M27_off,M28_on,M28_off,M29_on,M29_off,M30_on,M30_off,M31_on,M31_off,M32_on,M32_off,M33_on,M33_off,M34_on,M34_off,M35_on,M35_off,M36_on,M36_off,M37_on,M37_off,M38_on,M38_off,M39_on,M39_off,M40_on,M40_off,M41_on,M41_off,M42_on,M42_off,M43_on,M43_off,M44_on,M44_off,M45_on,M45_off,M46_on,M46_off,M47_on,M47_off,M48_on,M48_off,M49_on,M49_off,M50_on,M50_off,M51_on,M51_off,I03_on,I03_off,D03_on,D03_off,D05_on,D05_off,D07_on,D07_off,D08_on,D08_off,D09_on,D09_off,D10_on,D10_off,D12_on,D12_off,D14_on,D14_off,D15_on,D15_off,Person,Work"
 
 
 def casas7_to_csv():
@@ -251,6 +251,8 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
     
     #print(feature_names)
     #used_features = []
+    set_of_sensors = set()
+    set_of_changed_index = set()
     counter = -1
     #print(features)
     first = True
@@ -259,7 +261,9 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
         cells = line.split()
         #print(cells)
         feature_column = get_feature_column(cells[2])
+        
         if feature_column != -1:
+            set_of_sensors.add(cells[2])
             counter +=1
             #set features to 0, because in each time just one feature is 1
             #features = [0]* 127
@@ -268,12 +272,13 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
             
             sensor_value = get_sensor_value(cells[3])
             
-            if sensor_value == 1:
+            if sensor_value == '01':
                 changed_index = feature_column*2
             else:
                 #sensor_value == 0 
                 changed_index = feature_column*2 + 1
                 
+            set_of_changed_index.add(changed_index)
             features[changed_index] = 1
 
             
@@ -307,6 +312,8 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
     rows, cols = all_features.shape
     print(rows)
     print(cols)
+    print(sorted(set_of_changed_index))
+    print(len(set_of_changed_index))
     np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv', 
                np.delete(all_features, -1 , 1 ), delimiter=',' , fmt='%s')
 
@@ -794,7 +801,7 @@ def casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes ,number_of_enti
         #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\bag_of_sensor_events_delta_' + str(deltaInMinutes) + 'min.csv', 
         #    all_features , delimiter=',' , fmt='%s')
         #np.savetxt(r'C:\pgmpy\Bag of sensor events_no overlap_based on different deltas\bag_of_sensor_events_no_overlap_delta_' + str(deltaInMinutes) + 'min.csv', 
-        np.savetxt(address_for_save, person_bag[0] , delimiter=',' , fmt='%s' , header = file_header.replace(', Work' , '' ))
+        np.savetxt(address_for_save, person_bag[0] , delimiter=',' , fmt='%s' , header = file_header.replace(',Work' , '' ))
     
     
     return person_bag[0]
@@ -1312,8 +1319,11 @@ if __name__ == '__main__':
     #a = np.array([[1,2,3],[4,5,6],[0,0,1]]) 
     #a1 = a[a[:,-1].argsort()]
     #casas7_to_csv_based_on_sensor_events_time_Ordered()
-   
+    #casas7_to_csv_based_on_sensor_events_time_Ordered()
+    
     address_to_read = r"E:\pgmpy\separation of train and test\31_3\train_untill_31_3_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+    #address_to_read = r"E:\pgmpy\separation of train and test\31_3\test_from_31_3_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+
     #address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
     #casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
@@ -1323,7 +1333,8 @@ if __name__ == '__main__':
         #address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv".format(i)
         #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
         #print("i: " , i)
-        address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv".format(i)
-        
-        casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes= i , number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
- 
+        #address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv".format(i)
+        address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv".format(i)
+
+        #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes= i , number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+        casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 117479, address_to_read = address_to_read, address_for_save =address_to_save, isSave = True)
