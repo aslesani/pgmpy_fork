@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 import collections
+from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
 
 
 def count_one_feature_numbers(dest,feature_column_number ):
@@ -72,25 +73,29 @@ def get_group_statistics(dest,data_rows ,feature_column_numbers,feature_column_n
 def get_set_of_features_in_each_column(file_address, data , read_data_from_file):
     
     if read_data_from_file:
-        data = read_data_from_PCA_digitized_file(file_address)
+        data = read_data_from_CSV_file(dest_file = file_address , data_type = np.int ,  has_header = True , return_as_pandas_data_frame = False)
     else:
         if type(data) == pd.DataFrame :#core.frame.DataFrame:
-            data = data.as_matrix()
+            data = data.values
             print(data)
         
     _ , number_of_columns = data.shape
     for i in range(0, number_of_columns):
-        print("column number: ", i )
-        print(collections.Counter(data[: , i]))
+        #print("column number: ", i )
+        if(len(collections.Counter(data[: , i]))) == 1:
+            print(i)
+        
 
                
 if __name__ == "__main__":
     #dest = r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
-    dest = r"C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\digitize_bin_200\PCA_n={}.csv"
+    #dest = r"C:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\digitize_bin_200\PCA_n={}.csv"
     #num = count_one_feature_numbers(dest = r"C:\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv", feature_column_number = -2)
     #print(num)
-    for i in range(2,41):
+    dest = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_15min.csv"
+    get_set_of_features_in_each_column(file_address=dest,data = 0, read_data_from_file = True )
+   # for i in range(2,41):
         #for 
         #get_group_statistics(dest.format(i) ,3056 ,feature_column_numbers=[-2,0], feature_column_names=['date', 'alaki'], feature_for_grouping=['date'])
-        print("n=" , i)
-        get_set_of_features_in_each_column(dest.format(i), number_of_columns = i )
+       # print("n=" , i)
+        #get_set_of_features_in_each_column(dest.format(i), number_of_columns = i )
