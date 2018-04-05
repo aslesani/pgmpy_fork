@@ -3,16 +3,18 @@ Created on Jan 27, 2018
 
 @author: Adele
 '''
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import *
 
-from pgmpy.estimators import BayesianEstimator
+from sklearn.metrics import f1_score, precision_score , recall_score, accuracy_score
+
 from pgmpy.estimators import BayesianEstimator
 from pgmpy.estimators import MaximumLikelihoodEstimator
 from pgmpy.estimators import BdeuScore, K2Score, BicScore
 from pgmpy.estimators import HillClimbSearch
 from pgmpy.models import BayesianModel
 from pgmpy.readwrite import XMLBIFWriter
+from DimensionReductionandBNStructureLearning import shift_each_column_separately
+from data_utils import check_data
+
 
 #from Validation import calculate_different_metrics
 
@@ -32,7 +34,7 @@ def bic(train,test, scoring_function,resultlist):
     sc = scoring_function(train)
     hc=HillClimbSearch(train, scoring_method=sc)
     best_model=hc.estimate()
-    print(best_model.edges())
+    print("best_model.edges:" , best_model.edges())
 
     #edges=[('c3', 'c2'), ('c3', 'c5'), ('c3', 'c1'), ('c3', 'Person'), ('Person', 'c2'), ('Person', 'c5'), ('Person', 'c1')]
     edges = best_model.edges()
@@ -45,8 +47,8 @@ def bic(train,test, scoring_function,resultlist):
     #    print(model.get_cpds(n))
         
 
-    print("nodes", model.nodes())
-    print("column", test.columns)
+    print("nodes:", model.nodes())
+    print("test column:", test.columns)
 
     flag=0
     if(set(model.nodes())-set(array) ==set(model.nodes())):
@@ -60,9 +62,9 @@ def bic(train,test, scoring_function,resultlist):
         #print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
     else:
         indicator=list(set(test.columns)-set(model.nodes()))
-        print("indicator:\n" , indicator)
+        #print("indicator:\n" , indicator)
         testchange=test.copy()
-        print(testchange)
+        #print(testchange)
 
         for f in range(len(indicator)):   
             #print(f)
@@ -73,7 +75,7 @@ def bic(train,test, scoring_function,resultlist):
         result=model.predict(testchange).values.ravel()
         testend=time.time()-teststart
         pred=list(result)
-        print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
+        #print("y_true: \n" , resultlist , "\ny_predicted:\n" , pred)
 
     
     #model_data = XMLBIFWriter(model)
@@ -148,14 +150,15 @@ def read_Abdoolahi_data():
        
     panda_result = pd.DataFrame(data=numpy_result , columns= column_names , dtype = np.int) 
     
-    print(panda_result.columns)
+    #print(panda_result.columns)
     #print(panda_result)
     
     return panda_result
     
     #return numpy_result
 
-
+   
+    
 if __name__ == "__main__":
     
     data = read_Abdoolahi_data()
@@ -163,14 +166,34 @@ if __name__ == "__main__":
     #                    columns=['A', 'B', 'C', 'D', 'res'])
     
     #print(data)
+    
+    rows , cols = data.shape
+    print("++++++++++++++++++++++++++++++++++++++++++++++++")
+    print(cols)
+    
+    data.iloc[0 , 1] = 3
+    data.iloc[1 , 1] = 50
+
+    
+    data.iloc[700 , 1] = 50
+    data.iloc[701 , 1] = 51
+    data.iloc[702 , 1] = 52
+
+    data = shift_each_column_separately(data)
+    
+    
     train = data[0:700] 
     #print(train)
     test = data[700:]
+    
+    are_different , data2 = check_data(train , test , remove_latent_variables = True) 
+    print(are_different , np.shape(data2))
+    if are_different:
+        test = data2
+    
     resultlist = test['Person'].values
     test = test.drop('Person', axis=1, inplace=False)
 
-    #scores , learning_time = 
-    bic(train = train, test = test, scoring_function=BicScore , name = "model", 
-        folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
+    model , scores ,  trainend, testend = bic(train = train, test = test, scoring_function=BicScore, resultlist = resultlist)
     
-    #print(scores , learning_time)
+    print(scores)
