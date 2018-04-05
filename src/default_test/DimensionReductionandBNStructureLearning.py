@@ -1,12 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 '''
 Created on May 14, 2017
 
 @author: Adele
 '''
+
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
-
 
 from pgmpy.models import BayesianModel
 from pgmpy.estimators import BayesianEstimator
@@ -17,8 +20,11 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 
+from data_utils import check_data
+
 import csv
 import time
+import collections
 #from numpy import dtype
 #from h5py._hl.datatype import Datatype
 import os.path
@@ -362,7 +368,8 @@ def read_data_from_PCA_digitized_file(dest_file):
 
 
 def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_save , column_indexes_not_apply_feature_selection , has_header ,is_Panda_dataFrame ):
-    '''suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
+    '''
+    suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
        Boolean features are Bernoulli random variables, and the variance of such variables is given by var[x] = p(1-p)
     
     Parameteres:
@@ -383,11 +390,11 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
         
     rows , cols = data.shape
   
-    print("======================")
-    print("original data shape: " , rows , cols)
+    #print("======================")
+    #print("original data shape: " , rows , cols)
     
     column_indexes_to_apply_feature_selection = list( set(range(cols)) - set(column_indexes_not_apply_feature_selection))
-    print("column_indexes_to_apply_feature_selection:" , column_indexes_to_apply_feature_selection)
+    #print("column_indexes_to_apply_feature_selection:" , column_indexes_to_apply_feature_selection)
     #threshold=0.7 * (1 - 0.7)
     select_features = VarianceThreshold(threshold=threshold)# 80% of the data
     
@@ -401,10 +408,10 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
     if is_Panda_dataFrame:
         columns_are_kept = select_features.get_support(indices=True)
         selected_fetures_labels = [columns[x] for x in columns_are_kept]
-        print("selected_fetures_labels:" , selected_fetures_labels)
+        #print("selected_fetures_labels:" , selected_fetures_labels)
         column_labels_not_apply_feature_selection = [columns[x] for x in column_indexes_not_apply_feature_selection]
         final_labels = np.concatenate((selected_fetures_labels , column_labels_not_apply_feature_selection) , axis = 0)
-        print(final_labels)
+        #print(final_labels)
         data_new = pd.DataFrame(data_new , columns = final_labels)
     
     if(isSave):
@@ -493,12 +500,82 @@ def discretization_equal_width_for_any_data(data):
     return data.astype(int)
 
 def shift_data(data):
+    '''
+    get a column of data
+    
+    '''
+    
     list_of_data = list(sorted(set(data)))
     for item in list_of_data:
         data[np.where(np.equal(data, item))] = list_of_data.index(item)
         
     #print(set(data))
     return data 
+
+def shift_2_data_set_based_on_the_first_dataset(data1 , data2):
+    '''
+    get list of item of each column in the data1 and shift data of both data1 and data2 based on it
+    
+    IMPORTANT: you should first apply check_data method on 2 dataset to remove extra features from data2
+    and then apply this method. Otherwise you might get an dataset with no logic :D
+    Update: I myself check the differences and remove extra lines in data2. but inform you. do not scare ;)
+    '''
+    are_different , d = check_data(data1 , data2 , remove_latent_variables = True)
+    if are_different:
+        data2 = d
+        print("****the check_data method modified the data2****")
+        
+    is_data1_pd = False
+    is_data2_pd = False
+    
+    if type(data1) == pd.core.frame.DataFrame:
+        is_data1_pd = True
+        columns1 = data1.columns
+        data1 = data1.values
+        
+    if type(data2) == pd.core.frame.DataFrame:
+       is_data2_pd = True
+       columns2 = data2.columns
+       data2 = data2.values
+    
+    
+    _ , cols = data1.shape
+    
+    for i in range(cols):
+        list_of_column_states = list(sorted(set(data1[: , i])))
+        
+        for item in list_of_column_states:
+            data1[np.where(np.equal(data1[: , i], item)) , i] = list_of_column_states.index(item)
+            data2[np.where(np.equal(data2[: , i], item)) , i] = list_of_column_states.index(item)
+
+    
+    if is_data1_pd:
+        data1 = pd.DataFrame(data1 , columns = columns1)
+    
+    if is_data2_pd:
+        data2 = pd.DataFrame(data2 , columns = columns2)
+
+   
+    return data1, data2 
+
+
+def shift_each_column_separately(data):
+        
+    is_pd = False
+    if type(data) == pd.core.frame.DataFrame:
+        is_pd = True
+        columns = data.columns
+        data = data.values
+    
+    _ , cols = data.shape
+    for i in range(cols):
+        data[:,i] = shift_data(data[:,i])
+    
+    
+    if is_pd:
+        data = pd.DataFrame(data , columns = columns)
+        
+    return data
 
 def digitize_Dr_Amirkhani(a, n):
     '''
@@ -703,20 +780,37 @@ def test_featureSelection_based_on_Variance():
     #dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv"
     dest_file = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv"
     #dest_file = r"E:\pgmpy\separation of train and test\31_3\train_untill_31_3_each_row_one_features_is_one_on_and_off+time_ordered_header.csv"
+    hash_of_delta_and_the_best_treshhold = {}
     for delta in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
-        
+        min_selected_features = 125
+        corresponding_threshhold = 0
         for i in range(21):
             t = i * 5
             result = featureSelection_based_on_Variance(dest_file = dest_file.format(delta) ,threshold = t , isSave = False , path_to_save = " " , column_indexes_not_apply_feature_selection = [122] , has_header = True, is_Panda_dataFrame = True )
-            print("delta" , delta)
-            print("threshold =" ,  t)
-            print(result.shape)
-    
-              
+            #print("delta" , delta)
+            #print("threshold =" ,  t)
+            rows , cols = result.shape
+            #print(rows , cols)
+            if cols < min_selected_features:
+                min_selected_features = cols
+                corresponding_threshhold = t
+        print("delta = ", delta, "min_selected_features", min_selected_features , "threshhold:", corresponding_threshhold)   
+        hash_of_delta_and_the_best_treshhold[delta] = corresponding_threshhold
+     
+    od = collections.OrderedDict(sorted(hash_of_delta_and_the_best_treshhold.items()))
+
+    print(od)        
+def test_shift_2_data_set_based_on_the_first_dataset():
+    a = np.array([[1,2,3] , [7,8,9]])
+    b = np.array([[7,2,9] , [1,2,3]])
+    a, b = shift_2_data_set_based_on_the_first_dataset(a,b)
+    print(a)
+    print(b)  
     
 if __name__ == "__main__":
-    
-    test_featureSelection_based_on_Variance()
+    #featureSelection_based_on_Variance(
+    #test_featureSelection_based_on_Variance()
+    test_shift_2_data_set_based_on_the_first_dataset()
     #a = featureSelection_based_on_Variance(dest_file = r'E:\test.csv' , threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [5] , has_header = True ,is_Panda_dataFrame = False)
     #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
     #create_PCA_for_bag_of_sensor_events_based_on_activities()    
