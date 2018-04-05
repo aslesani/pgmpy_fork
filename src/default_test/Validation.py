@@ -8,9 +8,10 @@ import numpy as np
 import pandas as pd
 from DimensionReductionandBNStructureLearning import create_BN_model
 from DimensionReductionandBNStructureLearning import discretization_equal_width_for_any_data
-from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani, shift_data
+from DimensionReductionandBNStructureLearning import digitize_Dr_Amirkhani, shift_data , shift_each_column_separately, shift_2_data_set_based_on_the_first_dataset
 from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
 from DimensionReductionandBNStructureLearning import featureSelection_based_on_Variance
+from data_utils import check_data
 
 from custom_classifiers import test_different_classifiers
 
@@ -21,6 +22,7 @@ from Abdollahi import bic
 
 import matplotlib.pyplot as plt
 import random
+from collections import OrderedDict
 
 from sklearn import datasets
 from sklearn.utils import shuffle
@@ -64,7 +66,8 @@ def convert_numpy_dataset_to_pandas(data):
     pd_data_set = pd.DataFrame(data , columns=column_names)
     return pd_data_set
             
-
+    
+    
 def partition_data(data, train_ratio, validation_ratio, test_ratio):
     '''
     partition data to train, validation and test sets according to proportion
@@ -107,11 +110,6 @@ def partition_data(data, train_ratio, validation_ratio, test_ratio):
 def kfoldcrossvalidationForBNModelUsingNumpy(k , data, target_column_name, scoring='f1_micro' ):  
     '''
     get a model and test it using k-fold cross validation
-    Ù�Ø¹Ù„Ø§ ÛŒÚ© Ø§ÛŒØ±Ø§Ø¯ Ø¯Ø§Ø±Ø¯ Ú©Ù‡ Ù…Ù† Ø¨Ø±Ø§ÛŒ Ø±Ø§Ø­ØªÛŒ Ú©Ø§Ø± Ù‡Ù…Ù‡ Ø¯Ø³ØªÙ‡ Ù‡Ø§ Ø±Ø§ ÛŒÚ© Ø§Ù†Ø¯Ø§Ø²Ù‡ Ú¯Ø±Ù�ØªÙ…. Ù…Ø§Ú©Ø³ÛŒÙ…Ù… Ø¨Ù‡ ØªØ¹Ø¯Ø§Ø¯ 
-    k-1
-    Ø¯Ø§Ø¯Ù‡ Ù…Ù…Ú©Ù† Ø§Ø³Øª Ø§ØµÙ„Ø§ Ø¯Ø± Ø§Ø±Ø²ÛŒØ§Ø¨ÛŒ ÙˆØ§Ø±Ø¯ Ù†Ø´ÙˆÙ†Ø¯. Ø¨Ø¹Ø¯Ø§ Ø¯Ø±Ø³Øª Ù…ÛŒ Ú©Ù†Ù….
-    
-    Ù�Ø¹Ù„Ø§ Ù�Ø±Ø¶ Ú©Ø±Ø¯Ù‡ Ø§Ù… Ø³ØªÙˆÙ† Ø¢Ø®Ø± ØªØ§Ø±Ú¯Øª Ø§Ø³Øª
     
     Parameters:
     -------
@@ -168,11 +166,6 @@ def kfoldcrossvalidationForBNModelUsingNumpy(k , data, target_column_name, scori
 def kfoldcrossvalidationForBNModel_UsingPanda(k , data, target_column_name, scoring='f1_micro' ):  
     '''
     get a model and test it using k-fold cross validation
-    Ù�Ø¹Ù„Ø§ ÛŒÚ© Ø§ÛŒØ±Ø§Ø¯ Ø¯Ø§Ø±Ø¯ Ú©Ù‡ Ù…Ù† Ø¨Ø±Ø§ÛŒ Ø±Ø§Ø­ØªÛŒ Ú©Ø§Ø± Ù‡Ù…Ù‡ Ø¯Ø³ØªÙ‡ Ù‡Ø§ Ø±Ø§ ÛŒÚ© Ø§Ù†Ø¯Ø§Ø²Ù‡ Ú¯Ø±Ù�ØªÙ…. Ù…Ø§Ú©Ø³ÛŒÙ…Ù… Ø¨Ù‡ ØªØ¹Ø¯Ø§Ø¯ 
-    k-1
-    Ø¯Ø§Ø¯Ù‡ Ù…Ù…Ú©Ù† Ø§Ø³Øª Ø§ØµÙ„Ø§ Ø¯Ø± Ø§Ø±Ø²ÛŒØ§Ø¨ÛŒ ÙˆØ§Ø±Ø¯ Ù†Ø´ÙˆÙ†Ø¯. Ø¨Ø¹Ø¯Ø§ Ø¯Ø±Ø³Øª Ù…ÛŒ Ú©Ù†Ù….
-    
-    Ù�Ø¹Ù„Ø§ Ù�Ø±Ø¶ Ú©Ø±Ø¯Ù‡ Ø§Ù… Ø³ØªÙˆÙ† Ø¢Ø®Ø± ØªØ§Ø±Ú¯Øª Ø§Ø³Øª
     
     Parameters:
     -------
@@ -265,7 +258,9 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     if type(data) == pd.DataFrame:
         data_column_names = data.columns
         data = data.values
-        
+    
+    # havaset bashe in karo kharab nakone. chon amalan dari data ro taqir midi
+    data = shift_each_column_separately(data)
     data_length , data_features = np.shape(data)
     #print(data_features)
     #print("data_length: {}".format(data_length))
@@ -286,40 +281,48 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     
     scores = np.zeros(k , dtype = np.object)
     
+    #print("*****k:" , k)
     i = 0
     while i < k:
         validation_set = partition[i]
         train_set =  np.delete(partition, i, 0)  
         train_set = pd.concat(train_set)#[partition(p) for p in len(train_set)]
-        #print(type(test_set))
-        #validation_set = pd.DataFrame(test_set , columns=data_column_names)
-        #print("target_column_name:" , target_column_name , type(target_column_name))
+        
+        #print("train_set" , train_set)
+        #print("validation_set:" , validation_set)
+        are_different , data2 = check_data(train_set , validation_set , remove_latent_variables = True)
+        
+        if are_different:
+            #print("Yes! they were different")
+            validation_set = data2
         #print("validation_set.columns:" , validation_set.columns)
-        if target_column_name in validation_set.columns:
-            print("yesssssssssssssssssssssssssssssssssss")
-        else:
-            print("noooooooooooooooooooooooooooooooooooooooooo")
-            print(len(target_column_name) , len(validation_set.columns[-2]))
+        
+        train_set , validation_set = shift_2_data_set_based_on_the_first_dataset(train_set , validation_set)
+       
+        '''
+        for c in range(data_features):
+            print("c=" , c)
+            print(set(validation_set.values[: , c]) - set(train_set.values[: , c]))
+            print("set(validation_set.values[: , c]):" , sorted(list(set(validation_set.values[: , c]))))
+            a = sorted(list(set(train_set.values[: , c])))
+            print("set(train_set.values[: , c]):" , a)
+            print("len(set(train_set.values[: , c])):" , len(a))
+        '''
+            
         resultlist = validation_set[target_column_name].values
         test_final = validation_set.drop(target_column_name, axis=1, inplace=False)
         
-        #print("train_set:\n" , train_set)
-        #print("test_final:\n" , test_final)
-        #print(type(validation_set))
-        #get_set_of_features_in_each_column(file_address ="", data = validation_set, read_data_from_file = False)
-        try:
-            _ , scores[i], _ , _ = bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
-            print("No exception:")
-            #get_set_of_features_in_each_column(file_address = " ", data = train_set, read_data_from_file = False)
-
+        #try:
+        #print("**************i:" , i)
+        _ , scores[i], _ , _ = bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+            #print("No exception:")
+        
             
-        except Exception as e:
-            #print("try again for k ={} in k-fold cross validation".format(i))
-            print("exception")
-            logger = logging.Logger('catch_all')
-            logger.error(e , exc_info = True)
-            scores[i] = 0
-            #get_set_of_features_in_each_column(file_address = " ", data = train_set, read_data_from_file = False)
+        #except Exception as e:
+         #   print("exception")
+            #logger = logging.Logger('catch_all')
+            #logger.error(e , exc_info = True)
+          #  scores[i] = 0
             
         i = i + 1   
         
@@ -465,7 +468,7 @@ def plot_results(x_values , y_values, x_label, y_label):
     n_components = [20, 40, 64]
     Cs = np.logspace(-4, 4, 3)
     
-    #Parameters of pipelines can be set using â€˜__â€™ separated parameter names:
+    #Parameters of pipelines can be set using ... separated parameter names:
     
     estimator = GridSearchCV(pipe,
                              dict(pca__n_components=n_components,
@@ -955,8 +958,7 @@ def the_best_validation_strategy(data, data_column_names, target_column_name , k
     '''
     
     _ , validation_set , test_set =  partition_data(data, train_ratio = 0, validation_ratio = 90, test_ratio = 10)
-    #_ , cols = validation_set.shape 
-    #get_set_of_features_in_each_column(file_address= " " , data = validation_set , read_data_from_file= False)
+    
     final_scores = kfoldcrossvalidation_for_abd_function(k = k, data = validation_set, data_column_names = data_column_names, target_column_name = target_column_name)
     final_validation_f1_scores_micro_avg = 0
     number_of_zeros = 0
@@ -987,18 +989,23 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     #badan az comment kharej shavad
     #data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\digitize_bin_10\PCA_n={n}.csv"
     data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
+    #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
     #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
     
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
+    
+    # this is a hash table in which key is delta and value is the treshhold that the min number of features is selected in comparision to other treshholds
+    hash_of_delta_and_the_best_treshhold = OrderedDict([(15, 55), (30, 80), (45, 80), (60, 80), (75, 85), (90, 75), (100, 85), (120, 95), (150, 100), (180, 100), (200, 95), (240, 70), (300, 75), (400, 95), (500, 80), (600, 90), (700, 95), (800, 100), (900, 95), (1000, 100)])
     max_validation_f1_score = 0
     the_best_model = 0
     best_model_test_set = 0
+    best_model_validation_set = 0
     best_delta = 0
     best_n = 0
     
-    for repeat in range(1):
+    for repeat in range(20):
         print("repaet: " , repeat)
         selected_delta = delta[random.randint(1,delta_length)]
         #selected_n = random.randint(2,15)#41)# n is # of features in PCA
@@ -1009,37 +1016,55 @@ def select_hyper_parameters_using_the_best_validation_strategy():
         #data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
         #data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
         #feature selection based on variance
+        data = featureSelection_based_on_Variance(dest_file = data_address.format(delta = selected_delta),threshold = hash_of_delta_and_the_best_treshhold[selected_delta] , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
+        #data = featureSelection_based_on_Variance(dest_file = data_address,threshold = 50 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
+        data = shift_each_column_separately(data)
+        '''
+        r , c = data.shape
+        for i in range(c):
+            print("i=" , i)
+            print(sorted(list(set(data.values[: , i]))))
+        '''
         
-        data = featureSelection_based_on_Variance(dest_file = data_address.format(delta = selected_delta),threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
+        print(data.shape)
         #_ , cols = np.shape(data)
         #data_column_names = ['c' + str(i) for i in range(cols-1)]
         #data_column_names.append('Person')
         target_column_name = 'Person'
         
-        validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=2)
+        validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=10)
         
         if final_validation_f1_scores_micro_avg > max_validation_f1_score:
             max_validation_f1_score = final_validation_f1_scores_micro_avg
             best_model_test_set = test_set
+            best_model_validation_set = validation_set
             best_delta = selected_delta
-            best_n = selected_n
+            #best_n = selected_n
     
     if max_validation_f1_score != 0:
         pd_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
-        pd_validation_set = convert_numpy_dataset_to_pandas(validation_set)
+        pd_validation_set = convert_numpy_dataset_to_pandas(best_model_validation_set)
+        
+        best_model_validation_set , best_model_test_set = shift_2_data_set_based_on_the_first_dataset(best_model_validation_set, best_model_test_set)
+        
         resultlist = pd_test_set[target_column_name].values
         test_final = pd_test_set.drop(target_column_name, axis=1, inplace=False)
     
         
         _ , test_set_score, _ , _ = bic(train = pd_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
-        print("test score:" , test_set_score)
+        print("final test score:" , test_set_score)
     
     
-    print("best_delta:" , best_delta, "best_n:" , best_n)
+    print("best_delta:" , best_delta)
 
 
 if __name__ == '__main__':
     
+    select_hyper_parameters_using_the_best_validation_strategy()
+    #a = [[1,2,3] , [5,0,0]]
+    #p = pd.DataFrame(a , columns = ["1", "2" , "3"])
+    #print(p)
+    #res = data_organization(p)
 
     #print(kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro"))#data.iloc[0:100 ,:]
     '''
@@ -1054,7 +1079,5 @@ if __name__ == '__main__':
     result = pgm_test(estimator, test_set = validation, target_column_name = 'Person')
     print(result)
     '''
-    #select_hyperparameters()
-    select_hyper_parameters_using_the_best_validation_strategy()
     #cProfile.run('re.compile("kfoldcrossvalidationForBNModel_UsingPanda|10, data, target_column_name = "Person", scoring = "f1_micro"")')
     
