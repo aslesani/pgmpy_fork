@@ -367,7 +367,7 @@ def read_data_from_PCA_digitized_file(dest_file):
 '''
 
 
-def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_save , column_indexes_not_apply_feature_selection , has_header ,is_Panda_dataFrame ):
+def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_save , column_indexes_not_apply_feature_selection , has_header ,is_Panda_dataFrame, remove_work_column):
     '''
     suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than p%(e.g. 80%) of the samples. 
        Boolean features are Bernoulli random variables, and the variance of such variables is given by var[x] = p(1-p)
@@ -378,13 +378,18 @@ def featureSelection_based_on_Variance(dest_file,threshold , isSave , path_to_sa
     threshold
     remove_date_and_time = False
     isSave
+    column_indexes_not_apply_feature_selection
+    has_header 
     path_to_save
-    column_indexes_to_keep: the column indexes that want to be kept and the feature selection method does not apply on
+    remove_work_column: if True, remove the 'Work' column before applying feature selection (just work in Pandas Dataframe datasets)
     '''
     data = read_data_from_CSV_file(dest_file = dest_file, data_type = np.int, has_header= has_header , return_as_pandas_data_frame = is_Panda_dataFrame)
     # remove person, work, date and time columns
     #sensor_data = np.delete(np.delete(np.delete(np.delete(data ,64 , 1), 63 , 1), 62 , 1), 61,1)
     if is_Panda_dataFrame:
+        if remove_work_column:
+            data = data.drop('Work', axis=1, inplace=False)
+            
         columns = data.columns
         data = data.values
         
