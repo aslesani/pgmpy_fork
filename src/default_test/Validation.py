@@ -1005,9 +1005,9 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     best_delta = 0
     best_n = 0
     
-    for repeat in range(20):
+    for repeat in range(1):
         print("repaet: " , repeat)
-        selected_delta = delta[random.randint(1,delta_length)]
+        selected_delta = 1000#delta[random.randint(1,delta_length)]
         #selected_n = random.randint(2,15)#41)# n is # of features in PCA
         #print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
         print("selected_delta:{}".format(selected_delta))
@@ -1016,42 +1016,45 @@ def select_hyper_parameters_using_the_best_validation_strategy():
         #data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
         #data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
         #feature selection based on variance
-        data = featureSelection_based_on_Variance(dest_file = data_address.format(delta = selected_delta),threshold = hash_of_delta_and_the_best_treshhold[selected_delta] , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
-        #data = featureSelection_based_on_Variance(dest_file = data_address,threshold = 50 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
-        data = shift_each_column_separately(data)
-        '''
-        r , c = data.shape
-        for i in range(c):
-            print("i=" , i)
-            print(sorted(list(set(data.values[: , i]))))
-        '''
+        for treshhold in range(0, 100 , 5):
+            #threshold = hash_of_delta_and_the_best_treshhold[selected_delta] 
+            print("treshhold:" , treshhold)
+            data = featureSelection_based_on_Variance(dest_file = data_address.format(delta = selected_delta),threshold = treshhold , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122] , has_header = True ,is_Panda_dataFrame = True , remove_work_column = True)
+            #data = featureSelection_based_on_Variance(dest_file = data_address,threshold = 50 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
+            data = shift_each_column_separately(data)
+            '''
+            r , c = data.shape
+            for i in range(c):
+                print("i=" , i)
+                print(sorted(list(set(data.values[: , i]))))
+            '''
+            
+            print(data.shape)
+            #_ , cols = np.shape(data)
+            #data_column_names = ['c' + str(i) for i in range(cols-1)]
+            #data_column_names.append('Person')
+            target_column_name = 'Person'
+            
+            validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=10)
+            
+            if final_validation_f1_scores_micro_avg > max_validation_f1_score:
+                max_validation_f1_score = final_validation_f1_scores_micro_avg
+                best_model_test_set = test_set
+                best_model_validation_set = validation_set
+                best_delta = selected_delta
+                #best_n = selected_n
         
-        print(data.shape)
-        #_ , cols = np.shape(data)
-        #data_column_names = ['c' + str(i) for i in range(cols-1)]
-        #data_column_names.append('Person')
-        target_column_name = 'Person'
-        
-        validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=10)
-        
-        if final_validation_f1_scores_micro_avg > max_validation_f1_score:
-            max_validation_f1_score = final_validation_f1_scores_micro_avg
-            best_model_test_set = test_set
-            best_model_validation_set = validation_set
-            best_delta = selected_delta
-            #best_n = selected_n
-    
     if max_validation_f1_score != 0:
-        pd_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
-        pd_validation_set = convert_numpy_dataset_to_pandas(best_model_validation_set)
+        best_model_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
+        best_model_validation_set = convert_numpy_dataset_to_pandas(best_model_validation_set)
         
         best_model_validation_set , best_model_test_set = shift_2_data_set_based_on_the_first_dataset(best_model_validation_set, best_model_test_set)
         
-        resultlist = pd_test_set[target_column_name].values
-        test_final = pd_test_set.drop(target_column_name, axis=1, inplace=False)
+        resultlist = best_model_test_set[target_column_name].values
+        test_final = best_model_test_set.drop(target_column_name, axis=1, inplace=False)
     
         
-        _ , test_set_score, _ , _ = bic(train = pd_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        _ , test_set_score, _ , _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
         print("final test score:" , test_set_score)
     
     
