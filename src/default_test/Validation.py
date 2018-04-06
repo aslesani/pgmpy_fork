@@ -258,6 +258,10 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     if type(data) == pd.DataFrame:
         data_column_names = data.columns
         data = data.values
+    elif type(data) == np.ndarray:
+        _ , cols = data.shape
+        data_column_names = ['c' + str(i) for i in range(cols-1)]
+        data_column_names.append('Person')
     
     # havaset bashe in karo kharab nakone. chon amalan dari data ro taqir midi
     data = shift_each_column_separately(data)
@@ -273,6 +277,7 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
     index = 0
     #print("data_column_names:" , data_column_names)
     # the last k is partitioned manually, because maybe the data_length was not devided on k
+    
     for i in range(0, k): 
         end = (i+1) * part_length
         #print("index:{}, end: {}".format(index, end))
@@ -987,8 +992,8 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     #r"C:\f5_0_10.csv"
     
     #badan az comment kharej shavad
-    #data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\digitize_bin_10\PCA_n={n}.csv"
-    data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
+    data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
+    #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
     #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
@@ -1005,46 +1010,40 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     best_delta = 0
     best_n = 0
     
-    for repeat in range(1):
+    for repeat in range(20):
         print("repaet: " , repeat)
-        selected_delta = 1000#delta[random.randint(1,delta_length)]
-        #selected_n = random.randint(2,15)#41)# n is # of features in PCA
-        #print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
-        print("selected_delta:{}".format(selected_delta))
+        selected_delta = delta[random.randint(1,delta_length)]
+        selected_n = random.randint(2,20)#41)# n is # of features in PCA
+        print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+        #print("selected_delta:{}".format(selected_delta))
 
 
-        #data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False)
+        data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
         #data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
         #feature selection based on variance
-        for treshhold in range(0, 100 , 5):
-            #threshold = hash_of_delta_and_the_best_treshhold[selected_delta] 
-            print("treshhold:" , treshhold)
-            data = featureSelection_based_on_Variance(dest_file = data_address.format(delta = selected_delta),threshold = treshhold , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122] , has_header = True ,is_Panda_dataFrame = True , remove_work_column = True)
-            #data = featureSelection_based_on_Variance(dest_file = data_address,threshold = 50 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
-            data = shift_each_column_separately(data)
-            '''
-            r , c = data.shape
-            for i in range(c):
-                print("i=" , i)
-                print(sorted(list(set(data.values[: , i]))))
-            '''
-            
-            print(data.shape)
-            #_ , cols = np.shape(data)
-            #data_column_names = ['c' + str(i) for i in range(cols-1)]
-            #data_column_names.append('Person')
-            target_column_name = 'Person'
-            
-            validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=10)
-            
-            if final_validation_f1_scores_micro_avg > max_validation_f1_score:
-                max_validation_f1_score = final_validation_f1_scores_micro_avg
-                best_model_test_set = test_set
-                best_model_validation_set = validation_set
-                best_delta = selected_delta
-                #best_n = selected_n
+        #for treshhold in range(20, 100 , 5):
+        #threshold = hash_of_delta_and_the_best_treshhold[selected_delta] 
+        #print("treshhold:" , treshhold)
+        #data = featureSelection_based_on_Variance(dest_file = data_address.format(delta = selected_delta),threshold = treshhold , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122] , has_header = True ,is_Panda_dataFrame = True , remove_work_column = True)
+        #data = featureSelection_based_on_Variance(dest_file = data_address,threshold = 50 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
+        data = shift_each_column_separately(data)
+      
+        print(data.shape)
+       
+        target_column_name = 'Person'
         
+        validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=10)
+        
+        if final_validation_f1_scores_micro_avg > max_validation_f1_score:
+            max_validation_f1_score = final_validation_f1_scores_micro_avg
+            best_model_test_set = test_set
+            best_model_validation_set = validation_set
+            best_delta = selected_delta
+            #best_n = selected_n
+    
     if max_validation_f1_score != 0:
+        print("best_delta:" , best_delta)
+
         best_model_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
         best_model_validation_set = convert_numpy_dataset_to_pandas(best_model_validation_set)
         
@@ -1058,29 +1057,85 @@ def select_hyper_parameters_using_the_best_validation_strategy():
         print("final test score:" , test_set_score)
     
     
-    print("best_delta:" , best_delta)
+def test_the_best_validation_strategy_for_different_deltas():
+    
+    data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
+    #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
+    #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
+    #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
+    
+    delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
+    delta_length = len(delta)-1
+    
+    max_validation_f1_score = 0
+    best_model_test_set = 0
+    best_model_validation_set = 0
+    best_delta = 0
+    best_n = 0
+    
+    list_of_deltas = []
+    list_of_f1_micros = []
+    for selected_delta in delta:
+        #selected_delta = delta[random.randint(1,delta_length)]
+        selected_n = 10#random.randint(2,20)#41)# n is # of features in PCA
+        print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+        #print("selected_delta:{}".format(selected_delta))
+
+
+        data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
+        #data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
+        #feature selection based on variance
+        #for treshhold in range(20, 100 , 5):
+        #threshold = hash_of_delta_and_the_best_treshhold[selected_delta] 
+        #print("treshhold:" , treshhold)
+        #data = featureSelection_based_on_Variance(dest_file = data_address.format(delta = selected_delta),threshold = treshhold , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122] , has_header = True ,is_Panda_dataFrame = True , remove_work_column = True)
+        #data = featureSelection_based_on_Variance(dest_file = data_address,threshold = 50 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [122,123] , has_header = True ,is_Panda_dataFrame = True)
+        data = shift_each_column_separately(data)
+      
+        print(data.shape)
+       
+        target_column_name = 'Person'
+        
+        validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=10)
+        
+        list_of_deltas.append(selected_delta)
+        list_of_f1_micros.append(final_validation_f1_scores_micro_avg)
+        
+        if final_validation_f1_scores_micro_avg > max_validation_f1_score:
+            max_validation_f1_score = final_validation_f1_scores_micro_avg
+            best_model_test_set = test_set
+            best_model_validation_set = validation_set
+            best_delta = selected_delta
+            best_n = selected_n
+    
+    if max_validation_f1_score != 0:
+        print("best_delta:" , best_delta)
+        print("best_n:" , best_n)
+
+        best_model_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
+        best_model_validation_set = convert_numpy_dataset_to_pandas(best_model_validation_set)
+        
+        best_model_validation_set , best_model_test_set = shift_2_data_set_based_on_the_first_dataset(best_model_validation_set, best_model_test_set)
+        
+        resultlist = best_model_test_set[target_column_name].values
+        test_final = best_model_test_set.drop(target_column_name, axis=1, inplace=False)
+    
+        
+        _ , test_set_score, _ , _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        print("final test score:" , test_set_score)
+
+    plot_results(list_of_deltas, list_of_f1_micros, "delta (when n = )" + str(selected_n), y_label = "f1 score micro")
 
 if __name__ == '__main__':
     
-    select_hyper_parameters_using_the_best_validation_strategy()
-    #a = [[1,2,3] , [5,0,0]]
-    #p = pd.DataFrame(a , columns = ["1", "2" , "3"])
-    #print(p)
-    #res = data_organization(p)
-
-    #print(kfoldcrossvalidationForBNModel_UsingPanda(10, data, target_column_name = "Person", scoring = "f1_micro"))#data.iloc[0:100 ,:]
+    test_the_best_validation_strategy_for_different_deltas()
+    #select_hyper_parameters_using_the_best_validation_strategy()
+    
     '''
     pr.disable()
     pr.print_stats(sort='time')
     print("learning_time:{}".format(learning_time))
-    '''
-    '''
-    a = read_Abdoolahi_data()
-    train , validtion , test = partition_data(a, train_ratio = 60, validation_ratio = 20, test_ratio = 20) 
-    estimator , _ = create_BN_model(train)
-    result = pgm_test(estimator, test_set = validation, target_column_name = 'Person')
-    print(result)
     '''
     #cProfile.run('re.compile("kfoldcrossvalidationForBNModel_UsingPanda|10, data, target_column_name = "Person", scoring = "f1_micro"")')
     
