@@ -38,10 +38,12 @@ def read_sequence_based_CSV_file(file_address , has_header):
             d = d.split(']')
             seq = d[0].replace("'" , '').split(', ')
             other = d[1].split(',')
-            list_of_persons[line] = int(other[1])
+            list_of_persons[line] = [int(other[1])] * len(seq)
+            if line == 1:
+                print(list_of_persons[line])
             list_of_activities[line] = int(other[2])
 
-            list_of_data[line] = seq
+            list_of_data[line] = np.array(seq)
         '''print(type(list_of_data[1]))
         for i in range(3):
             print(type(list_of_data[1][i]))
