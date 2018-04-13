@@ -26,6 +26,8 @@ from datetime import timedelta
 from xml.sax.handler import all_features
 #from builtins import int
 from numpy import dtype
+from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
+
 #from matplotlib.pyplot import axis
 #from nntplib import lines
 
@@ -1305,6 +1307,100 @@ def load_asia(return_X_y=False):
     
    ''' 
 
+def create_sequence_of_sensor_events_based_on_activity(address_to_read,has_header, address_for_save, isSave):
+    '''
+    we imagine in each row of dataset, just one sensor event is active and the dataset is ordered base on time 
+    1. The order of  features: sensor events (for each sensor on and off), 
+                               Person,
+                               Work,
+                               Date,
+                               Time
+    
+    Parameters:
+    ===============
+    isSave: Save the returned value to file
+    
+    '''
+    if has_header:
+        header , data = read_data_from_CSV_file(dest_file = address_to_read, data_type = np.int, has_header = has_header, return_as_pandas_data_frame = False , remove_date_and_time=True)    
+    else:
+        data = read_data_from_CSV_file(dest_file = address_to_read, data_type = np.int, has_header = has_header, return_as_pandas_data_frame = False , remove_date_and_time=True)    
+        #_ , c = np.shape(data)
+        header = file_header.split(sep=',')
+        #print(header)
+        #for i in range(c):
+        #   header.append('C' + str(i))
+        
+    #seperate each person data in a list (-4 is the index of person column)
+    person_IDs = list(set(data[: , -2]))
+    number_of_residents = len(person_IDs)
+    person_data = np.zeros(number_of_residents, dtype = np.ndarray)
+    for i in range(number_of_residents):
+        person_data[i] = data[np.where(data[:,-2] == person_IDs[i])]
+        
+    #save bag of features in deltaT for each person   
+    person_sequences = np.zeros(number_of_residents, dtype = np.ndarray)
+
+    for each_person in range(number_of_residents):
+        #print("each_line:{}".format(each_line+1))
+        new_counter = 0
+        #initialize 
+        person_data_number_of_rows , _ = person_data[each_person].shape
+        # create a ndarray with size of all data of the person and each row is an array (for defining sequence) 
+        # column0: list(seq) , col1 = person , col2: activity
+        person_sequences[each_person] = np.ndarray(shape = (person_data_number_of_rows , 3), dtype = np.ndarray )
+        
+        last_activity = person_data[each_person][0][-1]
+        
+        ind = np.where(np.equal(person_data[each_person][0] , 1))
+        #print(ind)
+        #print(ind[0][0])
+        next_element_of_sequence = header[ind[0][0]]# if there is more than one 1, the last is person number. because each row has one 1        
+        print(next_element_of_sequence)
+        person_sequences[each_person][0][0] = [next_element_of_sequence]
+        
+        for offset in range(1, len(person_data[each_person]), 1): # range(start, end, step) sharte end ine k bozorgtar bashe pas bayad yeki az akhari kamtar begiram
+                
+            if person_data[each_person][offset][-1] == last_activity:
+                ind = np.where(np.equal(person_data[each_person][offset] , 1))
+                next_element_of_sequence = header[ind[0][0]]# if there is more than one 1, the last is person number. because each row has one 1
+                print(next_element_of_sequence)
+                person_sequences[each_person][new_counter][0].append(next_element_of_sequence)
+
+            else:  
+                # add activity column value
+                person_sequences[each_person][new_counter][2] = last_activity
+                #add person column value
+                person_sequences[each_person][new_counter][1] = person_IDs[each_person] 
+                
+                last_activity = person_data[each_person][offset][-1]
+                
+                new_counter += 1
+                ind = np.where(np.equal(person_data[each_person][offset] , 1))
+                next_element_of_sequence = header[ind[0][0]]
+                person_sequences[each_person][new_counter][0] = [next_element_of_sequence]
+        
+                
+        #update last row column and activity number
+        person_sequences[each_person][new_counter][2] = last_activity
+        person_sequences[each_person][new_counter][1] = person_IDs[-1] 
+                
+        #remove additional items (because when i created the person_bag[each_person], the size was number of rows )
+        person_sequences[each_person] = np.delete(person_sequences[each_person] , range(new_counter + 1 , person_data_number_of_rows) , axis = 0)    
+         
+    #save all data in person_bag[0]
+    for person in range(1, number_of_residents):
+        print(person_sequences[0].shape , person_sequences[person].shape)
+        person_sequences[0] = np.concatenate((person_sequences[0], person_sequences[person]), axis=0)
+
+    
+    if isSave == True:
+        np.savetxt(address_for_save, person_sequences[0] , delimiter=',' , fmt='%s' , header = "Sequence,Person,Activity")
+     
+    return person_sequences[0]
+
+
+
 if __name__ == '__main__':
     #casas7_activities_plus_timeLabel()
     #a = [1,2,3,5,4]
@@ -1324,17 +1420,20 @@ if __name__ == '__main__':
     address_to_read = r"E:\pgmpy\separation of train and test\31_3\train_untill_31_3_each_row_one_features_is_one_on_and_off+time_ordered.csv"
     #address_to_read = r"E:\pgmpy\separation of train and test\31_3\test_from_31_3_each_row_one_features_is_one_on_and_off+time_ordered.csv"
 
-    #address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
+    #address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\test\based_on_activities.csv"
 
-    #casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
-
+    #casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+    a = create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = r'E:\a1.csv', isSave = True)
+    print(a)
+'''
     for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , isSave= True)
         #address_to_save= r"C:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv".format(i)
         #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
         #print("i: " , i)
-        #address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\train\delta_{}min.csv".format(i)
-        address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv".format(i)
+        #address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\test\delta_{}min.csv".format(i)
+        address_to_save= r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\test\delta_{}min.csv".format(i)
 
-        #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes= i , number_of_entire_rows= 117479, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
-        casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 117479, address_to_read = address_to_read, address_for_save =address_to_save, isSave = True)
+        #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes= i , number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+        casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 12858, address_to_read = address_to_read, address_for_save =address_to_save, isSave = True)
+'''
