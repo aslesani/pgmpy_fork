@@ -462,27 +462,9 @@ def plot_results(x_values , y_values, x_label, y_label):
     plt.clf()
     plt.axes([.2, .2, .7, .7])
     plt.plot(x_values, y_values)#, linewidth=1)
-    #plt.plot(x_values ,  [1,1,1,1])
-    #plt.axis('tight')
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     
-    ###############################################################################
-    # Prediction
-    '''
-    n_components = [20, 40, 64]
-    Cs = np.logspace(-4, 4, 3)
-    
-    #Parameters of pipelines can be set using ... separated parameter names:
-    
-    estimator = GridSearchCV(pipe,
-                             dict(pca__n_components=n_components,
-                                  logistic__C=Cs))
-    
-    plt.axvline(n_components,
-                linestyle=':', label='n_components chosen')
-    plt.legend(prop=dict(size=12))
-    '''
     plt.show()
 
 def test_with_iris_dataset():
