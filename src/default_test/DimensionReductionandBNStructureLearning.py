@@ -321,7 +321,7 @@ def read_data_from_file(dest_file, data_type , remove_date_and_time = True ):
     #print(return_value)
     return return_value
 
-def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return_as_pandas_data_frame = False):
+def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return_as_pandas_data_frame = False , remove_date_and_time = False , return_header_separately = False , convert_int_columns_to_int = False):
     '''
     this function is a replacement for read_data_from_PCA_output_file and read_data_from_PCA_digitized_file
     with more capabalities.
@@ -332,6 +332,9 @@ def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return
     data_type: type of data that should be read  
     has_header = if the file has header, it is set to True. The header is the first line that starts whit '#' character 
     return_as_pandas_data_frame = if True, the return_value is pandas Dataframe, else numpy ndaaray
+    
+    convert_int_columns_to_int: if the user want to keep date and time columns, then she should 
+                                specify data_type as object and the set convert_int_columns_to_int to True
     
     Returns:
     ========
@@ -346,17 +349,34 @@ def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return
         if has_header:
             header = next(data_iter)
             header[0] = header[0].split('# ')[1] # remove # from first element
-            
+        
+        
         data = [data for data in data_iter]
     
-    
+    if remove_date_and_time:
+        data = np.delete(np.delete(data, -1, 1), -1 , 1)
+
     return_value= np.asarray(data, dtype = data_type)
+    
+    if convert_int_columns_to_int:
+        rows , cols_to_convert = np.shape(return_value)
+        
+        if remove_date_and_time == False:
+            cols_to_convert -=2
+        
+        for r in range(rows):
+            for c in range(cols_to_convert):
+                return_value[r,c] = int(return_value[r,c])
+        
     
     if return_as_pandas_data_frame:
         return_value = pd.DataFrame(return_value , columns = header)
         
-        
-    return return_value
+    if return_header_separately:
+        return header , return_value
+    
+    else:   
+        return return_value
  
 '''    
 def read_data_from_PCA_digitized_file(dest_file):
@@ -534,7 +554,7 @@ def shift_2_data_set_based_on_the_first_dataset(data1 , data2):
     are_different , d = check_data(data1 , data2 , remove_latent_variables = True)
     if are_different:
         data2 = d
-        print("****the check_data method modified the data2****")
+        #print("****the check_data method modified the data2****")
         
     is_data1_pd = False
     is_data2_pd = False
