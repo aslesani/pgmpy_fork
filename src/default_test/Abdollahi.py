@@ -34,7 +34,7 @@ def bic(train,test, scoring_function,resultlist):
     sc = scoring_function(train)
     hc=HillClimbSearch(train, scoring_method=sc)
     best_model=hc.estimate()
-    print("best_model.edges:" , best_model.edges())
+    #print("best_model.edges:" , best_model.edges())
 
     #edges=[('c3', 'c2'), ('c3', 'c5'), ('c3', 'c1'), ('c3', 'Person'), ('Person', 'c2'), ('Person', 'c5'), ('Person', 'c1')]
     edges = best_model.edges()
@@ -47,8 +47,8 @@ def bic(train,test, scoring_function,resultlist):
     #    print(model.get_cpds(n))
         
 
-    print("nodes:", model.nodes())
-    print("test column:", test.columns)
+    #print("nodes:", model.nodes())
+    #print("test column:", test.columns)
 
     flag=0
     if(set(model.nodes())-set(array) ==set(model.nodes())):
@@ -70,7 +70,7 @@ def bic(train,test, scoring_function,resultlist):
             #print(f)
             del testchange[indicator[f]]
         #print(testchange)
-        print("come in testchange***********************")
+        #print("come in testchange***********************")
         teststart=time.time()
         result=model.predict(testchange).values.ravel()
         testend=time.time()-teststart
@@ -107,12 +107,12 @@ def calculate_different_metrics(y_true , y_predicted):
     recall = recall_score(y_true, y_predicted, average='micro')
     accuracy = accuracy_score(y_true, y_predicted)  
     
-    scores = {'f1_score_micro': f1_score_micro, 
-              'f1_score_macro': f1_score_macro,
-              'f1_score_binary': f1_score_binary,
-              'precision' : precision,
-              'recall' : recall,
-              'accuracy' : accuracy
+    scores = {'f1_score_micro': round(f1_score_micro,2), 
+              'f1_score_macro': round(f1_score_macro,2),
+              'f1_score_binary': round(f1_score_binary,2),
+              'precision' : round(precision,2),
+              'recall' : round(recall,2),
+              'accuracy' : round(accuracy,2)
               }
     
     return scores
