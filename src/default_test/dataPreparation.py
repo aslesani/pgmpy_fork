@@ -1606,27 +1606,29 @@ def create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes 
     return person_sequences[0]
 
 
-
 if __name__ == '__main__':
     #s = "R2_asdf"
     #result = re.match(r'(R)(1|2)(_)(.*)' , s)
 
-    address_to_read = r"E:\pgmpy\separation of train and test\31_3\train_untill_31_3_each_row_one_features_is_one_on_and_off+time_ordered.csv"
-    #address_to_read = r"E:\pgmpy\separation of train and test\31_3\test_from_31_3_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+    address_to_read = r"E:\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
 
-    #address_to_save= r"E:\pgmpy\separation of train and test\31_3\Seq of sensor events_based on activities\test\based_on_activities.csv"
-    #address_to_save= r"E:\pgmpy\separation of train and test\31_3\Seq of sensor events_no overlap_based on different deltas\test\delta_{delta}min.csv"
-    address_to_save= r"E:\pgmpy\separation of train and test\31_3\Seq of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
-    
+    #address_to_save= r"E:\pgmpy\Seq of sensor events_based on activities\based_on_activities.csv"
+    #address_to_save= r"E:\pgmpy\Seq of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
+    #address_to_save= r"E:\pgmpy\Seq of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
+    #address_to_save= r"E:\pgmpy\Bag of sensor events_based on activities\based_on_activities.csv"
+    address_to_save= r"E:\pgmpy\Bag of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
+    #address_to_save= r"E:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
+    #casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+
     
     #create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = address_to_save, isSave = True)
 
     for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
 
-        #casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
+        #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
+        casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
         #a = create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = r'E:\a1.csv', isSave = True)
-        ######last comment
-        create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save.format(delta = i), isSave = True)
+        #create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save.format(delta = i), isSave = True)
         
 '''
     for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
