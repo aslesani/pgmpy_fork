@@ -45,7 +45,7 @@ dest_file = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 
 
 base_address = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\ '
 
-def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time , remove_activity_column):
+def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time , remove_activity_column , has_header):
     '''
     Parameter:
     =========
@@ -55,7 +55,7 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
     remove_activity_column: if is true, the activity/work column is removed
     '''
     
-    sensor_data = read_data_from_file(file_address, np.int, remove_date_and_time)
+    sensor_data = read_data_from_file(file_address, np.int, remove_date_and_time , has_header = has_header )
     print(sensor_data)#:, -1])
 
     
@@ -71,7 +71,7 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
    
     print(target)
     sensor_data = np.delete(sensor_data ,-1 , 1) # remove the Person column
-    for i in range(2,41):#cols):
+    for i in range(2,21):#cols):
         pca = PCA(n_components=i)
         
         
@@ -85,6 +85,7 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
         print(dest)
         
         np.savetxt(dest, np.concatenate((data_new, target), axis=1), delimiter=',' , fmt='%s')
+    
     
 
 def PCA_data_generation_on_separated_train_and_test(file_address,base_address_to_save, remove_date_and_time , has_activity_column ,remove_activity_column, test_file_address, base_address_of_test_file_to_save):
@@ -293,7 +294,7 @@ def create_BN_model_using_BayesianEstimator(data):
     ########return estimator
     return estimator
 
-def read_data_from_file(dest_file, data_type , remove_date_and_time = True ):
+def read_data_from_file(dest_file, data_type , remove_date_and_time = True , has_header = False ):
     '''
     this function is used when there is data and time columns in dataset
     and the user want to remove them
@@ -308,7 +309,10 @@ def read_data_from_file(dest_file, data_type , remove_date_and_time = True ):
     with open(dest_file,'r') as dest_f:
         data_iter = csv.reader(dest_f, 
                                delimiter = ',')#quotechar = '"')
-    
+        
+        if has_header:
+            next(data_iter)#skip first line
+        
         data = [data for data in data_iter]
     
     if remove_date_and_time == True:
@@ -771,8 +775,8 @@ def create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta():
 def create_PCA_for_bag_of_sensor_events_based_on_activities():
 
         
-    train_directory_for_save = r'E:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train'
-    test_directory_for_save = r'E:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\test'
+    train_directory_for_save = r'E:\pgmpy\PCA on bag of sensor events_based on activity\train'
+    test_directory_for_save = r'E:\pgmpy\PCA on bag of sensor events_based on activity\test'
     for directory in [train_directory_for_save , test_directory_for_save]:
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -780,10 +784,66 @@ def create_PCA_for_bag_of_sensor_events_based_on_activities():
     train_directory_for_save = train_directory_for_save + '\\'
     test_directory_for_save = test_directory_for_save + '\\'
     
-    train_file_address = r'E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv'
-    test_file_address = r'E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\test\based_on_activities.csv'
+    train_file_address = r'E:\pgmpy\Bag of sensor events_based on activities\train\based_on_activities.csv'
+    test_file_address = r'E:\pgmpy\Bag of sensor events_based on activities\test\based_on_activities.csv'
     
     PCA_data_generation_on_separated_train_and_test(file_address = train_file_address, base_address_to_save = train_directory_for_save, remove_date_and_time = False, has_activity_column=True,remove_activity_column = False, test_file_address = test_file_address, base_address_of_test_file_to_save = test_directory_for_save)
+
+    
+def create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation():
+    
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+        
+        directory_for_save = r'E:\pgmpy\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
+
+        for directory in [directory_for_save]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+        
+        directory_for_save = directory_for_save + '\\'
+        
+        file_address = r'E:\pgmpy\Bag of sensor events_no overlap_based on different deltas\delta_{}min.csv'.format(delta)
+
+
+        PCA_data_generation(file_address = file_address , base_address_to_save = directory_for_save , remove_date_and_time = False , remove_activity_column = False , has_header = True)
+
+
+
+
+
+def create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta_no_separation():
+    
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+        
+        directory_for_save = r'E:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta=' + str(delta)
+
+        for directory in [directory_for_save]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+        
+
+        directory_for_save = directory_for_save + '\\'
+        
+        file_address = r'E:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_{}min.csv'.format(delta)
+
+
+        PCA_data_generation(file_address = file_address , base_address_to_save = directory_for_save , remove_date_and_time = False , remove_activity_column = True , has_header = True)
+
+
+def create_PCA_for_bag_of_sensor_events_based_on_activities_no_separation():
+
+        
+    directory_for_save = r'E:\pgmpy\PCA on bag of sensor events_based on activity'
+
+    for directory in [directory_for_save]:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+    directory_for_save = directory_for_save + '\\'
+    
+    file_address = r'E:\pgmpy\Bag of sensor events_based on activities\based_on_activities.csv'
+    
+    PCA_data_generation(file_address = file_address , base_address_to_save = directory_for_save , remove_date_and_time = False , remove_activity_column = True , has_header = True)
 
     
 
@@ -830,24 +890,27 @@ def test_featureSelection_based_on_Variance():
      
     od = collections.OrderedDict(sorted(hash_of_delta_and_the_best_treshhold.items()))
 
-    print(od)        
+    print(od)    
+    
 def test_shift_2_data_set_based_on_the_first_dataset():
     a = np.array([[1,2,3] , [7,8,9]])
     b = np.array([[7,2,9] , [1,2,3]])
     a, b = shift_2_data_set_based_on_the_first_dataset(a,b)
     print(a)
     print(b)  
+ 
+    
     
 if __name__ == "__main__":
     #featureSelection_based_on_Variance(
     #test_featureSelection_based_on_Variance()
     #test_shift_2_data_set_based_on_the_first_dataset()
     #a = featureSelection_based_on_Variance(dest_file = r'E:\test.csv' , threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [5] , has_header = True ,is_Panda_dataFrame = False)
-    #print(read_data_from_file(dest_file, np.int, remove_date_and_time=True))
-    create_PCA_for_bag_of_sensor_events_based_on_activities()    
+    #create_PCA_for_bag_of_sensor_events_based_on_activities()    
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
     #test_digitize_dataset_for_feature_enginnering_with_delta()
+    create_PCA_for_bag_of_sensor_events_based_on_activities_no_separation()
    
     '''try:
         result = pd.read_csv(filepath_or_buffer = f , header = None)# , dtype = np.int32)
