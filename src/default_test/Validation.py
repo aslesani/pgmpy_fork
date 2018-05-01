@@ -68,7 +68,7 @@ def convert_numpy_dataset_to_pandas(data):
             
     
     
-def partition_data(data, train_ratio, validation_ratio, test_ratio):
+def partition_data(data, train_ratio, validation_ratio, test_ratio , shuffle):
     '''
     partition data to train, validation and test sets according to proportion
    
@@ -86,7 +86,8 @@ def partition_data(data, train_ratio, validation_ratio, test_ratio):
         
     #print("isPandas:" , isPandas , type(data))
     #print(data)
-    np.random.shuffle(data)
+    if shuffle:
+        np.random.shuffle(data)
     data_length = len(data)
     #print("data_length: {}".format(data_length))
     
@@ -446,7 +447,7 @@ def prepare_data_to_create_model_and_test(delta):
     print(scores)
     print(learning_time)
 
-def plot_results(x_values , y_values, x_label, y_label):
+def plot_results(x_values , y_values, x_label, y_label , plot_more_than_one_fig = False):
     '''
     plot the figure
     
@@ -456,12 +457,21 @@ def plot_results(x_values , y_values, x_label, y_label):
     y_values: the list of y values
     x_label:
     y_label:
+    plot_more_than_one_fig: if True, plot more than one fig and y_vlaues is a list of values
+                            so that each values is as long as x_values
+                            if is False, the y_label is just a list of corrsponding values of x_values
     
     '''
     plt.figure(1, figsize=(4, 3))
     plt.clf()
     plt.axes([.2, .2, .7, .7])
-    plt.plot(x_values, y_values)#, linewidth=1)
+    if plot_more_than_one_fig:
+        for y_val in y_values:
+            plt.plot(x_values, y_val)#, linewidth=1)
+
+    else:
+        plt.plot(x_values, y_values)
+        
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     
@@ -944,7 +954,7 @@ def the_best_validation_strategy(data, data_column_names, target_column_name , k
     
     '''
     
-    _ , validation_set , test_set =  partition_data(data, train_ratio = 0, validation_ratio = 90, test_ratio = 10)
+    _ , validation_set , test_set =  partition_data(data, train_ratio = 0, validation_ratio = 80, test_ratio = 20 ,shuffle = True )
     
     final_scores = kfoldcrossvalidation_for_abd_function(k = k, data = validation_set, data_column_names = data_column_names, target_column_name = target_column_name)
     final_validation_f1_scores_micro_avg = 0
@@ -1116,7 +1126,7 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
-    data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
+    data_address = r"E:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={delta}\PCA_n={n}.csv"
     
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
@@ -1131,7 +1141,7 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
     list_of_f1_micros = []
     #selected_delta = 90
     #for selected_delta in delta:
-    for selected_n in range(2,21):
+    for selected_n in range(2,11):
         #selected_delta = delta[random.randint(1,delta_length)]
         #selected_n = 10#random.randint(2,20)#41)# n is # of features in PCA
         print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
@@ -1254,9 +1264,11 @@ def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
 
 
 if __name__ == '__main__':
-    
-    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:
+    #test_the_best_validation_strategy_for_different_deltas()
+    print("Activity+delta")
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
         test_the_best_validation_strategy_for_different_ns(delta)
+    
     #select_hyper_parameters_using_the_best_validation_strategy()
     '''
     pr.disable()
