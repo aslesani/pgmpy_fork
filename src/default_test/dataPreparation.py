@@ -196,7 +196,8 @@ def casas7_to_csv_time_Ordered():
     #        count_of_unordinaries +=1
     #        print(i + 2)
     #print("count_of_unordinaries: {}".format(count_of_unordinaries))
-    #all_features = all_features[all_features[:,-1].argsort()] # sort all_features based on datetime column
+    
+    all_features = all_features[all_features[:,-1].argsort()] # sort all_features based on datetime column
 
     rows, cols = all_features.shape
     np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data+time_ordered.csv', 
@@ -1069,6 +1070,136 @@ def casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinute
 
 
 
+def casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes, number_of_entire_rows, address_to_read, address_for_save, isSave, has_header):
+    '''
+    we imagine in each row of dataset, just one sensor event is active and the dataset is ordered base on time 
+    1. The order of  features: sensor events (for each sensor on and off), 
+                               Person,
+                               Work,
+                               Date,
+                               Time
+    2. each row is constructed by considering the bag of sensor events for each activity
+     +  a delta for devide an activity
+     Finally each sample is a sequence per each activity in which  bag of sensor events per each delta are connected to each other
+    
+    Parameters:
+    ===============
+    deltaInMinutes: the time delta for dividing the activity
+    isSave: Save the returned value to file
+    
+    '''
+    if has_header:
+        header , data = read_data_from_CSV_file(dest_file = address_to_read, data_type = object, has_header = has_header, return_as_pandas_data_frame = False , remove_date_and_time=False, return_header_separately = False , convert_int_columns_to_int= True)    
+    else:
+        data = read_data_from_CSV_file(dest_file = address_to_read, data_type = object, has_header = has_header, return_as_pandas_data_frame = False , remove_date_and_time=False , return_header_separately = False , convert_int_columns_to_int = True)    
+        #header = file_header.split(sep=',')
+    
+    #add a column for converted date and time (datetime)
+    rows , cols = np.shape(data)
+    for r in range(rows):
+        data[r , -2] = convert_string_to_datetime(data[r , -2], data[r , -1])
+    #remove extra columns
+    data = np.delete(data , [cols-1] , axis = 1)
+  
+    
+    #seperate each person data in a list 
+    person_IDs = list(set(data[: , -3]))
+    number_of_residents = len(person_IDs)
+    person_data = np.zeros(number_of_residents, dtype = np.ndarray)
+    for i in range(number_of_residents):
+        person_data[i] = data[np.where(data[:,-3] == person_IDs[i])]
+        
+    #save seq of features   
+    person_sequences = np.zeros(number_of_residents, dtype = np.ndarray)
+    person_bag = [0] * 122#np.zeros(122 , dtype = np.int)
+
+    for each_person in range(number_of_residents):
+
+        new_counter = 0
+        last_calculated_row_for_delta = 0
+        #initialize 
+        person_data_number_of_rows , _ = person_data[each_person].shape
+        # create a ndarray with size of all data of the person and each row is an array (for defining sequence) 
+        # column0: list(seq) , col1 = person , col2: activity
+        person_sequences[each_person] = np.ndarray(shape = (person_data_number_of_rows , 3), dtype = np.ndarray )
+        
+        print(person_data[each_person][0])
+        last_activity = person_data[each_person][0][-2]
+        
+        for i in range(122):
+            person_bag[i] = person_data[each_person][0][i]
+
+        
+        #ind = np.where(np.equal(person_data[each_person][0] , 1))
+        #print(ind)
+        #print(ind[0][0])
+        unsaved_sequence = []#header[ind[0][0]]# if there is more than one 1, the last is person number. because each row has one 1        
+         
+        #print(unsaved_sequence)
+        #person_sequences[each_person][0][0] = [next_element_of_sequence]
+        
+        for offset in range(1, len(person_data[each_person]), 1): # range(start, end, step) sharte end ine k bozorgtar bashe pas bayad yeki az akhari kamtar begiram
+                
+            if person_data[each_person][offset][-2] == last_activity:
+                timedelta_in_minutes = timedelta.total_seconds(person_data[each_person][offset][-1] - person_data[each_person][last_calculated_row_for_delta][-1]) / 60
+                # compare delta time in minutes
+                if timedelta_in_minutes <= deltaInMinutes:
+                    for i in range(122):# 120 is num of features
+                        person_bag[i] += person_data[each_person][offset][i]
+                    
+                    
+                    if new_counter == 0:
+                        print("person_bag:" , person_bag)
+                else:
+                    last_calculated_row_for_delta = offset
+                    
+                    unsaved_sequence.append(person_bag.copy())
+                    #print(len(unsaved_sequence))
+                    
+                    for i in range(122):# 120 is num of features
+                        person_bag[i] = person_data[each_person][offset][i]
+                
+            else:
+                if new_counter<5:
+                    print("offset:" , offset)
+                
+                unsaved_sequence.append(person_bag.copy())
+                # add activity column value
+                person_sequences[each_person][new_counter][2] = last_activity
+                #add person column value
+                person_sequences[each_person][new_counter][1] = person_IDs[each_person] 
+                
+                person_sequences[each_person][new_counter][0] = unsaved_sequence
+                unsaved_sequence = []
+                
+                last_activity = person_data[each_person][offset][-2]
+                
+                last_calculated_row_for_delta = offset
+                new_counter += 1
+                for i in range(122):# 120 is num of features
+                    person_bag[i] = person_data[each_person][offset][i]
+                
+                
+        #update last row column and activity number
+        person_sequences[each_person][new_counter][2] = last_activity
+        person_sequences[each_person][new_counter][1] = person_IDs[-1] 
+        person_sequences[each_person][new_counter][0] = unsaved_sequence
+                
+        #remove additional items (because when i created the person_bag[each_person], the size was number of rows )
+        person_sequences[each_person] = np.delete(person_sequences[each_person] , range(new_counter + 1 , person_data_number_of_rows) , axis = 0)    
+         
+    #save all data in person_bag[0]
+    for person in range(1, number_of_residents):
+        print(person_sequences[0].shape , person_sequences[person].shape)
+        person_sequences[0] = np.concatenate((person_sequences[0], person_sequences[person]), axis=0)
+
+    
+    if isSave == True:
+        np.savetxt(address_for_save, person_sequences[0] , delimiter=',' , fmt='%s' , header = "Sequence,Person,Activity")
+     
+    return person_sequences[0]
+
+
 
 def get_feature_column(sensor_name):
     '''
@@ -1609,26 +1740,30 @@ def create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes 
 if __name__ == '__main__':
     #s = "R2_asdf"
     #result = re.match(r'(R)(1|2)(_)(.*)' , s)
-
+    print(get_work_lists())
     address_to_read = r"E:\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
 
-    #address_to_save= r"E:\pgmpy\Seq of sensor events_based on activities\based_on_activities.csv"
-    #address_to_save= r"E:\pgmpy\Seq of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
-    #address_to_save= r"E:\pgmpy\Seq of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
+    address_to_save3= r"E:\pgmpy\Seq of sensor events_based on activities\based_on_activities.csv"
+    address_to_save1= r"E:\pgmpy\Seq of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
+    address_to_save2= r"E:\pgmpy\Seq of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
+    address_to_save4= r"E:\pgmpy\Seq of Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
+
     #address_to_save= r"E:\pgmpy\Bag of sensor events_based on activities\based_on_activities.csv"
-    address_to_save= r"E:\pgmpy\Bag of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
+    #address_to_save= r"E:\pgmpy\Bag of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
     #address_to_save= r"E:\pgmpy\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
     #casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
 
     
-    #create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = address_to_save, isSave = True)
+    #create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = address_to_save3, isSave = True)
 
     for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
+	    pass
 
         #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
-        casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
-        #a = create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = r'E:\a1.csv', isSave = True)
-        #create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save.format(delta = i), isSave = True)
+        #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
+        #create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save2.format(delta = i), isSave = True)
+        #create_sequence_of_sensor_events_based_on_delta_no_overlap(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save1.format(delta = i), isSave = True)
+        #casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 130337, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save4.format(delta = i), isSave = True)
         
 '''
     for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
