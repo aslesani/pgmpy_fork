@@ -35,7 +35,11 @@ from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
 
 work_lists = ["0"]
 
-file_header = "M01_on,M01_off,M02_on,M02_off,M03_on,M03_off,M04_on,M04_off,M05_on,M05_off,M06_on,M06_off,M07_on,M07_off,M08_on,M08_off,M09_on,M09_off,M10_on,M10_off,M11_on,M11_off,M12_on,M12_off,M13_on,M13_off,M14_on,M14_off,M15_on,M15_off,M16_on,M16_off,M17_on,M17_off,M18_on,M18_off,M19_on,M19_off,M20_on,M20_off,M21_on,M21_off,M22_on,M22_off,M23_on,M23_off,M24_on,M24_off,M25_on,M25_off,M26_on,M26_off,M27_on,M27_off,M28_on,M28_off,M29_on,M29_off,M30_on,M30_off,M31_on,M31_off,M32_on,M32_off,M33_on,M33_off,M34_on,M34_off,M35_on,M35_off,M36_on,M36_off,M37_on,M37_off,M38_on,M38_off,M39_on,M39_off,M40_on,M40_off,M41_on,M41_off,M42_on,M42_off,M43_on,M43_off,M44_on,M44_off,M45_on,M45_off,M46_on,M46_off,M47_on,M47_off,M48_on,M48_off,M49_on,M49_off,M50_on,M50_off,M51_on,M51_off,I03_on,I03_off,D03_on,D03_off,D05_on,D05_off,D07_on,D07_off,D08_on,D08_off,D09_on,D09_off,D10_on,D10_off,D12_on,D12_off,D14_on,D14_off,D15_on,D15_off,Person,Work"
+file_header_Twor2009 = "M01_on,M01_off,M02_on,M02_off,M03_on,M03_off,M04_on,M04_off,M05_on,M05_off,M06_on,M06_off,M07_on,M07_off,M08_on,M08_off,M09_on,M09_off,M10_on,M10_off,M11_on,M11_off,M12_on,M12_off,M13_on,M13_off,M14_on,M14_off,M15_on,M15_off,M16_on,M16_off,M17_on,M17_off,M18_on,M18_off,M19_on,M19_off,M20_on,M20_off,M21_on,M21_off,M22_on,M22_off,M23_on,M23_off,M24_on,M24_off,M25_on,M25_off,M26_on,M26_off,M27_on,M27_off,M28_on,M28_off,M29_on,M29_off,M30_on,M30_off,M31_on,M31_off,M32_on,M32_off,M33_on,M33_off,M34_on,M34_off,M35_on,M35_off,M36_on,M36_off,M37_on,M37_off,M38_on,M38_off,M39_on,M39_off,M40_on,M40_off,M41_on,M41_off,M42_on,M42_off,M43_on,M43_off,M44_on,M44_off,M45_on,M45_off,M46_on,M46_off,M47_on,M47_off,M48_on,M48_off,M49_on,M49_off,M50_on,M50_off,M51_on,M51_off,I03_on,I03_off,D03_on,D03_off,D05_on,D05_off,D07_on,D07_off,D08_on,D08_off,D09_on,D09_off,D10_on,D10_off,D12_on,D12_off,D14_on,D14_off,D15_on,D15_off,Person,Work"
+file_header_Twor2010 = "D001_on,D001_off,D002_on,D002_off,D003_on,D003_off,D004_on,D004_off,D005_on,D005_off,D006_on,D006_off,D007_on,D007_off,D008_on,D008_off,D009_on,D009_off,D010_on,D010_off,D011_on,D011_off,D012_on,D012_off,D013_on,D013_off,D014_on,D014_off,D015_on,D015_off,I006_on,I006_off,I010_on,I010_off,I011_on,I011_off,I012_on,I012_off,M001_on,M001_off,M002_on,M002_off,M003_on,M003_off,M004_on,M004_off,M005_on,M005_off,M006_on,M006_off,M007_on,M007_off,M008_on,M008_off,M009_on,M009_off,M010_on,M010_off,M011_on,M011_off,M012_on,M012_off,M013_on,M013_off,M014_on,M014_off,M015_on,M015_off,M016_on,M016_off,M017_on,M017_off,M018_on,M018_off,M019_on,M019_off,M020_on,M020_off,M021_on,M021_off,M022_on,M022_off,M023_on,M023_off,M024_on,M024_off,M025_on,M025_off,M026_on,M026_off,M027_on,M027_off,M028_on,M028_off,M029_on,M029_off,M030_on,M030_off,M031_on,M031_off,M032_on,M032_off,M033_on,M033_off,M034_on,M034_off,M035_on,M035_off,M036_on,M036_off,M037_on,M037_off,M038_on,M038_off,M039_on,M039_off,M040_on,M040_off,M041_on,M041_off,M042_on,M042_off,M043_on,M043_off,M044_on,M044_off,M045_on,M045_off,M046_on,M046_off,M047_on,M047_off,M048_on,M048_off,M049_on,M049_off,M050_on,M050_off,M051_on,M051_off,Person,Work"
+file_header_Tulum2009 = "M001_on,M001_off,M002_on,M002_off,M003_on,M003_off,M004_on,M004_off,M005_on,M005_off,M006_on,M006_off,M007_on,M007_off,M008_on,M008_off,M009_on,M009_off,M010_on,M010_off,M011_on,M011_off,M012_on,M012_off,M013_on,M013_off,M014_on,M014_off,M015_on,M015_off,M016_on,M016_off,M017_on,M017_off,M018_on,M018_off,Person,Work"
+file_header_Tulum2010 = "M001_on,M001_off,M002_on,M002_off,M003_on,M003_off,M004_on,M004_off,M005_on,M005_off,M006_on,M006_off,M007_on,M007_off,M008_on,M008_off,M009_on,M009_off,M010_on,M010_off,M011_on,M011_off,M012_on,M012_off,M013_on,M013_off,M014_on,M014_off,M015_on,M015_off,M016_on,M016_off,M017_on,M017_off,M018_on,M018_off,M019_on,M019_off,M020_on,M020_off,M021_on,M021_off,M022_on,M022_off,M023_on,M023_off,M024_on,M024_off,M025_on,M025_off,M026_on,M026_off,M027_on,M027_off,M028_on,M028_off,M029_on,M029_off,M030_on,M030_off,M031_on,M031_off,Person,Work"
+
 
 
 def casas7_to_csv():
@@ -116,7 +120,7 @@ def casas7_to_csv():
 
 def casas7_to_csv_time_Ordered():
     '''
-    1. annotated file is processed
+    1. annotated file is processed (for Twor2009)
     2. just motion, item and door sensors are kept (binary sensors),
          others (i.e. burner, water,temprature and electricity usage) are not. 
     3. 'on' converted to 1
@@ -127,7 +131,7 @@ def casas7_to_csv_time_Ordered():
         'absent' converted to 1
         date and time removed
     4. I supposed the default value of sensors is not important, so set them to 0.
-    5. The order of sensor features: 51 motion sensors, 
+    5. The order of sensor features(in Towr 2009): 51 motion sensors, 
                                      1 item sensor(we have 9 item sensors, but just i03 is used),
                                      9 door sensors (03, 05 , 07, 08, 09, 10 , 12, 14, 15),
                                      Person,
@@ -1736,11 +1740,44 @@ def create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes 
      
     return person_sequences[0]
 
+def get_list_of_allowed_sensors_in_dataset(file_address):
+    
+    '''
+    return list of binary sensors (i.e. motion, item and door sensors)
+    
+    '''
+    set_of_sesnors = set()
+    f = open( file_address ,"r")
+    counter = 0
+    for line in f:
+        #counter +=1
+        cells = line.split()
+        #print(cells)
+        try:
+            if cells[2][0] in ['M','I','D']:
+                set_of_sesnors.add(cells[2])
+                counter +=1
+
+        except Exception as e:
+            print(counter)
+            
+    print(counter)
+    return (sorted(list(set_of_sesnors)))
+    
+def prepare_each_dataset_and_create_all_bag_and_sequence_of_events():
+    pass
 
 if __name__ == '__main__':
+    
+    file_address_Towr2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated"
+    file_address_Tulum2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2010\data_edited by adele"
+    file_address_Tulum2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2009\data.txt"
+    file_address_Twor2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\twor.2010\data"
+    a = get_list_of_allowed_sensors_in_dataset(file_address_Tulum2009)
+    print(a)
     #s = "R2_asdf"
     #result = re.match(r'(R)(1|2)(_)(.*)' , s)
-    print(get_work_lists())
+    #print(get_work_lists())
     address_to_read = r"E:\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
 
     address_to_save3= r"E:\pgmpy\Seq of sensor events_based on activities\based_on_activities.csv"
