@@ -941,11 +941,11 @@ def test_create_BN_model_for_different_feature_numbers():
         
     plot_results(feature_numbers, learning_times, "#features", "learning_time")
     
-def the_best_validation_strategy(data, data_column_names, target_column_name , k = 10):
+def the_best_validation_strategy(data, data_column_names, target_column_name , k = 10, shuffle=True):
     '''
     a combination of split data and k-fold cross validation
     Imagine the final  test set is separated and the final train set is available. 
-    Our validation approach split the data to validation and test set (90% and 10%)
+    Our validation approach split the data to validation and test set (80% and 20%)
     and then apply 10-fold cross validation on validation set.
     
     Parameters:
@@ -954,7 +954,7 @@ def the_best_validation_strategy(data, data_column_names, target_column_name , k
     
     '''
     
-    _ , validation_set , test_set =  partition_data(data, train_ratio = 0, validation_ratio = 80, test_ratio = 20 ,shuffle = True )
+    _ , validation_set , test_set =  partition_data(data, train_ratio = 0, validation_ratio = 80, test_ratio = 20 ,shuffle = shuffle )
     
     final_scores = kfoldcrossvalidation_for_abd_function(k = k, data = validation_set, data_column_names = data_column_names, target_column_name = target_column_name)
     final_validation_f1_scores_micro_avg = 0
@@ -1051,13 +1051,14 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     
 def test_the_best_validation_strategy_for_different_deltas():
     
-    data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta={delta}\PCA_n={n}.csv"
+    dtypes = ['PCA on Bag of sensor events_no overlap', 'PCA on Bag of sensor events_activity_and_delta']
+    data_address = r"E:\pgmpy\{t}\delta={delta}\PCA_n={n}.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
     #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
     
-    delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
+    delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000,1200, 1400,1600,1800,2000,2500,3000,3500,4000,4500,5000]
     delta_length = len(delta)-1
     
     max_validation_f1_score = 0
@@ -1126,7 +1127,7 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
-    data_address = r"E:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={delta}\PCA_n={n}.csv"
+    data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
     
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
@@ -1195,7 +1196,7 @@ def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
     
     #data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta={delta}\PCA_n={n}.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
-    data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on bag of sensor events_based on activity\train\PCA_n={n}.csv"
+    data_address = r"E:\pgmpy\PCA on bag of sensor events_based on activity\PCA_n={n}.csv"
 
     #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
     
@@ -1212,7 +1213,7 @@ def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
     list_of_f1_micros = []
     #selected_delta = 900
     #for selected_delta in delta:
-    for selected_n in range(2,21):
+    for selected_n in range(2,11):
         #selected_delta = delta[random.randint(1,delta_length)]
         #selected_n = 10#random.randint(2,20)#41)# n is # of features in PCA
         print("selected_n:{}".format(selected_n))
@@ -1264,8 +1265,13 @@ def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
 
 
 if __name__ == '__main__':
+    
     #test_the_best_validation_strategy_for_different_deltas()
-    print("Activity+delta")
+    
+    #test_the_best_validation_strategy_for_different_ns_for_activity_based_bag()
+    
+    #print("delta no overlap")
+    
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
         test_the_best_validation_strategy_for_different_ns(delta)
     
