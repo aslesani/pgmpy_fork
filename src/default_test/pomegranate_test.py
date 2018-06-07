@@ -3,26 +3,34 @@ Created on April 1, 2018
 
 @author: Adele
 '''
-from pomegranate import HiddenMarkovModel
-from pomegranate import NormalDistribution, State, DiscreteDistribution
-from pomegranate import MarkovChain
 import numpy as np
+
+from pomegranate import HiddenMarkovModel
+from pomegranate import NormalDistribution, State, DiscreteDistribution, MultivariateDistribution, MultivariateGaussianDistribution
+from pomegranate import MarkovChain
 from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
 from dataPreparation import create_sequence_of_sensor_events_based_on_activity
-from read_write import read_sequence_based_CSV_file_with_activity , read_sequence_based_CSV_file_without_activity
+from read_write import read_sequence_based_CSV_file_with_activity , read_sequence_based_CSV_file_without_activity, read_sequence_of_bags_CSV_file_with_activity, repaet_person_tags_as_much_as_seq_length
 from snowballstemmer import algorithms
 
-from Validation import calculate_different_metrics
+from Validation import calculate_different_metrics, plot_results
 import sys
+
+
+def unison_shuffled_copies(a, b):
+    assert len(a) == len(b)
+    p = np.random.permutation(len(a))
+    return a[p], b[p]
+
 
 def test_sample_from_site():
     
     dists = [NormalDistribution(5, 1), NormalDistribution(1, 7), NormalDistribution(8,2)]
-    trans_mat = numpy.array([[0.7, 0.3, 0.0],
+    trans_mat = np.array([[0.7, 0.3, 0.0],
                              [0.0, 0.8, 0.2],
                              [0.0, 0.0, 0.9]])
-    starts = numpy.array([1.0, 0.0, 0.0])
-    ends = numpy.array([0.0, 0.0, 0.1])
+    starts = np.array([1.0, 0.0, 0.0])
+    ends = np.array([0.0, 0.0, 0.1])
     model = HiddenMarkovModel.from_matrix(trans_mat, dists, starts, ends)
     model.plot()
 
@@ -86,26 +94,37 @@ def build_an_hmm_example():
 
 def create_hmm_from_sample(file_address):
 
-    data = read_data_from_CSV_file(dest_file = file_address, data_type = np.int ,  has_header = False , return_as_pandas_data_frame = False )
+    #data, _ , _ = read_sequence_based_CSV_file_with_activity(file_address = file_address, has_header = True , separate_data_based_on_persons = False )
+    #data = read_data_from_CSV_file(dest_file = file_address, data_type = np.int ,  has_header = True , return_as_pandas_data_frame = False )
+    '''
     data = np.delete(data , 2, 1)
     data = np.delete(data , 2, 1)
     data = np.delete(data , 0, 1)
     data = np.delete(data , 0, 1)
     data = np.delete(data , 0, 1)
     print(np.shape(data))
+    '''
+    #print(data)
+    data = np.array([['a' , 'b'] , ['a' , 'b']])
+    data = np.array([[np.array([1,2,3]) , np.array([1,1,1])] , [np.array([1,1,2]) , np.array([1,2,2])]])
+    data = [np.array([[1, 2, 3], [1, 2, 3]], np.int32) , np.array([[1, 2, 3], [1, 2, 3]], np.int32) , np.array([[1, 2, 3], [1, 2, 3]], np.int32)]
+    print(data)
+    #data = np.array([[['a' , 'b'] , ['a' , 'a']] , [['a' , 'b'] , ['b' , 'b']]])
 
-
+    
     #data = create_sequence_of_sensor_events_based_on_activity(address_to_read = file_address, has_header = False, address_for_save = " ", isSave = False)#read_data_from_CSV_file(dest_file = file_address, data_type = numpy.int ,  has_header = False , return_as_pandas_data_frame = False )
-    model = HiddenMarkovModel.from_samples(DiscreteDistribution, n_components=3, X=data)# according to my tests :D n_components is number of hidden states
+    model = HiddenMarkovModel.from_samples(MultivariateDistribution, n_components=3, X=data)# according to my tests :D n_components is number of hidden states
     
     #print(model)
     #print(model._baum_welch_summarize())
     #model.plot()
+    '''
     print("dense_transition_matrix:" , model.dense_transition_matrix())
     print("edge_count:" , model.edge_count())
     print("edges:" , model.edges)
     print("name:" , model.name)
     print("state_count:" , model.state_count())
+    '''
     print(model)
     #print(model.)
     #print("summarize:" , model.summarize())
@@ -127,11 +146,11 @@ def create_casas7_hmm(file_address, has_activity):
         model = HiddenMarkovModel.from_samples(DiscreteDistribution, n_components=5, X=list_of_data , algorithm = 'baum-welch' )
         #model = HiddenMarkovModel.from_samples(DiscreteDistribution, n_components=2, X=list_of_data , labels = list_of_persons , algorithm = 'labeled' )
     except KeyError:
-        pass
+        print('there is an exception')
     print(model)
     
     #print((list_of_persons[0]))
-    print("np.shape(list_of_data):" , numpy.shape(list_of_data))
+    print("np.shape(list_of_data):" , np.shape(list_of_data))
     
     #print(model._baum_welch_summarize())
     model.plot()
@@ -215,13 +234,13 @@ def create_casas7_markov_chain(file_address , has_activity):
         predicted_labels[index] = person_IDs[arg_max_logp]
     
     ind = np.where(np.not_equal(predicted_labels , -sys.maxsize + 1 ))
-    print("number_of_exceptions:" , number_of_exceptions)
+    print("len(final_test_set):",len(final_test_set) , "number_of_exceptions:" , number_of_exceptions)
     #print(len(predicted_labels) , len(ind[0]))
     predicted_labels = predicted_labels[ind]
     actual_labels = actual_labels[ind]
     scores = calculate_different_metrics(actual_labels , predicted_labels)
-    print("len(final_test_set):",len(final_test_set))
-    print(scores)
+    
+    #print(scores)
     return scores
     '''
     model.plot()
@@ -251,6 +270,9 @@ def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_p
     #train models
     list_of_markov_chain_models = np.zeros(number_of_persons , dtype = MarkovChain)
     for per in range(number_of_persons):
+        for i in range(len(train_set[per])):
+            print(len(train_set[per][i]))
+        
         list_of_markov_chain_models[per] = MarkovChain.from_samples(X = train_set[per])
         #print("Person:" , per)
         #print(list_of_markov_chain_models[per].distributions)
@@ -283,14 +305,70 @@ def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_p
         predicted_labels[index] = person_IDs[arg_max_logp]
     
     ind = np.where(np.not_equal(predicted_labels , -sys.maxsize + 1 ))
-    print("number_of_exceptions:" , number_of_exceptions)
+    print("len(final_test_set):",len(final_test_set) , "number_of_exceptions:" , number_of_exceptions)
     #print(len(predicted_labels) , len(ind[0]))
     predicted_labels = predicted_labels[ind]
     actual_labels = actual_labels[ind]
     scores = calculate_different_metrics(actual_labels , predicted_labels)
-    print("len(final_test_set):",len(final_test_set))
-    print(scores)
+    
     return scores
+
+def create_casas7_HMM_with_prepared_train_and_test_based_on_seq_of_activities(train_set, list_of_persons_in_train , test_set , list_of_persons_in_test):
+    '''
+    create a single HMM for all of persons
+    train_set = an ndarray that has train_set for each person separately
+    test_set = 
+    '''
+    
+    #concatinate train_sets and test_sets of all of people    
+    number_of_persons = len(train_set)
+    final_train_set = train_set[0]
+    final_test_set = test_set[0]
+    final_train_set_labels = list_of_persons_in_train[0]
+    final_test_set_labels = list_of_persons_in_test[0]
+    #print(type(final_train_set) , type(train_set) , type(train_set[1]))
+    for per in range(1, number_of_persons):
+        final_train_set = np.concatenate((final_train_set , train_set[per]) , axis = 0)
+        final_test_set = np.concatenate((final_test_set , test_set[per]), axis = 0)
+        final_train_set_labels = np.concatenate((final_train_set_labels , list_of_persons_in_train[per]), axis = 0)
+        final_test_set_labels = np.concatenate((final_test_set_labels , list_of_persons_in_test[per]), axis = 0)
+    
+    #r = np.shape(final_train_set)
+    #for i in range(r[0]):
+    #    print(np.shape(final_train_set[i]))
+    #final_train_set = np.array([[1,2,3,0,0] , [1,2,0,0,0]], dtype = np.ndarray)
+    #final_train_set_labels = np.array([1,2] , dtype= np.ndarray)
+    print(type(final_train_set[11]) , np.shape(final_train_set[11]))
+    print(final_train_set[0:2])
+    model = HiddenMarkovModel.from_samples(DiscreteDistribution, n_components=2, X=final_train_set , labels = final_train_set_labels , algorithm = 'labeled')# according to my tests :D n_components is number of hidden states
+    print(model)
+    return 0
+    #test
+    '''predicted_labels = np.zeros_like(actual_labels)
+    logp = np.zeros(number_of_persons)
+    number_of_exceptions = 0
+    for seq, index in zip(final_test_set , range(len(final_test_set))):
+        #print("seq:" , seq)
+        for model , index_of_logp in zip(list_of_markov_chain_models , range(number_of_persons)):
+            try:
+                logp[index_of_logp] = model.log_probability(seq)
+            except KeyError:
+                number_of_exceptions +=1
+                #print("number of model:" , index_of_logp)
+                #print("seq:" , seq)
+                logp[index_of_logp] = -sys.maxsize + 1
+        arg_max_logp = np.argmax(logp)# return the max index
+        predicted_labels[index] = person_IDs[arg_max_logp]
+    
+    ind = np.where(np.not_equal(predicted_labels , -sys.maxsize + 1 ))
+    print("len(final_test_set):",len(final_test_set) , "number_of_exceptions:" , number_of_exceptions)
+    #print(len(predicted_labels) , len(ind[0]))
+    predicted_labels = predicted_labels[ind]
+    actual_labels = actual_labels[ind]
+    scores = calculate_different_metrics(actual_labels , predicted_labels)
+    
+    return scores
+    '''
 
 def prepare_train_and_test_based_on_a_list_of_k_data(list_of_data ,list_of_labels ,which_index_for_test):
     '''
@@ -311,14 +389,8 @@ def prepare_train_and_test_based_on_a_list_of_k_data(list_of_data ,list_of_label
     for i in range(1 , len(list_of_data)):
         train_set = np.concatenate((train_set , list_of_data[i]) , axis = 0)
         train_set_labels = np.concatenate((train_set_labels , list_of_labels[i]) , axis = 0)
+       
         
-    '''
-    print(train_set)
-    print(train_set_labels)
-    print(test_set)
-    print(test_set_labels)
-    '''
-    
     return train_set , train_set_labels , test_set , test_set_labels
     
     
@@ -344,15 +416,17 @@ def calculate_f1_scoreaverage(scores , k):
     return avg
     
     
-def select_the_best_delta_using_the_best_strategy(k=10):
+def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = True):
     
 
-    address_to_read = r"E:\pgmpy\separation of train and test\31_3\{t}\train\delta_{delta}min.csv"
-    types = ['Seq of sensor events_no overlap_based on different deltas' , 'Seq of sensor events_based_on_activity_and_no_overlap_delta']
+    address_to_read = r"E:\pgmpy\{t}\delta_{delta}min.csv"
+    types = ['Seq of sensor events_no overlap_based on different deltas' , 
+             'Seq of sensor events_based_on_activity_and_no_overlap_delta', 
+             'Seq of Bag of sensor events_based_on_activity_and_no_overlap_delta']
 
     deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
     
-    t = types[0]
+    t = types[2]
     print(t)
     best_score = 0
     best_delta = 0
@@ -360,6 +434,9 @@ def select_the_best_delta_using_the_best_strategy(k=10):
     best_test_set = 0
     best_train_set_person_labels = 0
     best_test_set_person_labels = 0
+    
+    list_of_deltas = []
+    list_of_f1_micros = []
     
     for d in deltas:
         print("delta:" , d)
@@ -371,7 +448,11 @@ def select_the_best_delta_using_the_best_strategy(k=10):
             list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read.format(t = t , delta= d), 
                                         has_header = True, separate_data_based_on_persons = True)
         
-            
+        elif t == types[2]:
+            list_of_data , list_of_persons , _ = read_sequence_of_bags_CSV_file_with_activity(file_address = address_to_read.format(t = t , delta= d), 
+                                        has_header = True, separate_data_based_on_persons = True)
+           
+        
         number_of_persons = len(list_of_data)
         train_set = np.zeros(number_of_persons , dtype = np.ndarray)
         test_set = np.zeros(number_of_persons , dtype = np.ndarray)
@@ -383,6 +464,10 @@ def select_the_best_delta_using_the_best_strategy(k=10):
         k_splitted_train_set_person_labels = np.ndarray(shape = (2 , k) , dtype = np.ndarray)
 
         for per in range(number_of_persons):
+            
+            if shuffle:
+                list_of_data[per] , list_of_persons[per] = unison_shuffled_copies(list_of_data[per] , list_of_persons[per])
+                
             number_of_train_set_data = int( 0.8 * len(list_of_data[per]))
             train_set[per] = list_of_data[per][0:number_of_train_set_data]
             train_set_person_labels[per] = list_of_persons[per][0:number_of_train_set_data]
@@ -391,6 +476,7 @@ def select_the_best_delta_using_the_best_strategy(k=10):
 
             
             #split both train_set and test_set to k=10 groups
+            print("len(train_set[per]):" , len(train_set[per]) , "number_of_train_set_data:" , number_of_train_set_data)
             number_of_each_group_of_data = int(len(train_set[per]) / k)
             
             start = 0
@@ -415,6 +501,10 @@ def select_the_best_delta_using_the_best_strategy(k=10):
             scores[i] = create_casas7_markov_chain_with_prepared_train_and_test(train_set = train_set_k , list_of_persons_in_train=train_set_labels_k , test_set=test_set_k , list_of_persons_in_test=test_set_labels_k)
         scores_avg = calculate_f1_scoreaverage(scores , k)
         print("scores_avg" , scores_avg)
+        
+        list_of_deltas.append(d)
+        list_of_f1_micros.append(scores_avg)
+        
         if scores_avg > best_score:
             best_score = scores_avg
             best_delta = d
@@ -428,20 +518,153 @@ def select_the_best_delta_using_the_best_strategy(k=10):
     
     test_score =  create_casas7_markov_chain_with_prepared_train_and_test(train_set = best_train_set , list_of_persons_in_train= best_train_set_person_labels, test_set= best_test_set , list_of_persons_in_test= best_test_set_person_labels)
     print("test_score:" , test_score)
+    
+    plot_results(list_of_deltas, list_of_f1_micros, t , y_label = "f1 score micro")
+
+
+def select_the_best_delta_using_the_best_strategy_HMM(k=10 , shuffle = True):
+    
+
+    address_to_read = r"E:\pgmpy\Seq of Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
+   
+    deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
+    
+    best_score = 0
+    best_delta = 0
+    best_train_set = 0
+    best_test_set = 0
+    best_train_set_person_labels = 0
+    best_test_set_person_labels = 0
+    
+    list_of_deltas = []
+    list_of_f1_micros = []
+    
+    for d in deltas:
+        print("delta:" , d)
+       
+        list_of_data , list_of_persons , _ = read_sequence_of_bags_CSV_file_with_activity(file_address = address_to_read.format(delta= d), 
+                                        has_header = True, separate_data_based_on_persons = True)
+           
+        
+        
+        number_of_persons = len(list_of_data)
+        train_set = np.zeros(number_of_persons , dtype = np.ndarray)
+        test_set = np.zeros(number_of_persons , dtype = np.ndarray)
+        train_set_person_labels = np.zeros(number_of_persons , dtype = np.ndarray)
+        test_set_person_labels = np.zeros(number_of_persons , dtype = np.ndarray)
+
+
+        k_splitted_train_set = np.ndarray(shape = (2 , k) , dtype = np.ndarray)
+        k_splitted_train_set_person_labels = np.ndarray(shape = (2 , k) , dtype = np.ndarray)
+
+        for per in range(number_of_persons):
+            
+            if shuffle:
+                list_of_data[per] , list_of_persons[per] = unison_shuffled_copies(list_of_data[per] , list_of_persons[per])
+            
+            # repeat person tags
+            #is_one_person = true because i just send the data of one person in each iteration
+            list_of_persons[per] = repaet_person_tags_as_much_as_seq_length(list_of_data[per] , list_of_persons[per] , is_one_person=True)
+            
+            number_of_train_set_data = int( 0.8 * len(list_of_data[per]))
+            train_set[per] = list_of_data[per][0:number_of_train_set_data]
+            train_set_person_labels[per] = list_of_persons[per][0:number_of_train_set_data]
+            test_set[per] = list_of_data[per][number_of_train_set_data:]
+            test_set_person_labels[per] = list_of_persons[per][number_of_train_set_data:]
+
+            
+            #split both train_set and test_set to k=10 groups
+            print("len(train_set[per]):" , len(train_set[per]) , "number_of_train_set_data:" , number_of_train_set_data)
+            number_of_each_group_of_data = int(len(train_set[per]) / k)
+            
+            start = 0
+            for i in range(k-1):
+                end = (i+1) * number_of_each_group_of_data
+                k_splitted_train_set[per][i] = train_set[per][start:end]
+                k_splitted_train_set_person_labels[per][i] =  train_set_person_labels [per][start:end]
+                start = end
+            k_splitted_train_set[per][k-1] = train_set[per][start:]
+            k_splitted_train_set_person_labels[per][k-1] = train_set_person_labels [per][start:]
+               
+
+        train_set_k = np.zeros(number_of_persons , dtype = np.ndarray)
+        train_set_labels_k = np.zeros(number_of_persons , dtype = np.ndarray)
+        test_set_k = np.zeros(number_of_persons , dtype = np.ndarray)
+        test_set_labels_k = np.zeros(number_of_persons , dtype = np.ndarray)
+        scores = np.zeros(k , dtype = dict)
+        
+        for i in range(k):
+            for per in range(number_of_persons):
+                train_set_k[per] , train_set_labels_k[per] , test_set_k[per] , test_set_labels_k[per] = prepare_train_and_test_based_on_a_list_of_k_data(k_splitted_train_set[per] , k_splitted_train_set_person_labels[per] , i)
+            
+            scores[i] = create_casas7_HMM_with_prepared_train_and_test_based_on_seq_of_activities(train_set = train_set_k , list_of_persons_in_train=train_set_labels_k , test_set=test_set_k , list_of_persons_in_test=test_set_labels_k)
+       
+        scores_avg = calculate_f1_scoreaverage(scores , k)
+        print("scores_avg" , scores_avg)
+        
+        list_of_deltas.append(d)
+        list_of_f1_micros.append(scores_avg)
+        
+        if scores_avg > best_score:
+            best_score = scores_avg
+            best_delta = d
+            best_train_set = train_set
+            best_test_set = test_set
+            best_train_set_person_labels = train_set_person_labels
+            best_test_set_person_labels = test_set_person_labels
+    
+    print("Validation Scores:")
+    print("best_delta:" , best_delta , "best_validation_score:" , best_score)
+    
+    #test_score =  create_casas7_HMM_with_prepared_train_and_test_based_on_seq_of_activities(train_set = best_train_set , list_of_persons_in_train= best_train_set_person_labels, test_set= best_test_set , list_of_persons_in_test= best_test_set_person_labels)
+    #print("test_score:" , test_score)
+    
+    plot_results(list_of_deltas, list_of_f1_micros, 'Seq of Bag of events based on activities', y_label = "f1 score micro")
+
+
+
+def create_and_test_model_based_on_activities(shuffle = True):
+    
+
+    address_to_read = r"E:\pgmpy\Seq of sensor events_based on activities\based_on_activities.csv"
+    print("Seq of sensor events_based on activities")
+
+    list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read, 
+                                        has_header = True, separate_data_based_on_persons = True)
+        
+           
+        
+    number_of_persons = len(list_of_data)
+    train_set = np.zeros(number_of_persons , dtype = np.ndarray)
+    test_set = np.zeros(number_of_persons , dtype = np.ndarray)
+    train_set_person_labels = np.zeros(number_of_persons , dtype = np.ndarray)
+    test_set_person_labels = np.zeros(number_of_persons , dtype = np.ndarray)
+
+
+    for per in range(number_of_persons):
+        
+        if shuffle:
+            list_of_data[per] , list_of_persons[per] = unison_shuffled_copies(list_of_data[per] , list_of_persons[per])
+     
+        number_of_train_set_data = int( 0.8 * len(list_of_data[per]))
+        train_set[per] = list_of_data[per][0:number_of_train_set_data]
+        train_set_person_labels[per] = list_of_persons[per][0:number_of_train_set_data]
+        test_set[per] = list_of_data[per][number_of_train_set_data:]
+        test_set_person_labels[per] = list_of_persons[per][number_of_train_set_data:]
+ 
+     
+    test_score =  create_casas7_markov_chain_with_prepared_train_and_test(train_set = train_set , list_of_persons_in_train= train_set_person_labels, test_set= test_set , list_of_persons_in_test= test_set_person_labels)
+    print("test_score:" , test_score)
+   
 
 
 if __name__ == "__main__":
-    #test_sample_from_site()
-    #build_the_same_model_line_by_line()
-    #build_an_hmm_example()
-    dest_file = r"E:\a1.csv"#"C:\f5_0_10_no_col.csv"
-    #create_hmm_from_sample(dest_file)
-    #create_casas7_hmm(file_address = dest_file)
-    address_to_read= r"E:\pgmpy\separation of train and test\31_3\Seq of sensor events_based on activities\train\based_on_activities.csv"
+    
+    address_to_read= r"E:\pgmpy\Seq of sensor events_based on activities\based_on_activities.csv"
 
     #address_to_read = r"E:\pgmpy\separation of train and test\31_3\{type}\train\delta_{delta}min.csv"
     types = ['Seq of sensor events_no overlap_based on different deltas' , 'Seq of sensor events_based_on_activity_and_no_overlap_delta']
     #create_casas7_markov_chain(file_address=address_to_read.format(delta = 15) , has_activity=True)
     #create_casas7_markov_chain(file_address=address_to_read , has_activity=True)
-    select_the_best_delta_using_the_best_strategy()
-    #test_prepare_train_and_test_based_on_a_list_of_k_data()
+    
+    select_the_best_delta_using_the_best_strategy_markov_chain(k = 10, shuffle=True)
