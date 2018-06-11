@@ -207,7 +207,8 @@ def casas7_to_csv_time_Ordered():
     np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data+time_ordered.csv', 
                np.delete(all_features, -1 , 1 ), delimiter=',' , fmt='%s')
 
-def casas7_to_csv_based_on_sensor_events_time_Ordered():
+
+def casas7_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read, file_address_to_save):
     '''
     0. It is important that the difference between this method and casas7_to_csv_time_Ordered
        is that in this method the si-on and si-off are considered as two different features. if they 
@@ -235,15 +236,18 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
     8. the first instance is name of features
     9. Events are labeled with time and date and the data is sorted based on datatime
 
+    Important: in Tulum 2010 some of the first lines which are not taged for a specific person are removed manually. 
     
     '''
-    f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated","r")
-    #lines = f.readlin()
-    #with open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\annotated" , 'w') as converted_file:
+    #f = open( r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated","r")
+    f = open(file_address_to_read,"r")
+    list_of_sensors, number_of_allowed_samples, list_of_works = get_list_of_allowed_sensors_and_works_in_dataset(file_address_to_read)
     
-    features = [0]* 127 # 61 * 2 features + Person + work + 1 date + 1 time + 1 datetime for ordering data
+    number_of_columns = len(list_of_sensors) * 2 + 5 # 127 for Towr2009
+    # 61 * 2 features + Person + work + 1 date + 1 time + 1 datetime for ordering data
+    features = [0] * number_of_columns 
     # for month2, the rows are 64466 (+1)
-    all_features = np.zeros((130337, 127), dtype= object )#np.str)130336 +1
+    all_features = np.zeros((number_of_allowed_samples, number_of_columns), dtype= object )#np.str)130336 +1
     
     #feature_names = ["M01_on", "M01_off", "M02_on", "M02_off", "M03_on", "M03_off", "M04_on" , "M04_off", 
     #                 "M05_on", "M05_off", "M06_on", "M06_off" ,"M07_on", "M07_off" , "M08_on" , "M08_off"
@@ -256,21 +260,24 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
            #            , "M51", "I03", "D03", "D05" , "D07" , "D08" , "D09" , "D10" , "D12" , "D14"
             #           , "D15", "PNo", "WNo", "Date" , "Time", "DateTime"]
     
-    #print(feature_names)
-    #used_features = []
-    set_of_sensors = set()
-    set_of_changed_index = set()
+    
+    #set_of_sensors = set()
+    #set_of_changed_index = set()
     counter = -1
     #print(features)
     first = True
     for line in f:
         
         cells = line.split()
-        #print(cells)
-        feature_column = get_feature_column(cells[2])
         
+        try:
+            feature_column = list_of_sensors.index(cells[2])# get_feature_column(cells[2]) is for Twor2009 dataset and is set manually
+        except Exception as e:# i.e. the item is not in list
+            feature_column = -1
+            
+            
         if feature_column != -1:
-            set_of_sensors.add(cells[2])
+            #set_of_sensors.add(cells[2])
             counter +=1
             #set features to 0, because in each time just one feature is 1
             #features = [0]* 127
@@ -285,14 +292,14 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
                 #sensor_value == 0 
                 changed_index = feature_column*2 + 1
                 
-            set_of_changed_index.add(changed_index)
+            #set_of_changed_index.add(changed_index)
             features[changed_index] = 1
 
             
             if len(cells) > 4:
-                PersonNumber, WorkNumber = get_person_and_work(cells[4])
+                PersonNumber, WorkString = get_person_and_work(cells[4])
                 features[-5] = PersonNumber
-                features[-4] = WorkNumber
+                features[-4] = list_of_works.index(WorkString)#WorkNumber
                 # i.e. the line is annotated
             features[-3] = cells[0]
             features[-2] = cells[1]
@@ -301,7 +308,7 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
             if first == True:
                 first  = False
             
-            if counter < 130337:
+            if counter < number_of_allowed_samples:
                 all_features[counter] = features
             else:
                 all_features = np.vstack([all_features,features])
@@ -319,10 +326,11 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered():
     rows, cols = all_features.shape
     print(rows)
     print(cols)
-    print(sorted(set_of_changed_index))
-    print(len(set_of_changed_index))
-    np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv', 
-               np.delete(all_features, -1 , 1 ), delimiter=',' , fmt='%s')
+    #print(sorted(set_of_changed_index))
+    #print(len(set_of_changed_index))
+    
+    #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv', 
+    np.savetxt(file_address_to_save, np.delete(all_features, -1 , 1 ), delimiter=',' , fmt='%s')
 
 
 def casas7_activities():
@@ -1274,7 +1282,8 @@ def get_person_and_work(PersonAndWork):
     else:
         personNumber = '0' + PersonAndWork[1]
         work = PersonAndWork[3:]
-        
+     
+    '''
     if work == "Cleaning":
         workNumber = '01'
     elif work == "Wash_bathtub":
@@ -1297,8 +1306,9 @@ def get_person_and_work(PersonAndWork):
         workNumber = '10'
     elif work == "watch_TV":
         workNumber = '11'
+    '''
      
-    return (personNumber, workNumber)    
+    return (personNumber, work)#workNumber)    
         
 def get_person_and_workActivity(PersonAndWork):
     
@@ -1348,6 +1358,7 @@ def get_work_lists():
     
 def convert_string_to_datetime(date_str, time_str):    
     
+    #print(date_str , time_str)
     datetime_obj = datetime.datetime.strptime(date_str + time_str,"%Y-%m-%d%H:%M:%S.%f") 
     return datetime_obj
 
@@ -1740,29 +1751,45 @@ def create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes 
      
     return person_sequences[0]
 
-def get_list_of_allowed_sensors_in_dataset(file_address):
+def get_list_of_allowed_sensors_and_works_in_dataset(file_address):
     
     '''
-    return list of binary sensors (i.e. motion, item and door sensors)
+    Returns:
+    =========
+    list of binary sensors (i.e. motion, item and door sensors)
+    number of samples which are the changing status of allowed sensors
+    list_of_works:
     
     '''
     set_of_sesnors = set()
+    set_of_works = set()
     f = open( file_address ,"r")
     counter = 0
     for line in f:
         #counter +=1
         cells = line.split()
         #print(cells)
-        try:
-            if cells[2][0] in ['M','I','D']:
-                set_of_sesnors.add(cells[2])
-                counter +=1
-
-        except Exception as e:
-            print(counter)
+        #try:
+        if cells[2][0] in ['M','I','D']:
+            set_of_sesnors.add(cells[2])
+            counter +=1
             
-    print(counter)
-    return (sorted(list(set_of_sesnors)))
+            if len(cells) > 4:
+                if cells[4][0] != 'R':
+                    set_of_works.add(cells[4])
+                else:
+                    set_of_works.add(cells[4][3:])
+                    
+
+       # except Exception as e:
+        #    print("Exception in counter: ", counter)
+            
+    #print(counter)
+    list_of_sensors = sorted(list(set_of_sesnors))
+    list_of_works = sorted(list(set_of_works))
+    #print(list_of_works)
+
+    return list_of_sensors, counter, list_of_works
     
 def prepare_each_dataset_and_create_all_bag_and_sequence_of_events():
     pass
@@ -1773,8 +1800,16 @@ if __name__ == '__main__':
     file_address_Tulum2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2010\data_edited by adele"
     file_address_Tulum2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2009\data.txt"
     file_address_Twor2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\twor.2010\data"
-    a = get_list_of_allowed_sensors_in_dataset(file_address_Tulum2009)
-    print(a)
+    
+    file_address_Towr2009_to_save = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+    file_address_Tulum2010_to_save = r"E:\pgmpy\Tulum2010\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+    file_address_Tulum2009_to_save = r"E:\pgmpy\Tulum2009\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+    file_address_Twor2010_to_save = r"E:\pgmpy\Towr2010\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+    
+    
+    casas7_to_csv_based_on_sensor_events_time_Ordered(file_address_Twor2010,file_address_Twor2010_to_save)
+    #a,_,_  = get_list_of_allowed_sensors_and_works_in_dataset(file_address_Tulum2010)
+    #print(len(a))
     #s = "R2_asdf"
     #result = re.match(r'(R)(1|2)(_)(.*)' , s)
     #print(get_work_lists())
