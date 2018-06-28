@@ -342,7 +342,7 @@ def create_casas7_HMM_with_prepared_train_and_test_based_on_seq_of_activities(tr
     print(final_train_set[0:2])
     model = HiddenMarkovModel.from_samples(DiscreteDistribution, n_components=2, X=final_train_set , labels = final_train_set_labels , algorithm = 'labeled')# according to my tests :D n_components is number of hidden states
     print(model)
-    return 0
+    #return 0
     #test
     '''predicted_labels = np.zeros_like(actual_labels)
     logp = np.zeros(number_of_persons)
@@ -522,11 +522,14 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
     plot_results(list_of_deltas, list_of_f1_micros, t , y_label = "f1 score micro")
 
 
-def select_the_best_delta_using_the_best_strategy_HMM(k=10 , shuffle = True):
-    
+def select_the_best_delta_using_the_best_strategy_HMM_cherknevis(k=10 , shuffle = True):
+    '''
+    please read the code later.
+    I combined multiple strategies on multiple dataset. it is dangerous to modify it :D
+    '''
 
     address_to_read = r"E:\pgmpy\Seq of Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
-   
+    
     deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
     
     best_score = 0
@@ -622,6 +625,105 @@ def select_the_best_delta_using_the_best_strategy_HMM(k=10 , shuffle = True):
     plot_results(list_of_deltas, list_of_f1_micros, 'Seq of Bag of events based on activities', y_label = "f1 score micro")
 
 
+def select_the_best_delta_using_the_best_strategy_HMM(k=10 , shuffle = True):
+    '''
+    '''
+
+    address_to_read = r"E:\pgmpy\Seq of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
+    
+    deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
+    
+    best_score = 0
+    best_delta = 0
+    best_train_set = 0
+    best_test_set = 0
+    best_train_set_person_labels = 0
+    best_test_set_person_labels = 0
+    
+    list_of_deltas = []
+    list_of_f1_micros = []
+    
+    for d in deltas:
+        print("delta:" , d)
+       
+        list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read.format(delta= d) , has_header = True, separate_data_based_on_persons = True)
+        
+        number_of_persons = len(list_of_data)
+        train_set = np.zeros(number_of_persons , dtype = np.ndarray)
+        test_set = np.zeros(number_of_persons , dtype = np.ndarray)
+        train_set_person_labels = np.zeros(number_of_persons , dtype = np.ndarray)
+        test_set_person_labels = np.zeros(number_of_persons , dtype = np.ndarray)
+
+
+        k_splitted_train_set = np.ndarray(shape = (2 , k) , dtype = np.ndarray)
+        k_splitted_train_set_person_labels = np.ndarray(shape = (2 , k) , dtype = np.ndarray)
+
+        for per in range(number_of_persons):
+            
+            if shuffle:
+                list_of_data[per] , list_of_persons[per] = unison_shuffled_copies(list_of_data[per] , list_of_persons[per])
+            
+            # repeat person tags
+            #is_one_person = true because i just send the data of one person in each iteration
+            list_of_persons[per] = repaet_person_tags_as_much_as_seq_length(list_of_data[per] , list_of_persons[per] , is_one_person=True)
+            
+            number_of_train_set_data = int( 0.8 * len(list_of_data[per]))
+            train_set[per] = list_of_data[per][0:number_of_train_set_data]
+            train_set_person_labels[per] = list_of_persons[per][0:number_of_train_set_data]
+            test_set[per] = list_of_data[per][number_of_train_set_data:]
+            test_set_person_labels[per] = list_of_persons[per][number_of_train_set_data:]
+
+            
+            #split both train_set and test_set to k=10 groups
+            print("len(train_set[per]):" , len(train_set[per]) , "number_of_train_set_data:" , number_of_train_set_data)
+            number_of_each_group_of_data = int(len(train_set[per]) / k)
+            
+            start = 0
+            for i in range(k-1):
+                end = (i+1) * number_of_each_group_of_data
+                k_splitted_train_set[per][i] = train_set[per][start:end]
+                k_splitted_train_set_person_labels[per][i] =  train_set_person_labels [per][start:end]
+                start = end
+            k_splitted_train_set[per][k-1] = train_set[per][start:]
+            k_splitted_train_set_person_labels[per][k-1] = train_set_person_labels [per][start:]
+               
+
+        train_set_k = np.zeros(number_of_persons , dtype = np.ndarray)
+        train_set_labels_k = np.zeros(number_of_persons , dtype = np.ndarray)
+        test_set_k = np.zeros(number_of_persons , dtype = np.ndarray)
+        test_set_labels_k = np.zeros(number_of_persons , dtype = np.ndarray)
+        scores = np.zeros(k , dtype = dict)
+        
+        for i in range(k):
+            for per in range(number_of_persons):
+                train_set_k[per] , train_set_labels_k[per] , test_set_k[per] , test_set_labels_k[per] = prepare_train_and_test_based_on_a_list_of_k_data(k_splitted_train_set[per] , k_splitted_train_set_person_labels[per] , i)
+            
+            scores[i] = create_casas7_HMM_with_prepared_train_and_test_based_on_seq_of_activities(train_set = train_set_k , list_of_persons_in_train=train_set_labels_k , test_set=test_set_k , list_of_persons_in_test=test_set_labels_k)
+       
+        print("**************************\nscores:", scores)
+        scores_avg = calculate_f1_scoreaverage(scores , k)
+        print("scores_avg" , scores_avg)
+        
+        list_of_deltas.append(d)
+        list_of_f1_micros.append(scores_avg)
+        
+        if scores_avg > best_score:
+            best_score = scores_avg
+            best_delta = d
+            best_train_set = train_set
+            best_test_set = test_set
+            best_train_set_person_labels = train_set_person_labels
+            best_test_set_person_labels = test_set_person_labels
+    
+    print("Validation Scores:")
+    print("best_delta:" , best_delta , "best_validation_score:" , best_score)
+    
+    #test_score =  create_casas7_HMM_with_prepared_train_and_test_based_on_seq_of_activities(train_set = best_train_set , list_of_persons_in_train= best_train_set_person_labels, test_set= best_test_set , list_of_persons_in_test= best_test_set_person_labels)
+    #print("test_score:" , test_score)
+    
+    plot_results(list_of_deltas, list_of_f1_micros, 'Seq of events based on activities and no overlap delta', y_label = "f1 score micro")
+
+
 
 def create_and_test_model_based_on_activities(shuffle = True):
     
@@ -667,4 +769,5 @@ if __name__ == "__main__":
     #create_casas7_markov_chain(file_address=address_to_read.format(delta = 15) , has_activity=True)
     #create_casas7_markov_chain(file_address=address_to_read , has_activity=True)
     
-    select_the_best_delta_using_the_best_strategy_markov_chain(k = 10, shuffle=True)
+    #select_the_best_delta_using_the_best_strategy_markov_chain(k = 10, shuffle=True)
+    select_the_best_delta_using_the_best_strategy_HMM(k= 10, shuffle = True)
