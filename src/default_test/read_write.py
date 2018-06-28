@@ -50,9 +50,9 @@ def read_sequence_based_CSV_file_with_activity(file_address , has_header, separa
         new_list_of_persons = np.zeros(number_of_persons ,dtype = np.ndarray)
         new_list_of_activities = np.zeros(number_of_persons ,dtype = np.ndarray)
         
-        list_of_persons = np.array(list_of_persons)
-        list_of_data = np.array(list_of_data)
-        list_of_activities = np.array(list_of_activities)
+        list_of_persons = np.array(list_of_persons , dtype= object)
+        list_of_data = np.array(list_of_data, dtype= object)
+        list_of_activities = np.array(list_of_activities, dtype= object)
         
         new_list_index = 0
         for per in list(sorted(set(list_of_persons))):
@@ -212,7 +212,6 @@ def repaet_person_tags_as_much_as_seq_length(list_of_data , list_of_persons, is_
     if is_one_person:
         for i in range(len(list_of_data)):
             list_of_persons[i] = list([list_of_persons[i]] * len(list_of_data[i]))
-            
         
     else:
         number_of_persons = len(list_of_persons)
