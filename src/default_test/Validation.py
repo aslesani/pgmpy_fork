@@ -1127,8 +1127,10 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
-    data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
-    
+    #data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
+    data_address = r"E:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={delta}\PCA_n={n}.csv"
+
+
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
     
@@ -1190,7 +1192,7 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
         _ , test_set_score, _ , _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
         print("final test score:" , test_set_score)
 
-    plot_results(list_of_ns, list_of_f1_micros, "delta activity + delta (delta = " + str(selected_delta) + ") based on n", y_label = "f1 score micro")
+    plot_results(list_of_ns, list_of_f1_micros, "activtiy + delta (delta = " + str(selected_delta) + ") based on n", y_label = "f1 score micro")
 
 def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
     
@@ -1272,7 +1274,7 @@ if __name__ == '__main__':
     
     #print("delta no overlap")
     
-    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
+    for delta in [15,30,45,60]:#,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
         test_the_best_validation_strategy_for_different_ns(delta)
     
     #select_hyper_parameters_using_the_best_validation_strategy()
