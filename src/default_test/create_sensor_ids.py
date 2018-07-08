@@ -7,20 +7,22 @@ Created on Sat Mar 24 15:20:20 2018
 
 
 
-def create_header_string(a):
+def create_header_string(a, add_work_col = True):
     
     b = []
     header_string = ""
     for i in a:
-         b.append(i + "_on")
-         b.append(i + "_off")
-         header_string = header_string + str(i) + "_on,"
-         header_string = header_string + str(i) + "_off,"
+        b.append(i + "_on")
+        b.append(i + "_off")
+        header_string = header_string + str(i) + "_on,"
+        header_string = header_string + str(i) + "_off,"
     
     b.append('Person')
-    b.append('Work') 
     header_string = header_string + "Person,"
-    header_string = header_string + "Work"
+    
+    if add_work_col:
+        b.append('Work')
+        header_string = header_string + "Work"
     
     print(b)
     print(len(b))
