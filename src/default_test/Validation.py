@@ -995,6 +995,7 @@ def select_hyper_parameters_using_the_best_validation_strategy():
     
     # this is a hash table in which key is delta and value is the treshhold that the min number of features is selected in comparision to other treshholds
     hash_of_delta_and_the_best_treshhold = OrderedDict([(15, 55), (30, 80), (45, 80), (60, 80), (75, 85), (90, 75), (100, 85), (120, 95), (150, 100), (180, 100), (200, 95), (240, 70), (300, 75), (400, 95), (500, 80), (600, 90), (700, 95), (800, 100), (900, 95), (1000, 100)])
+    
     max_validation_f1_score = 0
     the_best_model = 0
     best_model_test_set = 0
@@ -1128,8 +1129,9 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
     #data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
-    data_address = r"E:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={delta}\PCA_n={n}.csv"
-
+    #data_address = r"E:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={delta}\PCA_n={n}.csv"
+    data_address = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\Domus\Dataset\Bag of sensor events_no overlap_based on different deltas\PCA on Bag of sensor events_no overlap\1,2\delta={delta}\PCA_n={n}.csv"
+    
 
     delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
     delta_length = len(delta)-1
@@ -1274,7 +1276,7 @@ if __name__ == '__main__':
     
     #print("delta no overlap")
     
-    for delta in [15,30,45,60]:#,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
+    for delta in range(1,62,2):#[15,30,45,60]:#,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
         test_the_best_validation_strategy_for_different_ns(delta)
     
     #select_hyper_parameters_using_the_best_validation_strategy()

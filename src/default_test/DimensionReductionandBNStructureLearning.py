@@ -338,7 +338,7 @@ def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return
     return_as_pandas_data_frame = if True, the return_value is pandas Dataframe, else numpy ndaaray
     
     convert_int_columns_to_int: if the user want to keep date and time columns, then she should 
-                                specify data_type as object and the set convert_int_columns_to_int to True
+                                specify data_type as object and then set convert_int_columns_to_int to True
     
     Returns:
     ========
