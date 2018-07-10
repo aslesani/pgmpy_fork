@@ -119,10 +119,10 @@ def calculate_different_metrics(y_true , y_predicted):
 
    
 def calscore(result,predict):
-    fscore=f1_score(result,predict)
+    fscore=f1_score(result,predict, average='micro')
     accuracy=accuracy_score(result,predict)
-    precision=precision_score(result,predict)
-    recall=recall_score(result,predict)
+    precision=precision_score(result,predict, average='micro')
+    recall=recall_score(result,predict, average='micro')
     
     
     return fscore,accuracy,precision,recall
