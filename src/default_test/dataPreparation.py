@@ -27,6 +27,7 @@ from xml.sax.handler import all_features
 #from builtins import int
 from numpy import dtype
 from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
+from docutils.parsers import null
 
 #from matplotlib.pyplot import axis
 #from nntplib import lines
@@ -1791,6 +1792,33 @@ def get_list_of_allowed_sensors_and_works_in_dataset(file_address):
 
     return list_of_sensors, counter, list_of_works
     
+def create_dataset_each_row_one_feature_on_plus_hour_of_day(file_address = ' ', address_to_save = ' '):
+    
+    if file_address == ' ':
+        file_address = r'E:\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv'
+    
+    if address_to_save == ' ':
+        address_to_save = r'E:\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+hour_of_day.csv'
+    
+          
+    data = read_data_from_CSV_file(dest_file=file_address, data_type = object, 
+                                   has_header = False, 
+                                   return_as_pandas_data_frame = False, 
+                                   remove_date_and_time = False, 
+                                   return_header_separately = False, 
+                                   convert_int_columns_to_int = True)
+    
+    rows, cols = np.shape(data)
+    data = np.delete(data, obj = cols - 3, axis = 1) # remove the activity col
+    data = np.delete(data, obj = (cols -1) - 2, axis = 1) # remove the date col
+    
+    for r in range(rows):
+        data[r,-1] = int(data[r,-1].split(':')[0])
+    
+    
+    np.savetxt(address_to_save, data, delimiter=',' , fmt='%s')
+
+
 def prepare_each_dataset_and_create_all_bag_and_sequence_of_events():
     pass
 
@@ -1806,8 +1834,9 @@ if __name__ == '__main__':
     file_address_Tulum2009_to_save = r"E:\pgmpy\Tulum2009\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
     file_address_Twor2010_to_save = r"E:\pgmpy\Towr2010\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
     
+    create_dataset_each_row_one_feature_on_plus_hour_of_day()
     
-    casas7_to_csv_based_on_sensor_events_time_Ordered(file_address_Twor2010,file_address_Twor2010_to_save)
+    #casas7_to_csv_based_on_sensor_events_time_Ordered(file_address_Twor2010,file_address_Twor2010_to_save)
     #a,_,_  = get_list_of_allowed_sensors_and_works_in_dataset(file_address_Tulum2010)
     #print(len(a))
     #s = "R2_asdf"
