@@ -391,9 +391,9 @@ def create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation(list_
 
 if __name__ == "__main__":
     
-    list_of_person_IDS = list(range(1,25))
+    list_of_person_IDS = list(range(1,3))
     #create_bag_of_events_for_different_persons_and_deltas()
-    #combine_bag_of_events_data_of_different_people(list(range(1,25)))
+    combine_bag_of_events_data_of_different_people(list_of_person_IDS)
     create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation(list_of_person_IDS)
    
     person = r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\Domus\Dataset\{person}\\'
