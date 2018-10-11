@@ -1690,7 +1690,7 @@ def create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes 
         #print(ind)
         #print(ind[0][0])
         next_element_of_sequence = header[ind[0][0]]# if there is more than one 1, the last is person number. because each row has one 1        
-        print(next_element_of_sequence)
+        #print(next_element_of_sequence)
         person_sequences[each_person][0][0] = [next_element_of_sequence]
         
         for offset in range(1, len(person_data[each_person]), 1): # range(start, end, step) sharte end ine k bozorgtar bashe pas bayad yeki az akhari kamtar begiram
@@ -1701,7 +1701,7 @@ def create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes 
                 if timedelta_in_minutes <= deltaInMinutes:
                     ind = np.where(np.equal(person_data[each_person][offset] , 1))
                     next_element_of_sequence = header[ind[0][0]]# if there is more than one 1, the last is person number. because each row has one 1
-                    print(next_element_of_sequence)
+                    #print(next_element_of_sequence)
                     person_sequences[each_person][new_counter][0].append(next_element_of_sequence)
 
                 else:
@@ -1714,7 +1714,7 @@ def create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes 
                     new_counter += 1
                     ind = np.where(np.equal(person_data[each_person][offset] , 1))
                     next_element_of_sequence = header[ind[0][0]]# if there is more than one 1, the last is person number. because each row has one 1
-                    print(next_element_of_sequence)
+                    #print(next_element_of_sequence)
                     person_sequences[each_person][new_counter][0] = [next_element_of_sequence]
 
                    
@@ -1743,7 +1743,7 @@ def create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes 
          
     #save all data in person_bag[0]
     for person in range(1, number_of_residents):
-        print(person_sequences[0].shape , person_sequences[person].shape)
+        #print(person_sequences[0].shape , person_sequences[person].shape)
         person_sequences[0] = np.concatenate((person_sequences[0], person_sequences[person]), axis=0)
 
     
@@ -2008,12 +2008,13 @@ if __name__ == '__main__':
     '''
     #create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = address_to_save3, isSave = True)
 
-    for i in range(1200 , 5001 , 100):#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
-        
+    for i in  [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
+        #range(1100 , 5001 , 100):#
+        print(i)
         #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
         #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
-        #create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save2.format(delta = i), isSave = True)
-        create_sequence_of_sensor_events_based_on_delta_no_overlap(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save1.format(delta = i), isSave = True)
+        create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save2.format(delta = i), isSave = True)
+        #create_sequence_of_sensor_events_based_on_delta_no_overlap(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save1.format(delta = i), isSave = True)
         #casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 130337, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save4.format(delta = i), isSave = True)
         
 '''
