@@ -1,0 +1,5 @@
+*.htm
+/src/default_test/*.js
+*.py
+*.ipynb
+/__pycache__/*
