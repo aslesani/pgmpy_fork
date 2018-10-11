@@ -71,7 +71,7 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
    
     print(target)
     sensor_data = np.delete(sensor_data ,-1 , 1) # remove the Person column
-    for i in range(2,21):#cols):
+    for i in range(2,12):#cols):
         pca = PCA(n_components=i)
         
         
@@ -594,7 +594,13 @@ def shift_2_data_set_based_on_the_first_dataset(data1 , data2):
     return data1, data2 
 
 
-def shift_each_column_separately(data):
+def shift_each_column_separately(data, do_shift_last_column = True):
+    '''
+    Parameters:
+    ===========
+    do_shift_last_column: if True, shift the last col as well. 
+                          else ignore shifting the last column 
+    '''
         
     is_pd = False
     if type(data) == pd.core.frame.DataFrame:
@@ -603,7 +609,13 @@ def shift_each_column_separately(data):
         data = data.values
     
     _ , cols = data.shape
-    for i in range(cols):
+    
+    if do_shift_last_column:
+        column_ranges = range(cols) 
+    else:
+        column_ranges = range(cols -1)
+  
+    for i in column_ranges:
         data[:,i] = shift_data(data[:,i])
     
     
@@ -792,7 +804,7 @@ def create_PCA_for_bag_of_sensor_events_based_on_activities():
     
 def create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation():
     
-    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+    for delta in range(1100 , 5001 , 100):#[15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
         directory_for_save = r'E:\pgmpy\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
 
@@ -902,6 +914,7 @@ def test_shift_2_data_set_based_on_the_first_dataset():
     
     
 if __name__ == "__main__":
+    create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation()
     #featureSelection_based_on_Variance(
     #test_featureSelection_based_on_Variance()
     #test_shift_2_data_set_based_on_the_first_dataset()
@@ -910,7 +923,7 @@ if __name__ == "__main__":
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
     #test_digitize_dataset_for_feature_enginnering_with_delta()
-    create_PCA_for_bag_of_sensor_events_based_on_activities_no_separation()
+    #create_PCA_for_bag_of_sensor_events_based_on_activities_no_separation()
    
     '''try:
         result = pd.read_csv(filepath_or_buffer = f , header = None)# , dtype = np.int32)
