@@ -96,7 +96,7 @@ def bic(train,test, scoring_function,resultlist):
               }
       
     #print("fscore:" , fscore,"accuracy:" ,accuracy,"precision:" ,precision, "recall: ",recall)    
-    return (model , scores ,  trainend, testend)
+    return (model , scores ,  trainend, testend, pred)
 
 def calculate_different_metrics(y_true , y_predicted):
     f1_score_micro = f1_score(y_true, y_predicted, average='micro') 
