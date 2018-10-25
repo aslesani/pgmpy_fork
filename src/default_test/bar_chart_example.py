@@ -22,7 +22,7 @@ def draw_bar_chart(x_values, y_values , y_label , title):
 def read_column_and_person_from_Bag_of_sensor_events_based_on_activities():
     print("hi")
 
-    f = open( r"C:\pgmpy\Bag of sensor events_based on activities.csv","r")
+    f = open( r"E:\pgmpy\Bag of sensor events_based on activities\based_on_activities.csv","r")
     all_features = np.zeros((3216, 3), dtype= object )#np.str)1003 +1
     
     counter = 0
