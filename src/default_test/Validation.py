@@ -46,12 +46,13 @@ from statistics import get_set_of_features_in_each_column
 from DimensionReductionandBNStructureLearning import digitize_dataset
 
 
-def convert_numpy_dataset_to_pandas(data):
+def convert_numpy_dataset_to_pandas(data, addPersonColumn = True):
     '''
     get a numpy dataset and convert it to pandas dataframe
     Parameters:
     ==========
     data: an ndarray numpy 
+    addPersonColumn: if True, add the Person Column to list
     
     Retrun:
     =======
@@ -62,7 +63,12 @@ def convert_numpy_dataset_to_pandas(data):
         
     _ , cols = data.shape
     column_names = ['c' + str(i) for i in range(cols-1)]
-    column_names.append('Person')
+    
+    if addPersonColumn:
+        column_names.append('Person')
+    else:
+        column_names.append('c' + str(cols-1))
+        
     pd_data_set = pd.DataFrame(data , columns=column_names)
     return pd_data_set
             
@@ -320,7 +326,7 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
         
         #try:
         #print("**************i:" , i)
-        _ , scores[i], _ , _ = bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        _ , scores[i], _ , _ , _= bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
             #print("No exception:")
         
             
@@ -464,7 +470,7 @@ def plot_results(x_values , y_values, x_label, y_label , plot_more_than_one_fig 
     '''
     plt.figure(1, figsize=(4, 3))
     plt.clf()
-    plt.axes([.2, .2, .7, .7])
+    #plt.axes([.2, .2, .7, .7])
     if plot_more_than_one_fig:
         for y_val in y_values:
             plt.plot(x_values, y_val)#, linewidth=1)
@@ -472,9 +478,12 @@ def plot_results(x_values , y_values, x_label, y_label , plot_more_than_one_fig 
     else:
         plt.plot(x_values, y_values)
         
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+    plt.xlabel(x_label , fontsize = 12, fontname = 'Times New Roman')
+    plt.ylabel(y_label, fontsize = 12, fontname = 'Times New Roman')
     
+    plt.xticks(fontsize = 12, fontname = "Times New Roman")
+    plt.yticks(fontsize = 12, fontname = "Times New Roman")
+   
     plt.show()
 
 def test_with_iris_dataset():
@@ -679,7 +688,7 @@ def select_hyperparameters():
                 #model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
                 
                 try:
-                    model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, resultlist = resultlist)
+                    model , scores_abd , learning_time_abd , testing_time_abd, predictedValues = bic(train = pd_train_set, test = test, scoring_function= sc, resultlist = resultlist)
                 except ValueError:
                     print("pd_train_set:\n " ,pd_train_set)
                     print("test:\n" , test)
@@ -798,7 +807,7 @@ def select_hyperparameters_with_hillclimb_strategy_and_split_train_test():
             test = pd_validation_set.drop('Person', axis=1, inplace=False)
             
             for sc in [BicScore]:# , BdeuScore , K2Score]:
-                model , scores_abd , learning_time_abd , testing_time_abd = bic(train = pd_train_set, test = test, scoring_function= sc, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
+                model , scores_abd , learning_time_abd , testing_time_abd, predictedVals = bic(train = pd_train_set, test = test, scoring_function= sc, name = "model", folder = "Abdollahi", resultlist = resultlist, address = "C:\\")
         
                 #print(sc)
                 #print("Abd execution\n========================\n")
@@ -1046,7 +1055,7 @@ def select_hyper_parameters_using_the_best_validation_strategy():
         test_final = best_model_test_set.drop(target_column_name, axis=1, inplace=False)
     
         
-        _ , test_set_score, _ , _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        _ , test_set_score, _ , _ , _= bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
         print("final test score:" , test_set_score)
     
     
@@ -1117,7 +1126,7 @@ def test_the_best_validation_strategy_for_different_deltas():
         test_final = best_model_test_set.drop(target_column_name, axis=1, inplace=False)
     
         
-        _ , test_set_score, _ , _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        _ , test_set_score, _ , _, _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
         print("final test score:" , test_set_score)
 
     plot_results(list_of_deltas, list_of_f1_micros, "delta no overlap (when n = " + str(selected_n) + ")", y_label = "f1 score micro")
@@ -1128,13 +1137,13 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
 
-    #data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
+    data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
     #data_address = r"E:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={delta}\PCA_n={n}.csv"
-    data_address = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\Domus\Dataset\Bag of sensor events_no overlap_based on different deltas\PCA on Bag of sensor events_no overlap\1,2\delta={delta}\PCA_n={n}.csv"
+    #data_address = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\Domus\Dataset\Bag of sensor events_no overlap_based on different deltas\PCA on Bag of sensor events_no overlap\1,2\delta={delta}\PCA_n={n}.csv"
     
 
-    delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
-    delta_length = len(delta)-1
+    #delta = range(1100 , 5001 , 100)#[15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
+    #delta_length = len(delta)-1
     
     max_validation_f1_score = 0
     best_model_test_set = 0
@@ -1191,8 +1200,10 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
         test_final = best_model_test_set.drop(target_column_name, axis=1, inplace=False)
     
         
-        _ , test_set_score, _ , _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        _ , test_set_score, _ , _ , _= bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
         print("final test score:" , test_set_score)
+        print("best_model_validation_set:", best_model_validation_set)
+        print("best_model_test_set:", best_model_test_set)
 
     plot_results(list_of_ns, list_of_f1_micros, "activtiy + delta (delta = " + str(selected_delta) + ") based on n", y_label = "f1 score micro")
 
@@ -1262,7 +1273,7 @@ def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
         test_final = best_model_test_set.drop(target_column_name, axis=1, inplace=False)
     
         
-        _ , test_set_score, _ , _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        _ , test_set_score, _ , _, _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
         print("final test score:" , test_set_score)
 
     plot_results(list_of_ns, list_of_f1_micros, "based on activities (different n)", y_label = "f1 score micro")
@@ -1276,7 +1287,7 @@ if __name__ == '__main__':
     
     #print("delta no overlap")
     
-    for delta in range(1,62,2):#[15,30,45,60]:#,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
+    for delta in [2500]:#range(1100,2801,100):#[15,30,45,60]:#,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
         test_the_best_validation_strategy_for_different_ns(delta)
     
     #select_hyper_parameters_using_the_best_validation_strategy()
