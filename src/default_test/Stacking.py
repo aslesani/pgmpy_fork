@@ -22,14 +22,9 @@ def BoE_data_preparation(delta, n):
     data = shift_each_column_separately(data, False)
 
     list_of_persons = data[:, n:n+1]
-    #rows= np.shape(list_of_persons)
-    #print("#########" , len(rows) , rows)
-    #list_of_persons = np.reshape(list_of_persons, newshape= (rows , 1))
     data = data[:, 0:n]
     
-    
-    #print("@@@@@@@" , np.shape(list_of_persons))
-    return data, list_of_persons# list_of_data , list_of_persons
+    return data, list_of_persons
 
 def SoE_data_preparation(delta):
     
