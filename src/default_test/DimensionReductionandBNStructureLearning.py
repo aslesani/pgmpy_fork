@@ -547,7 +547,7 @@ def shift_data(data):
     #print(set(data))
     return data 
 
-def shift_2_data_set_based_on_the_first_dataset(data1 , data2):
+def shift_2_data_set_based_on_the_first_dataset(data1 , data2, shiftLastColumn = True):
     '''
     get list of item of each column in the data1 and shift data of both data1 and data2 based on it
     
@@ -576,7 +576,12 @@ def shift_2_data_set_based_on_the_first_dataset(data1 , data2):
     
     _ , cols = data1.shape
     
-    for i in range(cols):
+    if shiftLastColumn:
+        list_of_cols = cols
+    else:
+        list_of_cols = cols - 1
+        
+    for i in range(list_of_cols):
         list_of_column_states = list(sorted(set(data1[: , i])))
         
         for item in list_of_column_states:
