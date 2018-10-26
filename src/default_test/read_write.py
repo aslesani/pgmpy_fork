@@ -6,7 +6,7 @@ Created on Apr 13, 2018
 import csv 
 import numpy as np
 
-def separate_data_based_on_persons(list_of_data, list_of_persons, list_of_activities, has_activity):
+def separate_dataset_based_on_persons(list_of_data, list_of_persons, list_of_activities, has_activity):
     
     '''
     Parameters:
@@ -16,7 +16,7 @@ def separate_data_based_on_persons(list_of_data, list_of_persons, list_of_activi
     list_of_activities:if has_activity== False, ignore this argument
     has_activity: if True, consider the list_of_activities as well
     '''
-    
+
     number_of_persons = len(set(list_of_persons))
     new_list_of_data = np.zeros(number_of_persons , dtype = np.ndarray)
     new_list_of_persons = np.zeros(number_of_persons ,dtype = np.ndarray)
@@ -87,7 +87,7 @@ def read_sequence_based_CSV_file_with_activity(file_address , has_header, separa
    
     if separate_data_based_on_persons:
         
-        return separate_data_based_on_persons(list_of_data , list_of_persons , list_of_activities ,True)
+        return separate_dataset_based_on_persons(list_of_data , list_of_persons , list_of_activities ,True)
 
     else:
         return list_of_data , list_of_persons , list_of_activities
@@ -134,7 +134,7 @@ def read_sequence_based_CSV_file_with_activity_as_strings(file_address , has_hea
    
     if separate_data_based_on_persons:
         
-        return separate_data_based_on_persons(list_of_data , list_of_persons , list_of_activities ,True)
+        return separate_dataset_based_on_persons(list_of_data , list_of_persons , list_of_activities ,True)
 
     else:
         return list_of_data , list_of_persons , list_of_activities
@@ -178,8 +178,12 @@ def read_sequence_based_CSV_file_without_activity(file_address , has_header, sep
    
     if separate_data_based_on_persons:
         
-        return separate_data_based_on_persons(list_of_data, list_of_persons, 0 , False)
-        #return new_list_of_data , new_list_of_persons
+        new_list_of_data , new_list_of_persons = separate_dataset_based_on_persons(list_of_data= list_of_data, 
+                                              list_of_persons = list_of_persons, 
+                                              list_of_activities = 0, 
+                                              has_activity = False)
+    
+        return new_list_of_data , new_list_of_persons
     
     else:
         return list_of_data , list_of_persons
@@ -243,7 +247,7 @@ def read_sequence_of_bags_CSV_file_with_activity(file_address , has_header, sepa
     
     if separate_data_based_on_persons:
         
-        return separate_data_based_on_persons(list_of_data , list_of_persons , list_of_activities ,True)
+        return separate_dataset_based_on_persons(list_of_data , list_of_persons , list_of_activities ,has_activity = True)
        
     else:
         return list_of_data , list_of_persons , list_of_activities
