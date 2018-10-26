@@ -18,10 +18,22 @@ import sys
 
 
 def unison_shuffled_copies(a, b):
+
+    changed_type = False
+    if type(a) == list:
+        changed_type = True
+        a = np.array(a)
+        b = np.array(b)
+        
     assert len(a) == len(b)
     p = np.random.permutation(len(a))
-    return a[p], b[p]
-
+    
+    a , b = a[p], b[p]
+    
+    if changed_type:
+        return a.tolist(), b.tolist()
+    else:
+        return a,b
 
 def test_sample_from_site():
     
@@ -270,8 +282,8 @@ def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_p
     #train models
     list_of_markov_chain_models = np.zeros(number_of_persons , dtype = MarkovChain)
     for per in range(number_of_persons):
-        for i in range(len(train_set[per])):
-            print(len(train_set[per][i]))
+        #for i in range(len(train_set[per])):
+            #print(len(train_set[per][i]))
         
         list_of_markov_chain_models[per] = MarkovChain.from_samples(X = train_set[per])
         #print("Person:" , per)
@@ -424,9 +436,9 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
              'Seq of sensor events_based_on_activity_and_no_overlap_delta', 
              'Seq of Bag of sensor events_based_on_activity_and_no_overlap_delta']
 
-    deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
-    
-    t = types[2]
+    #deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
+    deltas = range(1100,5001,100) 
+    t = types[0]
     print(t)
     best_score = 0
     best_delta = 0
@@ -459,9 +471,9 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
         train_set_person_labels = np.zeros(number_of_persons , dtype = np.ndarray)
         test_set_person_labels = np.zeros(number_of_persons , dtype = np.ndarray)
 
-
-        k_splitted_train_set = np.ndarray(shape = (2 , k) , dtype = np.ndarray)
-        k_splitted_train_set_person_labels = np.ndarray(shape = (2 , k) , dtype = np.ndarray)
+        #I think 2 is number of persons 
+        k_splitted_train_set = np.ndarray(shape = (number_of_persons , k) , dtype = np.ndarray)
+        k_splitted_train_set_person_labels = np.ndarray(shape = (number_of_persons , k) , dtype = np.ndarray)
 
         for per in range(number_of_persons):
             
@@ -769,5 +781,5 @@ if __name__ == "__main__":
     #create_casas7_markov_chain(file_address=address_to_read.format(delta = 15) , has_activity=True)
     #create_casas7_markov_chain(file_address=address_to_read , has_activity=True)
     
-    #select_the_best_delta_using_the_best_strategy_markov_chain(k = 10, shuffle=True)
-    select_the_best_delta_using_the_best_strategy_HMM(k= 10, shuffle = True)
+    select_the_best_delta_using_the_best_strategy_markov_chain(k = 10, shuffle=True)
+    #select_the_best_delta_using_the_best_strategy_HMM(k= 10, shuffle = True)
