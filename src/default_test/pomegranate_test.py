@@ -264,7 +264,7 @@ def create_casas7_markov_chain(file_address , has_activity):
     #print("summarize:" , model.summarize())
     print(model.thaw())
     '''
-def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_persons_in_train , test_set , list_of_persons_in_test):
+def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_persons_in_train , test_set , list_of_persons_in_test, return_predicted_lables = False):
     '''
     create markov chain for each person separately
     train_set = an ndarray that has train_set for each person separately
@@ -323,7 +323,10 @@ def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_p
     actual_labels = actual_labels[ind]
     scores = calculate_different_metrics(actual_labels , predicted_labels)
     
-    return scores
+    if return_predicted_lables:
+        return scores, predicted_labels
+    else:
+        return scores
 
 def create_casas7_HMM_with_prepared_train_and_test_based_on_seq_of_activities(train_set, list_of_persons_in_train , test_set , list_of_persons_in_test):
     '''
