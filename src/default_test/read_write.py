@@ -6,6 +6,48 @@ Created on Apr 13, 2018
 import csv 
 import numpy as np
 
+def separate_data_based_on_persons(list_of_data, list_of_persons, list_of_activities, has_activity):
+    
+    '''
+    Parameters:
+    ===========
+    list_of_data:
+    list_of_persons:
+    list_of_activities:if has_activity== False, ignore this argument
+    has_activity: if True, consider the list_of_activities as well
+    '''
+    
+    number_of_persons = len(set(list_of_persons))
+    new_list_of_data = np.zeros(number_of_persons , dtype = np.ndarray)
+    new_list_of_persons = np.zeros(number_of_persons ,dtype = np.ndarray)
+    
+    if has_activity:
+        new_list_of_activities = np.zeros(number_of_persons ,dtype = np.ndarray)
+
+    
+    list_of_persons = np.array(list_of_persons)
+    list_of_data = np.array(list_of_data)
+    if has_activity:
+        list_of_activities = np.array(list_of_activities)
+
+    new_list_index = 0
+    
+    for per in list(sorted(set(list_of_persons))):
+        indexes = np.where(np.equal(list_of_persons , per))
+        new_list_of_persons[new_list_index] = list_of_persons[indexes]
+        new_list_of_data[new_list_index] = list_of_data[indexes]
+        
+        if has_activity:
+            new_list_of_activities[new_list_index] = list_of_activities[indexes]
+       
+        new_list_index += 1
+    
+    if has_activity:
+        return new_list_of_data , new_list_of_persons , new_list_of_activities
+    else:
+        return new_list_of_data , new_list_of_persons
+
+
 def read_sequence_based_CSV_file_with_activity(file_address , has_header, separate_data_based_on_persons):
     '''
     Parameters:
@@ -45,25 +87,8 @@ def read_sequence_based_CSV_file_with_activity(file_address , has_header, separa
    
     if separate_data_based_on_persons:
         
-        number_of_persons = len(set(list_of_persons))
-        new_list_of_data = np.zeros(number_of_persons , dtype = np.ndarray)
-        new_list_of_persons = np.zeros(number_of_persons ,dtype = np.ndarray)
-        new_list_of_activities = np.zeros(number_of_persons ,dtype = np.ndarray)
-        
-        list_of_persons = np.array(list_of_persons , dtype= object)
-        list_of_data = np.array(list_of_data, dtype= object)
-        list_of_activities = np.array(list_of_activities, dtype= object)
-        
-        new_list_index = 0
-        for per in list(sorted(set(list_of_persons))):
-            indexes = np.where(np.equal(list_of_persons , per))
-            new_list_of_persons[new_list_index] = list_of_persons[indexes]
-            new_list_of_data[new_list_index] = list_of_data[indexes]
-            new_list_of_activities[new_list_index] = list_of_activities[indexes]
-            new_list_index += 1
-            
-        return new_list_of_data , new_list_of_persons , new_list_of_activities
-    
+        return separate_data_based_on_persons(list_of_data , list_of_persons , list_of_activities ,True)
+
     else:
         return list_of_data , list_of_persons , list_of_activities
 
@@ -109,28 +134,10 @@ def read_sequence_based_CSV_file_with_activity_as_strings(file_address , has_hea
    
     if separate_data_based_on_persons:
         
-        number_of_persons = len(set(list_of_persons))
-        new_list_of_data = np.zeros(number_of_persons , dtype = np.ndarray)
-        new_list_of_persons = np.zeros(number_of_persons ,dtype = np.ndarray)
-        new_list_of_activities = np.zeros(number_of_persons ,dtype = np.ndarray)
-        
-        list_of_persons = np.array(list_of_persons , dtype= object)
-        list_of_data = np.array(list_of_data, dtype= object)
-        list_of_activities = np.array(list_of_activities, dtype= object)
-        
-        new_list_index = 0
-        for per in list(sorted(set(list_of_persons))):
-            indexes = np.where(np.equal(list_of_persons , per))
-            new_list_of_persons[new_list_index] = list_of_persons[indexes]
-            new_list_of_data[new_list_index] = list_of_data[indexes]
-            new_list_of_activities[new_list_index] = list_of_activities[indexes]
-            new_list_index += 1
-            
-        return new_list_of_data , new_list_of_persons , new_list_of_activities
-    
+        return separate_data_based_on_persons(list_of_data , list_of_persons , list_of_activities ,True)
+
     else:
         return list_of_data , list_of_persons , list_of_activities
-
 
 
 
@@ -171,21 +178,8 @@ def read_sequence_based_CSV_file_without_activity(file_address , has_header, sep
    
     if separate_data_based_on_persons:
         
-        number_of_persons = len(set(list_of_persons))
-        new_list_of_data = np.zeros(number_of_persons , dtype = np.ndarray)
-        new_list_of_persons = np.zeros(number_of_persons ,dtype = np.ndarray)
-        
-        list_of_persons = np.array(list_of_persons)
-        list_of_data = np.array(list_of_data)
-        
-        new_list_index = 0
-        for per in list(sorted(set(list_of_persons))):
-            indexes = np.where(np.equal(list_of_persons , per))
-            new_list_of_persons[new_list_index] = list_of_persons[indexes]
-            new_list_of_data[new_list_index] = list_of_data[indexes]
-            new_list_index += 1
-            
-        return new_list_of_data , new_list_of_persons
+        return separate_data_based_on_persons(list_of_data, list_of_persons, 0 , False)
+        #return new_list_of_data , new_list_of_persons
     
     else:
         return list_of_data , list_of_persons
@@ -249,25 +243,8 @@ def read_sequence_of_bags_CSV_file_with_activity(file_address , has_header, sepa
     
     if separate_data_based_on_persons:
         
-        number_of_persons = len(set(list_of_persons))
-        new_list_of_data = np.zeros(number_of_persons , dtype = np.ndarray)
-        new_list_of_persons = np.zeros(number_of_persons ,dtype = np.ndarray)
-        new_list_of_activities = np.zeros(number_of_persons ,dtype = np.ndarray)
-        
-        list_of_persons = np.array(list_of_persons , dtype = np.ndarray)
-        list_of_data = np.array(list_of_data)
-        list_of_activities = np.array(list_of_activities)
-        
-        new_list_index = 0
-        for per in list(sorted(set(list_of_persons))):
-            indexes = np.where(np.equal(list_of_persons , per))
-            new_list_of_persons[new_list_index] = list_of_persons[indexes]
-            new_list_of_data[new_list_index] = list_of_data[indexes]
-            new_list_of_activities[new_list_index] = list_of_activities[indexes]
-            new_list_index += 1
-            
-        return new_list_of_data , new_list_of_persons , new_list_of_activities
-    
+        return separate_data_based_on_persons(list_of_data , list_of_persons , list_of_activities ,True)
+       
     else:
         return list_of_data , list_of_persons , list_of_activities
 
