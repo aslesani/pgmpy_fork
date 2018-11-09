@@ -15,6 +15,7 @@ from snowballstemmer import algorithms
 
 from Validation import calculate_different_metrics, plot_results
 import sys
+import inspect
 
 
 def unison_shuffled_copies(a, b):
@@ -142,7 +143,70 @@ def create_hmm_from_sample(file_address):
     #print("summarize:" , model.summarize())
     #print(model.thaw())
     
+def get_set_of_Markov_chain_nodes(model):
     
+    '''
+    return set of valid nodes of the model
+    
+    Parameters:
+    ==========
+    model: the Markov chain model
+    
+    '''
+    #model.distributions[0] is the initial value of each parameter and 
+    #model.distributions[1] is the value of p(i | j)
+    list_of_parameters = model.distributions[1].parameters[0]
+    #print((list_of_parameters[0][2]))
+    
+    set_of_nodes = set()
+    
+    for i in range(len(list_of_parameters)):
+        if list_of_parameters[i][2] != 0:
+            set_of_nodes.add(list_of_parameters[i][0])
+            set_of_nodes.add(list_of_parameters[i][1])
+    
+    #print((set_of_nodes))
+    return set_of_nodes   
+    
+    
+    #print(dist[1].__class__.__bases__)
+
+    #propnames = [name for (name, value) in inspect.getmembers(type(dist[1]), isinstance('values', property))]
+    #print(dist[1].parameters[0][0])
+
+def remove_extra_test_columns(final_test_set , list_of_markov_chain_models):
+    
+    '''
+    remove the test columns which are not in the final model
+    
+    the final_test_set is created for each model in list_of_markov_chain_models separately
+    '''    
+    number_of_persons = len(list_of_markov_chain_models)
+    
+    new_final_test_set = np.zeros(number_of_persons, dtype = np.ndarray)
+    for i in range(number_of_persons):
+        new_final_test_set[i] = np.ndarray(shape = (len(final_test_set) , ), dtype = np.ndarray )
+    
+    for person in range(number_of_persons):
+        list_of_set_of_nodes = list(get_set_of_Markov_chain_nodes(list_of_markov_chain_models[person]))
+        #print(set_of_nodes)
+        for seq, index in zip(final_test_set, range(len(final_test_set))):
+            mask = np.isin(seq, list_of_set_of_nodes)
+            new_final_test_set[person][index] = seq[mask]
+    
+    counter = 0
+    for i in range(len(final_test_set)):
+        #print( len(final_test_set[i]) , len(new_final_test_set[0][i]) , len(new_final_test_set[1][i]))
+        
+        for per in range(number_of_persons):
+            if len(final_test_set[i]) != len(new_final_test_set[per][i]):
+                counter +=1
+    
+    #print("number of edited sequences:" , counter)       
+    
+    return new_final_test_set
+
+
 def create_casas7_hmm(file_address, has_activity):
      
     if has_activity:
@@ -264,7 +328,7 @@ def create_casas7_markov_chain(file_address , has_activity):
     #print("summarize:" , model.summarize())
     print(model.thaw())
     '''
-def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_persons_in_train , test_set , list_of_persons_in_test, return_predicted_lables = False):
+def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_persons_in_train , test_set , list_of_persons_in_test, return_predicted_lables = False, remove_test_columns_which_are_not_in_final_model = False):
     '''
     create markov chain for each person separately
     train_set = an ndarray that has train_set for each person separately
@@ -278,15 +342,10 @@ def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_p
     for i in range(number_of_persons):
         person_IDs[i] = list_of_persons_in_train[i][0]
     
-    
     #train models
     list_of_markov_chain_models = np.zeros(number_of_persons , dtype = MarkovChain)
     for per in range(number_of_persons):
-        #for i in range(len(train_set[per])):
-            #print(len(train_set[per][i]))
-        
         list_of_markov_chain_models[per] = MarkovChain.from_samples(X = train_set[per])
-        #print("Person:" , per)
         #print(list_of_markov_chain_models[per].distributions)
      
     #create actual labels and concatenate 
@@ -303,26 +362,49 @@ def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_p
     predicted_labels = np.zeros_like(actual_labels)
     logp = np.zeros(number_of_persons)
     number_of_exceptions = 0
-    for seq, index in zip(final_test_set , range(len(final_test_set))):
-        #print("seq:" , seq)
+    
+    
+    if remove_test_columns_which_are_not_in_final_model:
+        new_final_test_set = remove_extra_test_columns(final_test_set , list_of_markov_chain_models)
+        
+        #get_set_of_Markov_chain_nodes(list_of_markov_chain_models[0])
+    else:
+        new_final_test_set = np.zeros(number_of_persons, dtype = np.ndarray)
+        for i in range(number_of_persons):
+            new_final_test_set[i] = np.ndarray(shape = (len(final_test_set) , ), dtype = np.ndarray )
+            new_final_test_set[i] = final_test_set
+    
+    #print("len(predicted_labels):", len(predicted_labels))
+# bayad predicted_labels jadid shavad bar asase in ke alan new_final_test_set daram 
+    #for seq, index in zip(new_final_test_set[index_of_logp] , range(len(new_final_test_set[index_of_logp]))):
+    #for each model, a spareated test_set is created
+   
+   # for i in range(len(new_final_test_set[0])):
+    #    print(len(new_final_test_set[0]))
+    
+    for index in range(len(new_final_test_set[0])):
+       
         for model , index_of_logp in zip(list_of_markov_chain_models , range(number_of_persons)):
+            #if index == 0:
+            #print("seq:" , seq)
+            seq = new_final_test_set[index_of_logp][index]
             try:
                 logp[index_of_logp] = model.log_probability(seq)
             except KeyError:
                 number_of_exceptions +=1
-                #print("number of model:" , index_of_logp)
-                #print("seq:" , seq)
                 logp[index_of_logp] = -sys.maxsize + 1
         arg_max_logp = np.argmax(logp)# return the max index
         predicted_labels[index] = person_IDs[arg_max_logp]
     
     ind = np.where(np.not_equal(predicted_labels , -sys.maxsize + 1 ))
-    print("len(final_test_set):",len(final_test_set) , "number_of_exceptions:" , number_of_exceptions)
+    #print("len(final_test_set):",len(final_test_set) , "number_of_exceptions:" , number_of_exceptions)
     #print(len(predicted_labels) , len(ind[0]))
     predicted_labels = predicted_labels[ind]
     actual_labels = actual_labels[ind]
     scores = calculate_different_metrics(actual_labels , predicted_labels)
-    
+    #for i in range(len(actual_labels)):
+     #   print(actual_labels[i] , predicted_labels[i])
+    #print("scores:" , scores)
     if return_predicted_lables:
         return scores, predicted_labels
     else:
