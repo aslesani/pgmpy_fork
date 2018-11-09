@@ -558,7 +558,7 @@ def shift_2_data_set_based_on_the_first_dataset(data1 , data2, shiftLastColumn =
     are_different , d, deleted_indexes = check_data(data1 , data2 , remove_latent_variables = True, return_index_of_deleted_items= True)
     if are_different:
         data2 = d
-        print("are different modified the dataset:" , np.shape(d))
+        #print("are different modified the dataset:" , np.shape(d))
         #print("****the check_data method modified the data2****")
         
     is_data1_pd = False
