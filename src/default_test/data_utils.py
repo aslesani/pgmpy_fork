@@ -63,8 +63,8 @@ def check_data(data1 , data2 , remove_latent_variables, return_index_of_deleted_
    
     data2 = np.delete(data2 , whole_deleted_indexes , axis = 0)
     
-    print("whole_deleted_indexes:", whole_deleted_indexes)
-    print("len(whole_deleted_indexes):" , len(whole_deleted_indexes))
+    #print("whole_deleted_indexes:", whole_deleted_indexes)
+    #print("len(whole_deleted_indexes):" , len(whole_deleted_indexes))
    
     if is_data2_pd:
         data2 = pd.DataFrame(data2 , columns = data2_columns)
@@ -72,7 +72,7 @@ def check_data(data1 , data2 , remove_latent_variables, return_index_of_deleted_
     if return_index_of_deleted_items:    
         return are_different , data2, whole_deleted_indexes
     else:
-        return are_different, data2         
+        return are_different, data2, ()       
             
 if __name__ == "__main__":
     
