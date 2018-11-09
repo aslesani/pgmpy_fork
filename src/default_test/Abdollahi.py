@@ -63,6 +63,8 @@ def bic(train,test, scoring_function,resultlist):
     else:
         indicator=list(set(test.columns)-set(model.nodes()))
         #print("indicator:\n" , indicator)
+        #print("come in testchange***********************")
+        #print("before cahnge:" , len(test))
         testchange=test.copy()
         #print(testchange)
 
@@ -70,7 +72,8 @@ def bic(train,test, scoring_function,resultlist):
             #print(f)
             del testchange[indicator[f]]
         #print(testchange)
-        #print("come in testchange***********************")
+        #print("after cahnge:" , len(testchange))
+
         teststart=time.time()
         result=model.predict(testchange).values.ravel()
         testend=time.time()-teststart
