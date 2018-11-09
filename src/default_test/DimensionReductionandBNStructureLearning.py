@@ -555,9 +555,10 @@ def shift_2_data_set_based_on_the_first_dataset(data1 , data2, shiftLastColumn =
     and then apply this method. Otherwise you might get an dataset with no logic :D
     Update: I myself check the differences and remove extra lines in data2. but inform you. do not scare ;)
     '''
-    are_different , d = check_data(data1 , data2 , remove_latent_variables = True)
+    are_different , d, deleted_indexes = check_data(data1 , data2 , remove_latent_variables = True, return_index_of_deleted_items= True)
     if are_different:
         data2 = d
+        print("are different modified the dataset:" , np.shape(d))
         #print("****the check_data method modified the data2****")
         
     is_data1_pd = False
@@ -596,7 +597,7 @@ def shift_2_data_set_based_on_the_first_dataset(data1 , data2, shiftLastColumn =
         data2 = pd.DataFrame(data2 , columns = columns2)
 
    
-    return data1, data2 
+    return data1, data2, are_different, deleted_indexes
 
 
 def shift_each_column_separately(data, do_shift_last_column = True):
