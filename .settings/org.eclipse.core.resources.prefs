@@ -1,4 +1,8 @@
 eclipse.preferences.version=1
-encoding//src/default_test/DimensionReductionandBNStructureLearning.py=UTF-8
+encoding//src/default_test/DimensionReductionandBNStructureLearning.py=utf-8
 encoding//src/default_test/Validation.py=UTF-8
+encoding//src/default_test/add_line_to_first_line_of_file.py=utf-8
+encoding//src/default_test/create_sensor_ids.py=utf-8
 encoding//src/default_test/dataPreparation.py=UTF-8
+encoding//src/default_test/np_savetxt_test.py=utf-8
+encoding//src/default_test/remove_first_line_from_file.py=utf-8

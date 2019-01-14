@@ -1,5 +1,2 @@
-*.htm
-/src/default_test/*.js
-*.py
-*.ipynb
-/__pycache__/*
+*.pyc
+src/default_test/__pycache__/*.pyc
