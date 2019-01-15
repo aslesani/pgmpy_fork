@@ -48,7 +48,7 @@ def separate_dataset_based_on_persons(list_of_data, list_of_persons, list_of_act
         return new_list_of_data , new_list_of_persons
 
 
-def read_sequence_based_CSV_file_with_activity(file_address , has_header, separate_data_based_on_persons):
+def read_sequence_based_CSV_file_with_activity(file_address , has_header, separate_data_based_on_persons, separate_words = True):
     '''
     Parameters:
     ==========
@@ -79,11 +79,16 @@ def read_sequence_based_CSV_file_with_activity(file_address , has_header, separa
     for line in range(0 , number_of_rows):
         d = list_of_data[line].split('[')[1]
         d = d.split(']')
-        seq = d[0].replace("'" , '').split(', ')
+        if separate_words:
+            seq = d[0].replace("'" , '').split(', ')
+            list_of_data[line] = np.array(seq)
+        else:
+            seq = d[0].replace("'" , '')
+            list_of_data[line] = seq
+            
         other = d[1].split(',')
         list_of_persons[line] = int(other[1])# * len(seq)
         list_of_activities[line] = int(other[2])
-        list_of_data[line] = np.array(seq)
    
     if separate_data_based_on_persons:
         
@@ -271,25 +276,13 @@ def repaet_person_tags_as_much_as_seq_length(list_of_data , list_of_persons, is_
     return list_of_persons.copy()
 
 if __name__ == "__main__":
-    #print(type([1,2]))
-    #list_of_data , list_of_persons , list_of_activities = read_sequence_based_CSV_file(file_address = r"E:\a1.csv", has_header = True , separate_data_based_on_persons=True)
-    #print("list_of_data:" , list_of_data[0][20] )
-    #print("len(list_of_data):" , len(list_of_data))
-    #print("list_of_persons:" , list_of_persons[0][0] )
-    #print("len(list_of_persons):" , len(list_of_persons))
-    #print("list_of_activities:" , list_of_activities )
-    #print("len(list_of_activities):" , len(list_of_activities))
-    separate_data_based_on_persons = True
-    a , b , c = read_sequence_of_bags_CSV_file_with_activity(file_address = r'C:\b.csv' , has_header= True, separate_data_based_on_persons = separate_data_based_on_persons)
-    #print(a)
-    #print("###########################################")
-    #print(b)
-    repeated_per = repaet_person_tags_as_much_as_seq_length(a , b , separate_data_based_on_persons=separate_data_based_on_persons)
-    print(type(repeated_per[0][0]))
-    #print("###########################################")
-
-    #print(b)
+  
+    #separate_data_based_on_persons = True
+    #a , b , c = read_sequence_of_bags_CSV_file_with_activity(file_address = r'C:\b.csv' , has_header= True, separate_data_based_on_persons = separate_data_based_on_persons)
+    #repeated_per = repaet_person_tags_as_much_as_seq_length(a , b , separate_data_based_on_persons=separate_data_based_on_persons)
+    address_to_read= r"E:/pgmpy/Seq of sensor events_based on activities/based_on_activities.csv"
+    list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read, has_header = True , separate_data_based_on_persons = False)
+    print((list_of_data[0][0]))
+    print(len(list_of_data))
     
     
-    
-    #print(len(list_of_data) , '\n' ,len( list_of_persons) ,'\n' ,len(list_of_activities))
