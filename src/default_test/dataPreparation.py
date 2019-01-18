@@ -265,7 +265,6 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read, file
     #set_of_sensors = set()
     #set_of_changed_index = set()
     counter = -1
-    #print(features)
     first = True
     for line in f:
         
@@ -278,20 +277,17 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read, file
             
             
         if feature_column != -1:
-            #set_of_sensors.add(cells[2])
             counter +=1
-            #set features to 0, because in each time just one feature is 1
-            #features = [0]* 127
-            #if counter > 1000:
-            #    break
-            
+           
             sensor_value = get_sensor_value(cells[3])
             
-            if sensor_value == '01':
+            if sensor_value == '1':
                 changed_index = feature_column*2
-            else:
+            elif sensor_value == '0':
                 #sensor_value == 0 
                 changed_index = feature_column*2 + 1
+            else:
+                print("the value of sensor is not legal!!")
                 
             #set_of_changed_index.add(changed_index)
             features[changed_index] = 1
@@ -316,19 +312,11 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read, file
             
             #reset changed_index to 0
             features[changed_index] = 0
-    #count_of_unordinaries = 0  
-    #for i in range(130336):
-    #    if timedelta.total_seconds(all_features[i+1][-1]- all_features[i][-1]) < 0: # if time is not ordered
-    #        count_of_unordinaries +=1
-    #        print(i + 2)
-    #print("count_of_unordinaries: {}".format(count_of_unordinaries))
     all_features = all_features[all_features[:,-1].argsort()] # sort all_features based on datetime column
 
     rows, cols = all_features.shape
     print(rows)
     print(cols)
-    #print(sorted(set_of_changed_index))
-    #print(len(set_of_changed_index))
     
     #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv', 
     np.savetxt(file_address_to_save, np.delete(all_features, -1 , 1 ), delimiter=',' , fmt='%s')
@@ -1262,17 +1250,17 @@ def get_feature_column(sensor_name):
 def get_sensor_value(sensor_value):
     
     if sensor_value == "ON":
-        return '01'
+        return '1'
     if sensor_value == "OFF":
-        return '00'
+        return '0'
     if sensor_value == "OPEN":
-        return '01'
+        return '1'
     if sensor_value == "CLOSE":
-        return '00'
+        return '0'
     if sensor_value == "PRESENT":
-        return '00'
+        return '0'
     if sensor_value == "ABSENT":
-        return '01'
+        return '1'
     
 def get_person_and_work(PersonAndWork):
     
