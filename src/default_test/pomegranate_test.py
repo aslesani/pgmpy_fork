@@ -8,7 +8,7 @@ import numpy as np
 from pomegranate import HiddenMarkovModel
 from pomegranate import NormalDistribution, State, DiscreteDistribution, MultivariateDistribution, MultivariateGaussianDistribution
 from pomegranate import MarkovChain
-from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
+from read_write import read_data_from_CSV_file
 from dataPreparation import create_sequence_of_sensor_events_based_on_activity
 from read_write import read_sequence_based_CSV_file_with_activity , read_sequence_based_CSV_file_without_activity, read_sequence_of_bags_CSV_file_with_activity, repaet_person_tags_as_much_as_seq_length
 from snowballstemmer import algorithms

@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 import collections
-from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
+from read_write import read_data_from_CSV_file
 
 
 def count_one_feature_numbers(dest,feature_column_number ):

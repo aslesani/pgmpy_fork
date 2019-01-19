@@ -6,6 +6,95 @@ Created on Apr 13, 2018
 import csv 
 import numpy as np
 
+def read_data_from_file(dest_file, data_type , remove_date_and_time = True , has_header = False ):
+    '''
+    this function is used when there is data and time columns in dataset
+    and the user want to remove them
+    the output type is int
+    
+    Parameters:
+    ==========
+    dest_file:
+    data_type:
+    remove_date_and_time: if is true, the date and time columns(two last columns) are removed
+    '''
+    with open(dest_file,'r') as dest_f:
+        data_iter = csv.reader(dest_f, 
+                               delimiter = ',')#quotechar = '"')
+        
+        if has_header:
+            next(data_iter)#skip first line
+        
+        data = [data for data in data_iter]
+    
+    if remove_date_and_time == True:
+        data = np.delete(np.delete(data, -1, 1), -1 , 1)
+    
+    #rows = len(data)
+    #print(rows)
+    
+    return_value= np.asarray(data, dtype = data_type)#np.int)
+    #print(return_value)
+    return return_value
+
+def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return_as_pandas_data_frame = False , remove_date_and_time = False , return_header_separately = False , convert_int_columns_to_int = False):
+    '''
+    this function is a replacement for read_data_from_PCA_output_file and read_data_from_PCA_digitized_file
+    with more capabalities.
+    
+    Parameters:
+    ==========
+    dest_file: 
+    data_type: type of data that should be read  
+    has_header = if the file has header, it is set to True. The header is the first line that starts whit '#' character 
+    return_as_pandas_data_frame = if True, the return_value is pandas Dataframe, else numpy ndaaray
+    
+    convert_int_columns_to_int: if the user want to keep date and time columns, then she should 
+                                specify data_type as object and then set convert_int_columns_to_int to True
+    
+    Returns:
+    ========
+    return_value: type of it is pandas Dataframe or numpy ndaaray
+    
+    '''
+    header = ""
+    with open(dest_file,'r') as dest_f:
+        data_iter = csv.reader(dest_f, 
+                               delimiter = ',')#quotechar = '"')
+    
+        if has_header:
+            header = next(data_iter)
+            header[0] = header[0].split('# ')[1] # remove # from first element
+        
+        
+        data = [data for data in data_iter]
+    
+    if remove_date_and_time:
+        data = np.delete(np.delete(data, -1, 1), -1 , 1)
+
+    return_value= np.asarray(data, dtype = data_type)
+    
+    if convert_int_columns_to_int:
+        rows , cols_to_convert = np.shape(return_value)
+        
+        if remove_date_and_time == False:
+            cols_to_convert -=2
+        
+        for r in range(rows):
+            for c in range(cols_to_convert):
+                return_value[r,c] = int(return_value[r,c])
+        
+    
+    if return_as_pandas_data_frame:
+        return_value = pd.DataFrame(return_value , columns = header)
+        
+    if return_header_separately:
+        return header , return_value
+    
+    else:   
+        return return_value
+
+
 def separate_dataset_based_on_persons(list_of_data, list_of_persons, list_of_activities, has_activity):
     
     '''

@@ -26,7 +26,7 @@ from datetime import timedelta
 from xml.sax.handler import all_features
 #from builtins import int
 from numpy import dtype
-from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
+from read_write import read_data_from_CSV_file
 from docutils.parsers import null
 
 #from matplotlib.pyplot import axis

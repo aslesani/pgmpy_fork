@@ -4,7 +4,7 @@ Created on Jul 11, 2018
 @author: Adele
 '''
 
-from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
+from read_write import read_data_from_CSV_file
 import numpy as np
 from custom_classifiers import test_different_classifiers
 from read_write import read_sequence_based_CSV_file_without_activity

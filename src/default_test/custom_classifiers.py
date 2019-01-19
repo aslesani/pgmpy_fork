@@ -22,7 +22,7 @@ from sklearn.metrics.classification import f1_score
 from Abdollahi import read_Abdoolahi_data
 
 from DimensionReductionandBNStructureLearning import shift_each_column_separately, digitize_dataset
-from DimensionReductionandBNStructureLearning import read_data_from_CSV_file
+from read_write import read_data_from_CSV_file
 
 
 def test_different_classifiers(data_features, data_target, k , shuffle, selected_classifiers):
