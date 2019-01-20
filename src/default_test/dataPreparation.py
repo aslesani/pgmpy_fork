@@ -27,7 +27,7 @@ from xml.sax.handler import all_features
 #from builtins import int
 from numpy import dtype
 from read_write import read_data_from_CSV_file
-from docutils.parsers import null
+#from docutils.parsers import null
 
 #from matplotlib.pyplot import axis
 #from nntplib import lines
@@ -2098,7 +2098,7 @@ if __name__ == '__main__':
     '''
     #create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = address_to_save3, isSave = True)
 
-    for i in  [1600,1800,2000,2500,3000,3500,4000,4500,5000]:#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
+    for i in  range(1,15):#[1600,1800,2000,2500,3000,3500,4000,4500,5000]:#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         #range(1100 , 5001 , 100):#
         print(i)
         #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
