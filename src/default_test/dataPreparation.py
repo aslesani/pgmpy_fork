@@ -385,7 +385,150 @@ def casas7_to_csv_based_on_each_person_sensor_events_time_Ordered(file_address_t
     np.savetxt(file_address_to_save, np.delete(all_features, -1 , 1 ), delimiter=',' , fmt='%s')
    
 
+def Tulum2009_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read, file_address_to_save):
+    '''
+    like casas7_to_csv_based_on_sensor_events_time_Ordered, but for Tulum2009
+    which contains parallel activities
+    
+    0. It is important that the difference between this method and casas7_to_csv_time_Ordered
+       is that in this method the si-on and si-off are considered as two different features. if they 
+       are used, the corresponding feature is set to 1. else 0 .
+    1. annotated file is processed
+    2. just motion, item and door sensors are kept (binary sensors),
+         others (i.e. burner, water,temprature and electricity usage) are not. 
+    3. 'on' converted to 1
+        'off' converted to 0
+        'open' converted to 1
+        'close' converted to 0
+        'present' converted to 0 (because the item is not used)
+        'absent' converted to 1
+        date and time removed
+    4. I supposed the default value of sensors is not important, so set them to 0.
+    5. The order of sensor features (each sensor has 2 features (on and off)): 51 motion sensors, 
+                                     1 item sensor(we have 9 item sensors, but just i03 is used),
+                                     9 door sensors (03, 05 , 07, 08, 09, 10 , 12, 14, 15),
+                                     Person,
+                                     Work,
+                                     Date,
+                                     Time
+    6. Wash_bathtub and Cleaning does not have person number! I supposed the R1 as the person (the kolfat :D)
+    7. Because I know the final data has 138039 rows. i defined the array so...
+    8. the first instance is name of features
+    9. Events are labeled with time and date and the data is sorted based on datatime
+    10. IMPORTANT: for sensor events which are shared between two activities (or persons) (like line 4747 of data)
+        the events are considered for both of activities
+    Important: in Tulum 2010 some of the first lines which are not taged for a specific person are removed manually. 
+    
+    '''
+   
+    f = open(file_address_to_read,"r")
+    list_of_sensors, number_of_allowed_samples, list_of_works = get_list_of_allowed_sensors_and_works_in_dataset(file_address_to_read)
+    
+    number_of_columns = len(list_of_sensors) * 2 + 5 # 127 for Towr2009
+    # 61 * 2 features + Person + work + 1 date + 1 time + 1 datetime for ordering data
+    features = [0] * number_of_columns 
+    # for month2, the rows are 64466 (+1)
+    all_features = np.zeros((number_of_allowed_samples, number_of_columns), dtype= object )#np.str)130336 +1
 
+    list_of_beginned_activities = []# list of dictionaries, each cell contains the activity and personID of beginner
+    remove_from_list_of_beginned_activities = False
+    counter = -1
+    number_of_proccessed_line = -1
+    first = True
+    
+    for line in f:
+        number_of_proccessed_line +=1
+        cells = line.split()
+        
+        if len(cells) > 4:
+            PersonNumber, WorkString = get_person_and_work(cells[4])
+            WorkNumber = list_of_works.index(WorkString)
+             
+            if cells[5] == 'begin':
+                list_of_beginned_activities.append([PersonNumber, WorkNumber])
+                    
+            elif cells[5] == 'end':
+                remove_from_list_of_beginned_activities = True
+           
+            
+        try:
+            feature_column = list_of_sensors.index(cells[2])# get_feature_column(cells[2]) is for Twor2009 dataset and is set manually
+        except Exception as e:# i.e. the item is not in list
+            feature_column = -1
+            
+            
+        if feature_column != -1:
+            #counter +=1
+           
+            sensor_value = get_sensor_value(cells[3])
+            
+            if sensor_value == '1':
+                changed_index = feature_column*2
+            elif sensor_value == '0':
+                #sensor_value == 0 
+                changed_index = feature_column*2 + 1
+            else:
+                #print("the value of sensor is not legal!!" + cells[3])
+                #continue
+                ###################################
+                ###################################
+                ##################################
+                #temporory I suppose the sensor value as '1'
+                changed_index = feature_column*2
+                
+            #set_of_changed_index.add(changed_index)
+            features[changed_index] = 1
+     
+                # i.e. the line is annotated
+            features[-3] = cells[0]#date
+            features[-2] = cells[1]#time
+            features[-1] = convert_string_to_datetime(cells[0],cells[1])
+            
+            for P_W in list_of_beginned_activities:
+                counter +=1
+                features[-5] = P_W[0]#Person
+                features[-4] = P_W[1]#work
+                
+                if counter < number_of_allowed_samples:
+                    all_features[counter] = features
+                else:
+                    all_features = np.vstack([all_features,features])
+                
+            if first == True:
+                first  = False
+            
+            #reset changed_index to 0
+            features[changed_index] = 0
+            
+        #this block is proccessed for each line of file, even for lines with float values    
+        if remove_from_list_of_beginned_activities:
+            remove_from_list_of_beginned_activities = False
+            #print(list_of_beginned_activities)
+            #print("remove:" , [PersonNumber, WorkNumber])
+            #print("number_of_proccessed_line:", number_of_proccessed_line)
+            list_of_beginned_activities.remove([PersonNumber, WorkNumber])
+
+    #cut extra zero lines
+    all_features = all_features[0: counter+1,:]
+            
+    all_features = all_features[all_features[:,-1].argsort()] # sort all_features based on datetime column
+
+    rows, cols = all_features.shape
+    print(rows)
+    print(cols)
+    
+    #np.savetxt(r'E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\converted\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv', 
+    np.savetxt(file_address_to_save, np.delete(all_features, -1 , 1 ), delimiter=',' , fmt='%s')
+
+def Tulum2009_test():
+    
+    file_address_Tulum2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2009\data.txt"
+    file_address_Tulum2009_to_save = r"E:\pgmpy\Tulum2009\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
+
+    Tulum2009_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read = file_address_Tulum2009, 
+                                                          file_address_to_save = file_address_Tulum2009_to_save)
+
+    
 
 def casas7_activities():
     '''
@@ -1313,7 +1456,7 @@ def get_feature_column(sensor_name):
         return -1 
 
 def get_sensor_value(sensor_value):
-    
+
     if sensor_value == "ON":
         return '1'
     if sensor_value == "OFF":
@@ -1327,7 +1470,17 @@ def get_sensor_value(sensor_value):
     if sensor_value == "ABSENT":
         return '1'
     
+    else:
+        return -1
+    
 def get_person_and_work(PersonAndWork):
+  
+    '''
+    Parameters:
+    ===========
+    return_begin_work: if True, it means the work is beggined,
+                       else the work is ended
+    '''
     
     if PersonAndWork[0]!= "R":
         #the works without person number
@@ -2025,6 +2178,9 @@ def replace_zeros_and_nonzeros_events_by_a_number(address_to_read, address_for_s
 
 if __name__ == '__main__':
     
+    Tulum2009_test()
+    
+    
     file_address_Towr2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated"
     file_address_Tulum2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2010\data_edited by adele"
     file_address_Tulum2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2009\data.txt"
@@ -2066,12 +2222,12 @@ if __name__ == '__main__':
     '''
     #create_sequence_of_sensor_events_based_on_activity(address_to_read = address_to_read, has_header = False, address_for_save = address_to_save3, isSave = True)
 
-    for i in  range(1,15):#[1600,1800,2000,2500,3000,3500,4000,4500,5000]:#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
+    #for i in  range(1,15):#[1600,1800,2000,2500,3000,3500,4000,4500,5000]:#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:
         #range(1100 , 5001 , 100):#
-        print(i)
+        #print(i)
         #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
         #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
-        create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save2.format(delta = i), isSave = True)
+        #create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save2.format(delta = i), isSave = True)
         #create_sequence_of_sensor_events_based_on_delta_no_overlap(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save1.format(delta = i), isSave = True)
         #casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 130337, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save4.format(delta = i), isSave = True)
         
@@ -2087,4 +2243,4 @@ if __name__ == '__main__':
         #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes= i , number_of_entire_rows= 12858, address_to_read=address_to_read, address_for_save= address_to_save, isSave = True)
         casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 12858, address_to_read = address_to_read, address_for_save =address_to_save, isSave = True)
 '''
-        
+    
