@@ -151,16 +151,7 @@ def casas7_to_csv_time_Ordered():
     features = [0]* 66 # 63 features + 1 date + 1 time + 1 datetime for ordering data
     # for month2, the rows are 64466 (+1)
     all_features = np.zeros((130337, 66), dtype= object )#np.str)130336 +1
-    feature_names = ["M01", "M02", "M03", "M04" , "M05" , "M06" , "M07" , "M08" , "M09" , "M10"
-                       , "M11", "M12", "M13", "M14" , "M15" , "M16" , "M17" , "M18" , "M19" , "M20"
-                       , "M21", "M22", "M23", "M24" , "M25" , "M26" , "M27" , "M28" , "M29" , "M30"
-                       , "M31", "M32", "M33", "M34" , "M35" , "M36" , "M37" , "M38" , "M39" , "M40"
-                       , "M41", "M42", "M43", "M44" , "M45" , "M46" , "M47" , "M48" , "M49" , "M50"
-                       , "M51", "I03", "D03", "D05" , "D07" , "D08" , "D09" , "D10" , "D12" , "D14"
-                       , "D15", "PNo", "WNo", "Date" , "Time", "DateTime"]
-    
-    #print(feature_names)
-    #used_features = []
+   
     counter = -1
     #print(features)
     first = True
@@ -171,9 +162,6 @@ def casas7_to_csv_time_Ordered():
         feature_column = get_feature_column(cells[2])
         if feature_column != -1:
             counter +=1
-            #if counter > 1000:
-            #    break
-            
             sensor_value = get_sensor_value(cells[3])
             features[feature_column] = sensor_value
            
@@ -195,12 +183,6 @@ def casas7_to_csv_time_Ordered():
             else:
                 all_features = np.vstack([all_features,features])
     
-    #count_of_unordinaries = 0  
-    #for i in range(130336):
-    #    if timedelta.total_seconds(all_features[i+1][-1]- all_features[i][-1]) < 0: # if time is not ordered
-    #        count_of_unordinaries +=1
-    #        print(i + 2)
-    #print("count_of_unordinaries: {}".format(count_of_unordinaries))
     
     all_features = all_features[all_features[:,-1].argsort()] # sort all_features based on datetime column
 
@@ -250,20 +232,6 @@ def casas7_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read, file
     # for month2, the rows are 64466 (+1)
     all_features = np.zeros((number_of_allowed_samples, number_of_columns), dtype= object )#np.str)130336 +1
     
-    #feature_names = ["M01_on", "M01_off", "M02_on", "M02_off", "M03_on", "M03_off", "M04_on" , "M04_off", 
-    #                 "M05_on", "M05_off", "M06_on", "M06_off" ,"M07_on", "M07_off" , "M08_on" , "M08_off"
-     #                  , "M11", "M12", "M13", "M14" , "M15" , 
-      #                 "M16" , "M17" , "M18" , "M19" , "M20"
-       #                , "M21", "M22", "M23", "M24" , "M25" , 
-        #               "M26" , "M27" , "M28" , "M29" , "M30"
-         #              , "M31", "M32", "M33", "M34" , "M35" , "M36" , "M37" , "M38" , "M39" , "M40"
-          #             , "M41", "M42", "M43", "M44" , "M45" , "M46" , "M47" , "M48" , "M49" , "M50"
-           #            , "M51", "I03", "D03", "D05" , "D07" , "D08" , "D09" , "D10" , "D12" , "D14"
-            #           , "D15", "PNo", "WNo", "Date" , "Time", "DateTime"]
-    
-    
-    #set_of_sensors = set()
-    #set_of_changed_index = set()
     counter = -1
     first = True
     for line in f:
@@ -2103,8 +2071,8 @@ if __name__ == '__main__':
         print(i)
         #casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
         #casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , number_of_entire_rows= 130337, address_to_read=address_to_read, address_for_save= address_to_save.format(delta = i), isSave = True)
-        #create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save2.format(delta = i), isSave = True)
-        create_sequence_of_sensor_events_based_on_delta_no_overlap(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save1.format(delta = i), isSave = True)
+        create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save2.format(delta = i), isSave = True)
+        #create_sequence_of_sensor_events_based_on_delta_no_overlap(deltaInMinutes = i, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save1.format(delta = i), isSave = True)
         #casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 130337, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save4.format(delta = i), isSave = True)
         
 '''
