@@ -12,11 +12,11 @@ from pomegranate_test import unison_shuffled_copies, create_casas7_markov_chain_
 from pomegranate_test import prepare_train_and_test_based_on_a_list_of_k_data, calculate_f1_scoreaverage
 from Validation import plot_results
 
-def apply_NB_on_sensor_data_with_hour_of_day_feature( k , shuffle, file_to_read = ' '):
+def apply_NB_on_sensor_data_with_hour_of_day_feature( k , shuffle, file_to_read = ' ' , add_str_to_path = ' '):
     
     if file_to_read == ' ':
-        file_to_read = r'E:\pgmpy\sensor_data_each_row_one_features_is_one_on_and_off+hour_of_day.csv'
-  
+        file_to_read = r'E:\pgmpy\{path}\sensor_data_each_row_one_features_is_one_on_and_off+hour_of_day.csv'.format(path = add_str_to_path)
+        print(add_str_to_path)
     data = read_data_from_CSV_file(dest_file = file_to_read, 
                                    data_type = int, 
                                    has_header = False, 
@@ -40,12 +40,13 @@ def apply_NB_on_sensor_data_with_hour_of_day_feature( k , shuffle, file_to_read 
     
     print(names, avg_f_score)
 
-def select_the_best_number_of_events_using_the_best_strategy_markov_chain(k=10 , shuffle = True):
+def select_the_best_number_of_events_using_the_best_strategy_markov_chain(k=10 , shuffle = True, add_str_to_path = ' '):
     
 
-    address_to_read = r"E:\pgmpy\Seq of sensor events_based_on_number_of_events\number_of_events={}.csv"
-    number_of_events = range(2,10)
-    
+    address_to_read = r"E:\pgmpy\{path}\Seq of sensor events_based_on_number_of_events\number_of_events={ne}.csv"
+    number_of_events = range(3,10)
+    print(add_str_to_path)
+
     best_score = 0
     best_number_of_events = 0
     best_train_set = 0
@@ -58,8 +59,9 @@ def select_the_best_number_of_events_using_the_best_strategy_markov_chain(k=10 ,
     
     for n in number_of_events:
         print("number of events:" , n)
-        list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(file_address = address_to_read.format(n), 
-                                        has_header = True, separate_data_based_on_persons = True)
+        list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(file_address = address_to_read.format(path = add_str_to_path, ne = n), 
+                                                                                       has_header = True, 
+                                                                                       separate_data_based_on_persons = True)
         
         
         number_of_persons = len(list_of_data)
@@ -128,11 +130,11 @@ def select_the_best_number_of_events_using_the_best_strategy_markov_chain(k=10 ,
     test_score =  create_casas7_markov_chain_with_prepared_train_and_test(train_set = best_train_set , list_of_persons_in_train= best_train_set_person_labels, test_set= best_test_set , list_of_persons_in_test= best_test_set_person_labels)
     print("test_score:" , test_score)
     
-    plot_results(list_of_number_of_events, list_of_f1_micros, "number of events" , y_label = "f1 score micro")
+    #plot_results(list_of_number_of_events, list_of_f1_micros, "number of events" , y_label = "f1 score micro")
 
 
 
 if __name__ == '__main__':
     
-    #apply_NB_on_sensor_data_with_hour_of_day_feature(k = 10, shuffle = False)
-    select_the_best_number_of_events_using_the_best_strategy_markov_chain(k = 10, shuffle = False)
+    apply_NB_on_sensor_data_with_hour_of_day_feature(k = 10, shuffle = False , file_to_read=' ' , add_str_to_path='Tulum2010' )
+    #select_the_best_number_of_events_using_the_best_strategy_markov_chain(k = 10, shuffle = False, add_str_to_path='Tulum2010')
