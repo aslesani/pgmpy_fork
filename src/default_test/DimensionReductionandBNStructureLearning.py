@@ -73,7 +73,7 @@ def PCA_data_generation(file_address,base_address_to_save, remove_date_and_time 
    
     print(target)
     sensor_data = np.delete(sensor_data ,-1 , 1) # remove the Person column
-    for i in range(2,12):#cols):
+    for i in range(2,9):#cols):
         pca = PCA(n_components=i)
         
         
@@ -575,7 +575,7 @@ def digitize_Dr_Amirkhani(a, n):
         
     return b
 
-def digitize_dataset(data_address, selected_bin, address_to_save , isSave , has_header , return_as_pandas_data_frame):
+def digitize_dataset(data_address, selected_bin, address_to_save , isSave , has_header , return_as_pandas_data_frame, remove_activity_column = False):
     
     '''
     digitize a dataset based on selected_bin
@@ -589,8 +589,12 @@ def digitize_dataset(data_address, selected_bin, address_to_save , isSave , has_
     
     '''
     
-    data = read_data_from_CSV_file(dest_file = data_address , data_type = np.float , has_header=has_header , return_as_pandas_data_frame=return_as_pandas_data_frame)
+    data = read_data_from_CSV_file(dest_file = data_address , 
+                                   data_type = np.float , 
+                                   has_header=has_header , 
+                                   return_as_pandas_data_frame=return_as_pandas_data_frame)
     _ , cols = np.shape(data)
+    
     
     for i in range(0,cols-1):# digitize each column seperately
         data[:,i] = digitize_Dr_Amirkhani(data[:,i], selected_bin)
@@ -678,65 +682,79 @@ def create_PCA_for_different_bag_of_sensor_events_no_overlap():
         test_file_address = r'E:\pgmpy\separation of train and test\31_3\Bag of sensor events_no overlap_based on different deltas\test\delta_{}min.csv'.format(delta)
 
 
-        PCA_data_generation_on_separated_train_and_test(file_address = train_file_address, base_address_to_save = train_directory_for_save, remove_date_and_time = False,has_activity_column=False, remove_activity_column = False, test_file_address = test_file_address, base_address_of_test_file_to_save = test_directory_for_save)
+        PCA_data_generation_on_separated_train_and_test(file_address = train_file_address, 
+                                                        base_address_to_save = train_directory_for_save, 
+                                                        remove_date_and_time = False,
+                                                        has_activity_column=False, 
+                                                        remove_activity_column = False, 
+                                                        test_file_address = test_file_address, 
+                                                        base_address_of_test_file_to_save = test_directory_for_save)
 
 
 
 
 
-def create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta():
+def create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta(string_add_to_address = ''):
     
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
-        train_directory_for_save = r'E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta=' + str(delta)
-        test_directory_for_save = r'E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\test\delta=' + str(delta)
-        for directory in [train_directory_for_save , test_directory_for_save]:
+        directory_for_save = r'E:\pgmpy{}\PCA on Bag of sensor events_activity_and_delta\delta=' + str(delta)
+        directory_for_save = directory_for_save.format(string_add_to_address)
+        for directory in [directory_for_save]:
             if not os.path.exists(directory):
                 os.makedirs(directory)
         
 
-        train_directory_for_save = train_directory_for_save + '\\'
-        test_directory_for_save = test_directory_for_save + '\\'
+        directory_for_save = directory_for_save + '\\'
         
-        train_file_address = r'E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{}min.csv'.format(delta)
-        test_file_address = r'E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\test\delta_{}min.csv'.format(delta)
+        file_address = r'E:\pgmpy{path}\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_{d}min.csv'.format(path = string_add_to_address, d = delta)
+        
+
+        PCA_data_generation(file_address = file_address, 
+                            base_address_to_save = directory_for_save, 
+                            remove_date_and_time = False ,
+                            remove_activity_column = True, 
+                            has_header = True )
 
 
-        PCA_data_generation_on_separated_train_and_test(file_address = train_file_address, base_address_to_save = train_directory_for_save, remove_date_and_time = False, has_activity_column=True ,remove_activity_column = False, test_file_address = test_file_address, base_address_of_test_file_to_save = test_directory_for_save)
-
-
-def create_PCA_for_bag_of_sensor_events_based_on_activities():
+def create_PCA_for_bag_of_sensor_events_based_on_activities(add_string_to_path):
 
         
-    train_directory_for_save = r'E:\pgmpy\PCA on bag of sensor events_based on activity\train'
-    test_directory_for_save = r'E:\pgmpy\PCA on bag of sensor events_based on activity\test'
-    for directory in [train_directory_for_save , test_directory_for_save]:
+    #train_directory_for_save = r'E:\pgmpy\PCA on bag of sensor events_based on activity\train'
+    #test_directory_for_save = r'E:\pgmpy\PCA on bag of sensor events_based on activity\test'
+    directory_for_save = r'E:\pgmpy\{path}\PCA on bag of sensor events_based on activity'.format(path = add_string_to_path )
+    print(directory_for_save)
+    for directory in [directory_for_save]:
         if not os.path.exists(directory):
             os.makedirs(directory)
         
-    train_directory_for_save = train_directory_for_save + '\\'
-    test_directory_for_save = test_directory_for_save + '\\'
+    directory_for_save = directory_for_save + '\\'
+    #test_directory_for_save = test_directory_for_save + '\\'
     
-    train_file_address = r'E:\pgmpy\Bag of sensor events_based on activities\train\based_on_activities.csv'
-    test_file_address = r'E:\pgmpy\Bag of sensor events_based on activities\test\based_on_activities.csv'
+    file_address = r'E:\pgmpy\{path}\Bag of sensor events_based on activities\based_on_activities.csv'.format(path = add_string_to_path )
+    #test_file_address = r'E:\pgmpy\Bag of sensor events_based on activities\test\based_on_activities.csv'
     
-    PCA_data_generation_on_separated_train_and_test(file_address = train_file_address, base_address_to_save = train_directory_for_save, remove_date_and_time = False, has_activity_column=True,remove_activity_column = False, test_file_address = test_file_address, base_address_of_test_file_to_save = test_directory_for_save)
+    PCA_data_generation(file_address = file_address, 
+	                    base_address_to_save = directory_for_save, 
+						remove_date_and_time = False, 
+						remove_activity_column = True, 
+						has_header = True)
 
     
-def create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation():
+def create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation(string_add_to_address = ''):
     
-    for delta in range(1100 , 5001 , 100):#[15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
-        directory_for_save = r'E:\pgmpy\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
-
+        directory_for_save = r'E:\pgmpy{}\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
+        directory_for_save = directory_for_save.format(string_add_to_address)
         for directory in [directory_for_save]:
             if not os.path.exists(directory):
                 os.makedirs(directory)
         
         directory_for_save = directory_for_save + '\\'
         
-        file_address = r'E:\pgmpy\Bag of sensor events_no overlap_based on different deltas\delta_{}min.csv'.format(delta)
-
+        file_address = r'E:\pgmpy{path}\Bag of sensor events_no overlap_based on different deltas\delta_{d}min.csv'.format(path = string_add_to_address, d = delta)
+        
 
         PCA_data_generation(file_address = file_address , base_address_to_save = directory_for_save , remove_date_and_time = False , remove_activity_column = False , has_header = True)
 
@@ -835,21 +853,13 @@ def test_shift_2_data_set_based_on_the_first_dataset():
     
     
 if __name__ == "__main__":
-    create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation()
-    #featureSelection_based_on_Variance(
+    #create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation('\Tulum2009')
     #test_featureSelection_based_on_Variance()
     #test_shift_2_data_set_based_on_the_first_dataset()
     #a = featureSelection_based_on_Variance(dest_file = r'E:\test.csv' , threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [5] , has_header = True ,is_Panda_dataFrame = False)
-    #create_PCA_for_bag_of_sensor_events_based_on_activities()    
-    #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta()
+    create_PCA_for_bag_of_sensor_events_based_on_activities('Tulum2010')    
+    #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta('\Twor2009')
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
     #test_digitize_dataset_for_feature_enginnering_with_delta()
     #create_PCA_for_bag_of_sensor_events_based_on_activities_no_separation()
-   
-    '''try:
-        result = pd.read_csv(filepath_or_buffer = f , header = None)# , dtype = np.int32)
-        print(result)
-    except ValueError:
-        print(ValueError)
-       ''' 
     
