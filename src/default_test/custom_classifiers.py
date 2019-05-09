@@ -158,24 +158,27 @@ def test_test_different_classifiers(address_to_read):
     #for applying the iccke paper on CASAS dataset
     data = read_data_from_CSV_file(dest_file = address_to_read, data_type = int, has_header = False, return_as_pandas_data_frame = False , remove_date_and_time = False , return_header_separately = False , convert_int_columns_to_int = True)
     data_features = data[:,0:-2]
-    print(type(data_features))
+    #print(type(data_features))
     data_target = data[:,-2]
    
-    names , avg_f_score = test_different_classifiers(data_features = data_features , data_target = data_target, k=10 , shuffle = True, selected_classifiers = [0,1,2,3,4,12,14])
+    names , avg_f_score = test_different_classifiers(data_features = data_features , data_target = data_target, k=10 , shuffle = True, selected_classifiers = [14])#[0,1,2,3,4,12,14])
      
     for i in range(len(avg_f_score)):
         print(names[i] , "best_f_score:" , avg_f_score[i])
    
+def test_the_best_algorithm_of_iccke_paper(add_str_to_path):
     
+    activity_bag_iccke = r"E:\pgmpy\{path}\Bag of sensor events_based on activities\based_on_activities_iccke_approach.csv"
+    print(add_str_to_path)
+    test_test_different_classifiers(address_to_read = activity_bag_iccke.format(path = add_str_to_path))
+    
+
 if __name__ == "__main__":
     
-    activity_bag_iccke = r"E:\pgmpy\Bag of sensor events_based on activities\based_on_activities_iccke_approach.csv"
-    test_test_different_classifiers(address_to_read = activity_bag_iccke)
+    test_the_best_algorithm_of_iccke_paper('Tulum2010')
     #select_hyper_parameters_for_custom_classifiers_on_different_datasets(shuffle = False)
     #a_little_test()
     #file_address = "E:\pgmpy\Bag of sensor events_no overlap_based on different deltas\delta_900min.csv"
-    
-    
     
     #data = read_Abdoolahi_data()
     #train = data[0:700] 
