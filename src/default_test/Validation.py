@@ -17,10 +17,9 @@ from custom_classifiers import test_different_classifiers
 
 from pgmpy.estimators import BdeuScore, K2Score, BicScore
 
-
+import plot_results
 from Abdollahi import bic
 
-import matplotlib.pyplot as plt
 import random
 from collections import OrderedDict
 
@@ -302,14 +301,14 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
         
         #print("train_set" , train_set)
         #print("validation_set:" , validation_set)
-        are_different , data2 = check_data(train_set , validation_set , remove_latent_variables = True)
+        are_different , data2, _ = check_data(train_set , validation_set , remove_latent_variables = True)
         
         if are_different:
             #print("Yes! they were different")
             validation_set = data2
         #print("validation_set.columns:" , validation_set.columns)
         
-        train_set , validation_set = shift_2_data_set_based_on_the_first_dataset(train_set , validation_set)
+        train_set , validation_set, _, _ = shift_2_data_set_based_on_the_first_dataset(train_set , validation_set)
        
         '''
         for c in range(data_features):
@@ -322,12 +321,14 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
         '''
             
         resultlist = validation_set[target_column_name].values
+        
         test_final = validation_set.drop(target_column_name, axis=1, inplace=False)
         
         #try:
         #print("**************i:" , i)
         _ , scores[i], _ , _ , _= bic(train = train_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
-            #print("No exception:")
+        
+        #print("No exception:")
         
             
         #except Exception as e:
@@ -338,6 +339,7 @@ def kfoldcrossvalidation_for_abd_function(k , data, data_column_names, target_co
             
         i = i + 1   
         
+    
     return scores    
     
 
@@ -452,39 +454,6 @@ def prepare_data_to_create_model_and_test(delta):
     print(list(range(2,41)))
     print(scores)
     print(learning_time)
-
-def plot_results(x_values , y_values, x_label, y_label , plot_more_than_one_fig = False):
-    '''
-    plot the figure
-    
-    Parameters:
-    ===========
-    x_values: the list of x values
-    y_values: the list of y values
-    x_label:
-    y_label:
-    plot_more_than_one_fig: if True, plot more than one fig and y_vlaues is a list of values
-                            so that each values is as long as x_values
-                            if is False, the y_label is just a list of corrsponding values of x_values
-    
-    '''
-    plt.figure(1, figsize=(4, 3))
-    plt.clf()
-    #plt.axes([.2, .2, .7, .7])
-    if plot_more_than_one_fig:
-        for y_val in y_values:
-            plt.plot(x_values, y_val)#, linewidth=1)
-
-    else:
-        plt.plot(x_values, y_values)
-        
-    plt.xlabel(x_label , fontsize = 12, fontname = 'Times New Roman')
-    plt.ylabel(y_label, fontsize = 12, fontname = 'Times New Roman')
-    
-    plt.xticks(fontsize = 12, fontname = "Times New Roman")
-    plt.yticks(fontsize = 12, fontname = "Times New Roman")
-   
-    plt.show()
 
 def test_with_iris_dataset():
     
@@ -1131,14 +1100,25 @@ def test_the_best_validation_strategy_for_different_deltas():
 
     plot_results(list_of_deltas, list_of_f1_micros, "delta no overlap (when n = " + str(selected_n) + ")", y_label = "f1 score micro")
 
-def test_the_best_validation_strategy_for_different_ns(selected_delta):
-    
+def test_the_best_validation_strategy_for_different_ns(selected_delta, add_string_to_path, consider_delta, type_of_features):
+    '''
+    consider_delta: if consider_delta = True, considers the delta, else does not (for activity based features)
+    type_of_features = 0: delta
+                       1: delta + activity
+                       2: activity
+    '''
     #data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta={delta}\PCA_n={n}.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based on activities\train\based_on_activities.csv"
+    if type_of_features == 0:
+        data_address = r"E:\pgmpy{path}\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
+    elif type_of_features == 1:
+        data_address = r"E:\pgmpy{path}\PCA on Bag of sensor events_activity_and_delta\delta={delta}\PCA_n={n}.csv"
+    elif type_of_features == 2:
+        data_address = r"E:\pgmpy\{path}\PCA on bag of sensor events_based on activity\PCA_n={n}.csv"
 
-    data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
-    #data_address = r"E:\pgmpy\PCA on Bag of sensor events_activity_and_delta\delta={delta}\PCA_n={n}.csv"
+    print(data_address)
+    print(add_string_to_path)
     #data_address = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\Domus\Dataset\Bag of sensor events_no overlap_based on different deltas\PCA on Bag of sensor events_no overlap\1,2\delta={delta}\PCA_n={n}.csv"
     
 
@@ -1155,14 +1135,29 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
     list_of_f1_micros = []
     #selected_delta = 90
     #for selected_delta in delta:
-    for selected_n in range(2,11):
+    for selected_n in range(2,5):
         #selected_delta = delta[random.randint(1,delta_length)]
         #selected_n = 10#random.randint(2,20)#41)# n is # of features in PCA
-        print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
-        #print("selected_delta:{}".format(selected_delta))
-
-
-        data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
+        if consider_delta:
+            print("selected_delta:{} , selected_n:{}".format(selected_delta,selected_n))
+            data = digitize_dataset(data_address = data_address.format(path = add_string_to_path, 
+                                                                   delta = selected_delta, 
+                                                                   n = selected_n), 
+                                                                   selected_bin = 10, 
+                                                                   address_to_save = "", 
+                                                                   isSave=False , 
+                                                                   has_header = False , 
+                                                                   return_as_pandas_data_frame = False)
+        else:
+            print("selected_n:{}".format(selected_n))
+            data = digitize_dataset(data_address = data_address.format(path = add_string_to_path, 
+                                                                   n = selected_n), 
+                                                                   selected_bin = 10, 
+                                                                   address_to_save = "", 
+                                                                   isSave=False , 
+                                                                   has_header = False , 
+                                                                   return_as_pandas_data_frame = False)
+        
         #data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
         #feature selection based on variance
         #for treshhold in range(20, 100 , 5):
@@ -1177,7 +1172,7 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
         target_column_name = 'Person'
         
         validation_set,test_set , final_validation_f1_scores_micro_avg = the_best_validation_strategy(data = data, data_column_names = " ", target_column_name = target_column_name , k=10)
-        
+        #print("final_validation_f1_scores_micro_avg:", final_validation_f1_scores_micro_avg)
         list_of_ns.append(selected_n)
         list_of_f1_micros.append(final_validation_f1_scores_micro_avg)
         
@@ -1189,12 +1184,12 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
             best_n = selected_n
     
     if max_validation_f1_score != 0:
-        print("best_delta:" , best_delta , "best_n:" , best_n , "max_validation_f1_score:" , max_validation_f1_score)
-       
+        print("delta:" , best_delta , "best_n:" , best_n , "max_validation_f1_score:" , max_validation_f1_score)
+        '''
         best_model_test_set = convert_numpy_dataset_to_pandas(best_model_test_set)
         best_model_validation_set = convert_numpy_dataset_to_pandas(best_model_validation_set)
         
-        best_model_validation_set , best_model_test_set = shift_2_data_set_based_on_the_first_dataset(best_model_validation_set, best_model_test_set)
+        best_model_validation_set , best_model_test_set, _, _ = shift_2_data_set_based_on_the_first_dataset(best_model_validation_set, best_model_test_set)
         
         resultlist = best_model_test_set[target_column_name].values
         test_final = best_model_test_set.drop(target_column_name, axis=1, inplace=False)
@@ -1202,17 +1197,18 @@ def test_the_best_validation_strategy_for_different_ns(selected_delta):
         
         _ , test_set_score, _ , _ , _= bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
         print("final test score:" , test_set_score)
-        print("best_model_validation_set:", best_model_validation_set)
-        print("best_model_test_set:", best_model_test_set)
+        #print("best_model_validation_set:", best_model_validation_set)
+        #print("best_model_test_set:", best_model_test_set)
+        '''
+    #plot_results(list_of_ns, list_of_f1_micros, "delta+activity (delta = " + str(selected_delta) + ") based on n", y_label = "f1 score micro")
 
-    plot_results(list_of_ns, list_of_f1_micros, "activtiy + delta (delta = " + str(selected_delta) + ") based on n", y_label = "f1 score micro")
-
-def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
+def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag(add_str_to_path):
     
     #data_address = r"E:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_no overlap\train\delta={delta}\PCA_n={n}.csv"
     #data_address = r"E:\pgmpy\separation of train and test\31_3\Bag of sensor events_based_on_activity_and_no_overlap_delta\train\delta_{delta}min.csv"
-    data_address = r"E:\pgmpy\PCA on bag of sensor events_based on activity\PCA_n={n}.csv"
-
+    data_address = r"E:\pgmpy\{path}\PCA on bag of sensor events_based on activity\PCA_n={n}.csv"
+    print(data_address)
+    print(add_str_to_path)
     #data_address = r"C:\pgmpy\separation of train and test\31_3\PCA on Bag of sensor events_activity_and_delta\train\delta={delta}\PCA_n={n}.csv"
     
     #delta = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]
@@ -1228,14 +1224,14 @@ def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
     list_of_f1_micros = []
     #selected_delta = 900
     #for selected_delta in delta:
-    for selected_n in range(2,11):
+    for selected_n in range(2,8):
         #selected_delta = delta[random.randint(1,delta_length)]
         #selected_n = 10#random.randint(2,20)#41)# n is # of features in PCA
         print("selected_n:{}".format(selected_n))
         #print("selected_delta:{}".format(selected_delta))
 
 
-        data = digitize_dataset(data_address = data_address.format(n = selected_n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
+        data = digitize_dataset(data_address = data_address.format(path = add_str_to_path , n = selected_n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
         #data = read_data_from_CSV_file(dest_file = data_address.format(delta = selected_delta, n = selected_n) , data_type = np.int , has_header = True , return_as_pandas_data_frame = True)
         #feature selection based on variance
         #for treshhold in range(20, 100 , 5):
@@ -1273,7 +1269,7 @@ def test_the_best_validation_strategy_for_different_ns_for_activity_based_bag():
         test_final = best_model_test_set.drop(target_column_name, axis=1, inplace=False)
     
         
-        _ , test_set_score, _ , _, _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)
+        _ , test_set_score, _ , _, _ = bic(train = best_model_validation_set,test = test_final, scoring_function = BicScore , resultlist = resultlist)#BicScore
         print("final test score:" , test_set_score)
 
     plot_results(list_of_ns, list_of_f1_micros, "based on activities (different n)", y_label = "f1 score micro")
@@ -1283,13 +1279,33 @@ if __name__ == '__main__':
     
     #test_the_best_validation_strategy_for_different_deltas()
     
-    #test_the_best_validation_strategy_for_different_ns_for_activity_based_bag()
+    #test_the_best_validation_strategy_for_different_ns_for_activity_based_bag('Twor2009')
     
     #print("delta no overlap")
     
-    for delta in [2500]:#range(1100,2801,100):#[15,30,45,60]:#,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15
-        test_the_best_validation_strategy_for_different_ns(delta)
+    # for delta
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:
+        test_the_best_validation_strategy_for_different_ns(selected_delta = delta, 
+                                                           add_string_to_path ='\Twor2009', 
+                                                           consider_delta = True,
+                                                           type_of_features = 0)
+        print('______________________________________________')
     
+    # for delta + activity
+    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:
+        test_the_best_validation_strategy_for_different_ns(selected_delta = delta, 
+                                                           add_string_to_path ='\Twor2009', 
+                                                           consider_delta = True,
+                                                           type_of_features = 1)
+        print('______________________________________________')
+    
+    #for activity based features
+    test_the_best_validation_strategy_for_different_ns(selected_delta = None, 
+                                                       add_string_to_path = '\Twor2009', 
+                                                       consider_delta = False,
+                                                       type_of_features = 2)
+
+
     #select_hyper_parameters_using_the_best_validation_strategy()
     '''
     pr.disable()

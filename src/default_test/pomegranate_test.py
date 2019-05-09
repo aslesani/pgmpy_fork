@@ -11,9 +11,10 @@ from pomegranate import MarkovChain
 from read_write import read_data_from_CSV_file
 from dataPreparation import create_sequence_of_sensor_events_based_on_activity
 from read_write import read_sequence_based_CSV_file_with_activity , read_sequence_based_CSV_file_without_activity, read_sequence_of_bags_CSV_file_with_activity, repaet_person_tags_as_much_as_seq_length
-from snowballstemmer import algorithms
+#from snowballstemmer import algorithms
 
-from Validation import calculate_different_metrics, plot_results
+from Validation import calculate_different_metrics
+from plot_results import plot_results
 import sys
 import inspect
 
@@ -336,7 +337,8 @@ def create_casas7_markov_chain_with_prepared_train_and_test(train_set, list_of_p
     '''
         
     number_of_persons = len(train_set)
-    
+    #print("list_of_persons_in_train:", list_of_persons_in_train)
+
     #create list of Person IDs
     person_IDs = np.zeros(number_of_persons , dtype = int)
     for i in range(number_of_persons):
@@ -513,18 +515,29 @@ def calculate_f1_scoreaverage(scores , k):
     return avg
     
     
-def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = True):
-    
+def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = True , type_of_feature_vector = 0, string_of_dataset = 'Twor2009'):
+    '''
+	Parameters:
+	==========
+	type_of_feature_vector: the index of types
+	'''
 
-    address_to_read = r"E:\pgmpy\{t}\delta_{delta}min.csv"
+    address_to_read = r"E:\pgmpy\{dataset}\{t}\delta_{delta}min.csv"
     types = ['Seq of sensor events_no overlap_based on different deltas' , 
              'Seq of sensor events_based_on_activity_and_no_overlap_delta', 
-             'Seq of Bag of sensor events_based_on_activity_and_no_overlap_delta']
-
-    #deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
-    deltas = range(1100,5001,100) 
-    t = types[0]
+             'Seq of Bag of sensor events_based_on_activity_and_no_overlap_delta',
+			 'Seq of sensor events_based on activities']
+			 
+    #when use 'Seq of sensor events_based on activities', you should use this address_to_read
+    if type_of_feature_vector == 3:
+        address_to_read = r"E:\pgmpy\{dataset}\{t}\based_on_activities.csv"
+    
+    deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
+    #deltas = [150, 180,200,240,300,400,500,600,700,800,900,1000]
+    #deltas = range(1100,5001,100) 
+    t = types[type_of_feature_vector]
     print(t)
+    print(string_of_dataset)
     best_score = 0
     best_delta = 0
     best_train_set = 0
@@ -536,20 +549,30 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
     list_of_f1_micros = []
     
     for d in deltas:
-        print("delta:" , d)
+        if type_of_feature_vector != 3:
+            print("delta:" , d)
         if t == types[0]:
-            list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(file_address = address_to_read.format(t = t , delta= d), 
-                                        has_header = True, separate_data_based_on_persons = True)
+            list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(file_address = address_to_read.format(dataset = string_of_dataset, 
+                                        t = t, 
+                                        delta= d), 
+                                        has_header = True, 
+                                        separate_data_based_on_persons = True)
         
         elif t == types[1]:
-            list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read.format(t = t , delta= d), 
+            list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read.format(dataset = string_of_dataset, t = t , delta= d), 
                                         has_header = True, separate_data_based_on_persons = True)
         
         elif t == types[2]:
-            list_of_data , list_of_persons , _ = read_sequence_of_bags_CSV_file_with_activity(file_address = address_to_read.format(t = t , delta= d), 
+            list_of_data , list_of_persons , _ = read_sequence_of_bags_CSV_file_with_activity(file_address = address_to_read.format(dataset = string_of_dataset, t = t , delta= d), 
                                         has_header = True, separate_data_based_on_persons = True)
            
-        
+        elif t == types[3]:
+            if d != deltas[0]:
+                print("break")
+                break
+            list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read.format(dataset = string_of_dataset, t = t), 
+                                        has_header = True, separate_data_based_on_persons = True)
+          
         number_of_persons = len(list_of_data)
         train_set = np.zeros(number_of_persons , dtype = np.ndarray)
         test_set = np.zeros(number_of_persons , dtype = np.ndarray)
@@ -566,6 +589,7 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
                 list_of_data[per] , list_of_persons[per] = unison_shuffled_copies(list_of_data[per] , list_of_persons[per])
                 
             number_of_train_set_data = int( 0.8 * len(list_of_data[per]))
+            #print("number_of_train_set_data:" , number_of_train_set_data)
             train_set[per] = list_of_data[per][0:number_of_train_set_data]
             train_set_person_labels[per] = list_of_persons[per][0:number_of_train_set_data]
             test_set[per] = list_of_data[per][number_of_train_set_data:]
@@ -573,7 +597,7 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
 
             
             #split both train_set and test_set to k=10 groups
-            print("len(train_set[per]):" , len(train_set[per]) , "number_of_train_set_data:" , number_of_train_set_data)
+            #print("len(train_set[per]):" , len(train_set[per]) , "number_of_train_set_data:" , number_of_train_set_data)
             number_of_each_group_of_data = int(len(train_set[per]) / k)
             
             start = 0
@@ -595,7 +619,13 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
             for per in range(number_of_persons):
                 train_set_k[per] , train_set_labels_k[per] , test_set_k[per] , test_set_labels_k[per] = prepare_train_and_test_based_on_a_list_of_k_data(k_splitted_train_set[per] , k_splitted_train_set_person_labels[per] , i)
             
-            scores[i] = create_casas7_markov_chain_with_prepared_train_and_test(train_set = train_set_k , list_of_persons_in_train=train_set_labels_k , test_set=test_set_k , list_of_persons_in_test=test_set_labels_k)
+            #print("#######i:" , i)
+            #print("train_set_labels_k:", len(train_set_labels_k[0]))#.shape)#tolist())
+            #print("test_set_labels_k:", set(test_set_labels_k.tolist()))
+            scores[i] = create_casas7_markov_chain_with_prepared_train_and_test(train_set = train_set_k, 
+                                                                                list_of_persons_in_train=train_set_labels_k, 
+                                                                                test_set=test_set_k, 
+                                                                                list_of_persons_in_test=test_set_labels_k)
         scores_avg = calculate_f1_scoreaverage(scores , k)
         print("scores_avg" , scores_avg)
         
@@ -611,12 +641,16 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
             best_test_set_person_labels = test_set_person_labels
     
     print("Validation Scores:")
-    print("best_delta:" , best_delta , "best_validation_score:" , best_score)
+    if type_of_feature_vector == 3:
+        print("best_validation_score:" , best_score)
+
+    else:
+        print("best_delta:" , best_delta , "best_validation_score:" , best_score)
     
     test_score =  create_casas7_markov_chain_with_prepared_train_and_test(train_set = best_train_set , list_of_persons_in_train= best_train_set_person_labels, test_set= best_test_set , list_of_persons_in_test= best_test_set_person_labels)
     print("test_score:" , test_score)
     
-    plot_results(list_of_deltas, list_of_f1_micros, t , y_label = "f1 score micro")
+    #plot_results(list_of_deltas, list_of_f1_micros, t , y_label = "f1 score micro")
 
 
 def select_the_best_delta_using_the_best_strategy_HMM_cherknevis(k=10 , shuffle = True):
@@ -822,10 +856,10 @@ def select_the_best_delta_using_the_best_strategy_HMM(k=10 , shuffle = True):
 
 
 
-def create_and_test_model_based_on_activities(shuffle = True):
+def create_and_test_model_based_on_activities(shuffle = True , add_str_to_path = ''):
     
 
-    address_to_read = r"E:\pgmpy\Seq of sensor events_based on activities\based_on_activities.csv"
+    address_to_read = r"E:\pgmpy\{path}\Seq of sensor events_based on activities\based_on_activities.csv".format(path = add_str_to_path)
     print("Seq of sensor events_based on activities")
 
     list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read, 
@@ -866,5 +900,11 @@ if __name__ == "__main__":
     #create_casas7_markov_chain(file_address=address_to_read.format(delta = 15) , has_activity=True)
     #create_casas7_markov_chain(file_address=address_to_read , has_activity=True)
     
-    select_the_best_delta_using_the_best_strategy_markov_chain(k = 10, shuffle=True)
-    #select_the_best_delta_using_the_best_strategy_HMM(k= 10, shuffle = True)
+    select_the_best_delta_using_the_best_strategy_markov_chain(k = 10, 
+                                                               shuffle=True, 
+                                                               type_of_feature_vector = 1, 
+                                                               string_of_dataset= 'Twor2009' )
+    
+	#create_and_test_model_based_on_activities(True , 'Tulum2009')
+	
+	#select_the_best_delta_using_the_best_strategy_HMM(k= 10, shuffle = True)
