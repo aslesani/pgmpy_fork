@@ -28,6 +28,12 @@ import numpy as np
 #from pandas.core.resample import resample
 
 def bic(train,test, scoring_function,resultlist):
+    #print(set(train['Person'].values))
+    #print(set(train['c0'].values))
+    #print(set(train['c1'].values))
+
+    #print(len(test))
+    #print('################')
     array=['Person']
     trainstart=time.time()
     #bic=BicScore(train)
@@ -83,6 +89,8 @@ def bic(train,test, scoring_function,resultlist):
     
     #model_data = XMLBIFWriter(model)
     #model_data.write_xmlbif(address+name+'_bic.bif') 
+    if flag == 1:
+        print('##############flag:' , flag)
     if(flag==0):
         fscore,accuracy,precision,recall=calscore(resultlist,pred)
         scores = calculate_different_metrics(y_true = resultlist , y_predicted = pred)
@@ -97,15 +105,18 @@ def bic(train,test, scoring_function,resultlist):
               'recall' : 0,
               'accuracy' : 0
               }
-      
+    
+    #print("set(pred)", set(pred))
+    #print("set(resultlist):", set(resultlist))
     #print("fscore:" , fscore,"accuracy:" ,accuracy,"precision:" ,precision, "recall: ",recall)    
+    #print("scores:", scores)
     return (model , scores ,  trainend, testend, pred)
 
 def calculate_different_metrics(y_true , y_predicted):
     f1_score_micro = f1_score(y_true, y_predicted, average='micro') 
     f1_score_macro = f1_score(y_true, y_predicted, average='macro') 
     f1_score_binary = f1_score(y_true, y_predicted, average='binary') 
-
+        
     precision = precision_score(y_true, y_predicted, average='micro') 
     recall = recall_score(y_true, y_predicted, average='micro')
     accuracy = accuracy_score(y_true, y_predicted)  
