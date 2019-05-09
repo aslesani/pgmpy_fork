@@ -69,9 +69,16 @@ def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return
         
         data = [data for data in data_iter]
     
+    selected_cols = len(data[0]) -2
+    #print(selected_cols)
     if remove_date_and_time:
-        data = np.delete(np.delete(data, -1, 1), -1 , 1)
+        #print(data[0:3])
+        #print('remove_date_and_time')
+        #print(selected_cols)
+        #print(data[0][0:5])
+        data = [data[0:selected_cols] for data in data]#data[:][0:selected_cols]#np.delete(np.delete(data, -1, 1), -1 , 1)
 
+    #print(len(data[0]))
     return_value= np.asarray(data, dtype = data_type)
     
     if convert_int_columns_to_int:
@@ -176,8 +183,17 @@ def read_sequence_based_CSV_file_with_activity(file_address , has_header, separa
             list_of_data[line] = seq
             
         other = d[1].split(',')
-        list_of_persons[line] = int(other[1])# * len(seq)
-        list_of_activities[line] = int(other[2])
+        
+        try:
+           list_of_persons[line] = int(other[1])# * len(seq)
+           list_of_activities[line] = int(other[2])
+        except Exception as e:
+            print("Exception!")
+            print('len(list_of_persons):' , len(list_of_persons))
+            print('len(list_of_activities):' , len(list_of_activities))
+            print('line:' , line)
+            print('len(other):' , len(other))
+
    
     if separate_data_based_on_persons:
         
@@ -235,7 +251,7 @@ def read_sequence_based_CSV_file_with_activity_as_strings(file_address , has_hea
 
 
 
-def read_sequence_based_CSV_file_without_activity(file_address , has_header, separate_data_based_on_persons):
+def read_sequence_based_CSV_file_without_activity(file_address , has_header, separate_data_based_on_persons, separate_words = True):
     '''
     Parameters:
     ==========
@@ -265,11 +281,17 @@ def read_sequence_based_CSV_file_without_activity(file_address , has_header, sep
     for line in range(0 , number_of_rows):
         d = list_of_data[line].split('[')[1]
         d = d.split(']')
-        seq = d[0].replace("'" , '').split(', ')
+       
+        if separate_words:
+            seq = d[0].replace("'" , '').split(', ')
+            list_of_data[line] = np.array(seq)
+        else:
+            seq = d[0].replace("'" , '')
+            list_of_data[line] = seq
+          
         other = d[1].split(',')
         list_of_persons[line] = int(other[1])# * len(seq)
-        list_of_data[line] = np.array(seq)
-   
+      
     if separate_data_based_on_persons:
         
         new_list_of_data , new_list_of_persons = separate_dataset_based_on_persons(list_of_data= list_of_data, 
