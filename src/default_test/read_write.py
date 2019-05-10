@@ -5,6 +5,9 @@ Created on Apr 13, 2018
 '''
 import csv 
 import numpy as np
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing import sequence
+
 
 def read_data_from_file(dest_file, data_type , remove_date_and_time = True , has_header = False ):
     '''
@@ -385,6 +388,63 @@ def repaet_person_tags_as_much_as_seq_length(list_of_data , list_of_persons, is_
                 list_of_persons[per][i] = a
    
     return list_of_persons.copy()
+
+
+def convert_binary_classes_to_zero_and_one(data):
+  
+    values = sorted(list(set(data)))
+    for i in range(len(data)):
+        data[i] = values.index(data[i])
+
+    
+    return data
+
+
+def test_convert_binary_classes_to_zero_and_one():
+    data = [2,1,1,1,2]
+    data = convert_binary_classes_to_zero_and_one(data)
+    print(data)
+
+
+
+def data_preparation_for_sequences_based_deep_models(address_to_read):
+    '''
+    this module read a sequence based data file and tokenize it before using in deep models like LSTM.
+    In addition it splits the data as train and test samples
+    '''
+    list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(file_address = address_to_read, 
+                                                                                 has_header = True , 
+                                                                                 separate_data_based_on_persons = False, 
+                                                                                 separate_words= False)
+    #sensor_events , number_of_events = get_set_of_sensor_events(sequences)
+  
+    list_of_persons = convert_binary_classes_to_zero_and_one(list_of_persons)
+  
+    tokenizer = Tokenizer(num_words = 122, filters='!"#$%&()*+,-./:;<=>?@[\]^`{|}~')
+    #list_of_data = [r'salam man', r"'M38_off' , 'M38_on'"]
+    tokenizer.fit_on_texts(list_of_data)
+    sequences = tokenizer.texts_to_sequences(list_of_data)
+    for i in range(10):
+        print(sequences[i])
+    max_features = 121#number_of_events
+    # cut texts after this number of words (among top max_features most common words)
+    maxlen = 20#80#max_seq_len
+
+    #80% of data for train and 20% for test
+    train_numbers = int(0.8 * len(sequences))
+    x_train, y_train = sequences[0: train_numbers] , list_of_persons[0:train_numbers]
+    x_test, y_test = sequences[train_numbers+1:] , list_of_persons[train_numbers+1:]
+
+    print('Pad sequences (samples x time)')
+    x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
+    x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
+    print('x_train shape:', x_train.shape)
+    print('x_test shape:', x_test.shape)
+    print("#####################")
+    for i in range(10):
+        print(x_train[i])
+    
+    return x_train, x_test, y_train, y_test, max_features, maxlen
 
 if __name__ == "__main__":
   
