@@ -72,6 +72,36 @@ def plot_six_plots(x1, BOE_TBWF,BOE_ABWF,BOE_HWF, SOE_TBWF,SOE_ABWF,SOE_HWF):
                  y_label = y_label , 
                  plot_more_than_one_fig = True)
     '''
+def plot_some_plots(x_label, y_label, x_values, y_values, y_plot_labels, main_title):
+    
+    plt.xlabel(x_label , fontsize = 12, fontname = 'Times New Roman')
+    plt.ylabel(y_label, fontsize = 12, fontname = 'Times New Roman')
+    plt.suptitle(main_title, fontsize = 14, fontname = 'Times New Roman', fontweight='bold')
+        
+    plt.xticks(fontsize = 12, fontname = "Times New Roman")
+    plt.yticks(fontsize = 12, fontname = "Times New Roman")
+
+    list_of_type_faces = ['bx-', 'go-' , 'r+-', 'b*--', 'gx--' , 'ro--']
+    number_of_type_faces = len(list_of_type_faces)
+    for number_of_plot in range(len(y_values)):
+        plt.plot(x_values, y_values[number_of_plot], 
+                list_of_type_faces[number_of_plot % number_of_type_faces], 
+                label = y_plot_labels[number_of_plot], linewidth = 2)
+        
+    font = font_manager.FontProperties(family='Times New Roman',
+                                       weight='bold',
+                                       style='normal', size=12)
+    #plt.xlim(1,5)
+    plt.xticks(x_values)
+    plt.legend(prop=font, loc = 'lower left')#fontsize = 12, fontname = "Times New Roman")
+    plt.show()
+    
+def create_plot_for_different_values_of_hidden_state_in_autoencoder():
+    hidden_states = list(range(10,111,10))
+    train_acc = [0.66, .76, .79, .79, .78,.78, .79, .8, .84, .83, .82]
+    val_acc = [.53,.69, .68, .68, .72,.64, .64, .73, .8, .7, .77]
+    plot_some_plots("#Hidden states" , "accuracy" , hidden_states, [train_acc, val_acc] , ["train acc" , "val acc"], "Twor2009" + " (delta={})".format(0.1) + ", seq_len={}".format(8))
+    
 
 if __name__ == "__main__":
     '''
@@ -91,7 +121,7 @@ if __name__ == "__main__":
                    Tulum2009_SOE_TBWF,
                    Tulum2009_SOE_ABWF,
                    Tulum2009_SOE_HWF)
-    '''
+    
     plot_six_plots(x1, 
                    Tulum2010_BOE_TBWF,
                    Tulum2010_BOE_ABWF,
@@ -99,3 +129,7 @@ if __name__ == "__main__":
                    Tulum2010_SOE_TBWF,
                    Tulum2010_SOE_ABWF,
                    Tulum2010_SOE_HWF)
+     '''              
+    #plot_some_plots("x" , "y", [1,2,3] , [[1,2,3], [3,4,5]], ["y1","y2"],"title", True )
+    #plot_some_plots("x" , "y", [1,2,3] , [[1,2,3], [3,4,5]], ["y1","y2"],"title",  False )
+    create_plot_for_different_values_of_hidden_state_in_autoencoder()
