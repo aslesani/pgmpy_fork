@@ -39,7 +39,7 @@ from pandas.core.frame import DataFrame
 from builtins import int
 from sklearn.metrics.classification import precision_score, recall_score,\
     accuracy_score
-from numba.tests.npyufunc.test_ufunc import dtype
+#from numba.tests.npyufunc.test_ufunc import dtype
 from numpy import number
 from statistics import get_set_of_features_in_each_column
 from DimensionReductionandBNStructureLearning import digitize_dataset
