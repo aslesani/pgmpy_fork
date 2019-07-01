@@ -407,7 +407,7 @@ def test_convert_binary_classes_to_zero_and_one():
 
 
 
-def data_preparation_for_sequences_based_deep_models(address_to_read):
+def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_words, max_seq_len):
     '''
     this module read a sequence based data file and tokenize it before using in deep models like LSTM.
     In addition it splits the data as train and test samples
@@ -417,18 +417,17 @@ def data_preparation_for_sequences_based_deep_models(address_to_read):
                                                                                  separate_data_based_on_persons = False, 
                                                                                  separate_words= False)
     #sensor_events , number_of_events = get_set_of_sensor_events(sequences)
-  
+    
     list_of_persons = convert_binary_classes_to_zero_and_one(list_of_persons)
   
-    tokenizer = Tokenizer(num_words = 122, filters='!"#$%&()*+,-./:;<=>?@[\]^`{|}~')
+    tokenizer = Tokenizer(num_words = number_of_words + 1, filters='!"#$%&()*+,-./:;<=>?@[\]^`{|}~')
     #list_of_data = [r'salam man', r"'M38_off' , 'M38_on'"]
     tokenizer.fit_on_texts(list_of_data)
     sequences = tokenizer.texts_to_sequences(list_of_data)
-    for i in range(10):
-        print(sequences[i])
-    max_features = 121#number_of_events
+   
+    #max_features = 121#number_of_events
     # cut texts after this number of words (among top max_features most common words)
-    maxlen = 20#80#max_seq_len
+    #maxlen = 20#80#max_seq_len
 
     #80% of data for train and 20% for test
     train_numbers = int(0.8 * len(sequences))
@@ -436,24 +435,21 @@ def data_preparation_for_sequences_based_deep_models(address_to_read):
     x_test, y_test = sequences[train_numbers+1:] , list_of_persons[train_numbers+1:]
 
     print('Pad sequences (samples x time)')
-    x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
-    x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
+    x_train = sequence.pad_sequences(x_train, maxlen=max_seq_len)
+    x_test = sequence.pad_sequences(x_test, maxlen=max_seq_len)
     print('x_train shape:', x_train.shape)
     print('x_test shape:', x_test.shape)
-    print("#####################")
-    for i in range(10):
-        print(x_train[i])
     
-    return x_train, x_test, y_train, y_test, max_features, maxlen
+    return x_train, x_test, y_train, y_test, number_of_words, max_seq_len
 
 if __name__ == "__main__":
   
     #separate_data_based_on_persons = True
     #a , b , c = read_sequence_of_bags_CSV_file_with_activity(file_address = r'C:\b.csv' , has_header= True, separate_data_based_on_persons = separate_data_based_on_persons)
     #repeated_per = repaet_person_tags_as_much_as_seq_length(a , b , separate_data_based_on_persons=separate_data_based_on_persons)
-    address_to_read= r"E:/pgmpy/Seq of sensor events_based on activities/based_on_activities.csv"
+    address_to_read= r"E:/pgmpy/Twor2009/Seq of sensor events_based on activities/based_on_activities.csv"
     list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read, has_header = True , separate_data_based_on_persons = False)
     print((list_of_data[0][0]))
     print(len(list_of_data))
     
-    
+    data_preparation_for_sequences_based_deep_models(address_to_read,  10,20)
