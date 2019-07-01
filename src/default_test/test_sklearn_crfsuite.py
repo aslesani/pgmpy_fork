@@ -6,8 +6,8 @@ Created on July 21, 2018
 import sklearn
 import scipy.stats
 from sklearn.metrics import make_scorer
-from sklearn.cross_validation import cross_val_score
-from sklearn.grid_search import RandomizedSearchCV
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import RandomizedSearchCV
 
 import sklearn_crfsuite
 from sklearn_crfsuite import scorers
@@ -36,9 +36,11 @@ def convert_list_of_features_to_dict(data):
     return data2
         
 
-def apply_CRF_on_data(shuffle):
+def apply_CRF_on_data(shuffle, add_str_to_path):
     
-    file_address = r"E:\pgmpy\Seq of sensor events_based on activities\based_on_activities.csv"
+    file_address = r"E:\pgmpy\{}\Seq of sensor events_based on activities\based_on_activities.csv"
+    file_address = file_address.format(add_str_to_path)
+    print(add_str_to_path)
     list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = file_address, has_header = True , separate_data_based_on_persons = False)
     
     #print(type(list_of_data[0]) , type(list_of_persons[0]))
@@ -83,6 +85,6 @@ def apply_CRF_on_data(shuffle):
     
     
 if __name__ == "__main__":
-    apply_CRF_on_data(shuffle=True)
+    apply_CRF_on_data(shuffle=True, add_str_to_path = 'Tulum2010')
     
  
