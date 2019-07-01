@@ -16,10 +16,10 @@ from pomegranate_test import create_casas7_markov_chain_with_prepared_train_and_
 from custom_classifiers import test_different_classifiers
 
 
-def BoE_data_preparation(delta, n):
+def BoE_data_preparation(delta, n, dataset):
     
-    data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
-    data = digitize_dataset(data_address = data_address.format(delta = delta, n = n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
+    data_address = r"E:\pgmpy\{dataset}\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
+    data = digitize_dataset(data_address = data_address.format(delta = delta, n = n, dataset = dataset), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
     #print("before shift:", np.shape(data))
     data = shift_each_column_separately(data, False)
     #print("after shift:", np.shape(data))
@@ -29,12 +29,12 @@ def BoE_data_preparation(delta, n):
     
     return data, list_of_persons
 
-def SoE_data_preparation(delta):
+def SoE_data_preparation(delta, dataset):
     
-    address_to_read = r"E:\pgmpy\Seq of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
+    address_to_read = r"E:\pgmpy\{dataset}\Seq of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
    
     list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(
-                                        file_address = address_to_read.format(delta= delta), 
+                                        file_address = address_to_read.format(delta= delta, dataset = dataset), 
                                         has_header = True, 
                                         separate_data_based_on_persons = False)
         
@@ -73,7 +73,8 @@ def SoE_model_building(train_data, train_persons, test_data, test_persons):
                                                                 test_persons,
                                                                 0,
                                                                 False)
-    
+    if train_persons.shape[0] != 2 :
+        print("WARNING: number of persons is not 2")
     #print(test_persons)
     #print(np.shape(test_persons[0]) , np.shape(test_persons[1]))
     
@@ -119,10 +120,10 @@ def apply_different_classifiers_on_predicted_data(features, target):
     return names , avg_f_score
 
 
-def prepare_data_for_stacking(k, shuffle, delta , n):
+def prepare_data_for_stacking(k, shuffle, delta , n, dataset):
     
-    BoE_data, BoE_persons = BoE_data_preparation(delta = delta, n = n)
-    SoE_data, SoE_persons = SoE_data_preparation(delta=delta)
+    BoE_data, BoE_persons = BoE_data_preparation(delta = delta, n = n, dataset = dataset)
+    SoE_data, SoE_persons = SoE_data_preparation(delta=delta, dataset = dataset)
     
     BoE_predicted_labels = np.zeros(0 , dtype = int)
     SoE_predicted_labels = np.zeros(0 , dtype = int)
@@ -208,12 +209,12 @@ def test_kf_split():
         print('b1:' , b[ind1] , 'b2:' , b[ind2])
 
  
-def calculate_hyper_parameters_for_stacking():
+def calculate_hyper_parameters_for_stacking(dataset):
   
-    list_of_deltas = [1400,1600,1800,2000,2500,3000,3500,4000,4500,5000]
+    #list_of_deltas = [1400,1600,1800,2000,2500,3000,3500,4000,4500,5000]
     
-    #list_of_deltas = [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000,1200, 1400,1600,1800,2000,2500,3000,3500,4000,4500,5000]
-    list_of_ns = range(2,11)    
+    list_of_deltas = [15, 30 ,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]#, 1200, 1400,1600,1800,2000,2500,3000,3500,4000,4500,5000]
+    list_of_ns = range(2,8)    
     
     best_BoE_delta = 0
     best_BoE_n = 0
@@ -245,9 +246,15 @@ def calculate_hyper_parameters_for_stacking():
         best_stacking_in_delta = 0
         best_stacking_classifier_in_delta = ""
         for n in list_of_ns:
+            print("______________________________________________")
             print("delta:" , delta , "n:" , n)
-            BoE_score , SoE_score, classifires_names , stacking_scores = prepare_data_for_stacking(k = 10, shuffle = True, delta = delta, n=n)
-           
+            BoE_score , SoE_score, classifires_names , stacking_scores = prepare_data_for_stacking(k = 10, shuffle = True, delta = delta, n=n, dataset = dataset)
+          
+            print("BoE_score:" , BoE_score)
+            print("SoE_score:" , SoE_score)
+            print("classifires_names:", classifires_names)
+            print("stacking_scores:" , stacking_scores)
+          
             # these checks are for global optimizer
             if BoE_score > best_BoE_score:
                 best_BoE_score = BoE_score
@@ -260,6 +267,9 @@ def calculate_hyper_parameters_for_stacking():
                 
             max_stacking_f_score = np.max(stacking_scores)
             max_stacking_classifier = np.where(stacking_scores == max_stacking_f_score)[0][0]
+            print("max_stacking_f_score:" , max_stacking_f_score)
+            print("max_stacking_classifier:" , max_stacking_classifier)
+
             if max_stacking_f_score > best_stacking_score:
                 best_stacking_score = max_stacking_f_score
                 best_stacking_classifier = classifires_names[max_stacking_classifier]
@@ -319,7 +329,7 @@ if __name__ == "__main__":
     n = 2
     #print("delta:" , delta , "n:" , n)
     #prepare_data_for_stacking(k = 10, shuffle = True, delta = delta, n=n)
-    calculate_hyper_parameters_for_stacking()
+    calculate_hyper_parameters_for_stacking(dataset = "Tulum2010")
     #test_kf_split()
     #a1, b1 = BoE_data_preparation(1100,2)
     '''a2, b2 = SoE_data_preparation(1100)
