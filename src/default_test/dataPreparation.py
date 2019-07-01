@@ -525,6 +525,25 @@ def dataset_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read, fil
 
     return rows
 
+def get_number_of_samples(address, has_header):
+    '''
+    count number of rows
+    if it has header, decrease number of rows by 1
+    '''
+    number_of_samples = 0
+    with open(address,'r') as dest_f:
+        for line in dest_f:
+            number_of_samples += 1
+
+    if has_header:
+        number_of_samples -= 1
+
+    return number_of_samples
+    
+     
+
+
+
 def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path, header):
     
     #file_address_Tulum2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2009\data.txt"
@@ -532,10 +551,11 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
 
     #print(each_row_one_feature)
     
-    number_of_events = dataset_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read = raw_data_address, 
-                                                       file_address_to_save = each_row_one_feature)
+    #number_of_events = dataset_to_csv_based_on_sensor_events_time_Ordered(file_address_to_read = raw_data_address, 
+    #                                                   file_address_to_save = each_row_one_feature)
     
-    #number_of_events = 130337
+    number_of_events = get_number_of_samples(address = each_row_one_feature, has_header = False)#130337
+    
     seq_based_on_activities= r"E:\pgmpy\{path}\Seq of sensor events_based on activities\based_on_activities.csv"
     seq_delta_no_overlap= r"E:\pgmpy\{path}\Seq of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
     seq_activity_and_delta= r"E:\pgmpy\{path}\Seq of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
@@ -550,17 +570,17 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                          address_for_save= bag_based_on_activities.format(path = add_str_to_path) , 
                                                          isSave = True, 
                                                          header = header)
-    '''
+    
     create_sequence_of_sensor_events_based_on_activity(address_to_read = each_row_one_feature, 
                                                        has_header = False, 
                                                        address_for_save = seq_based_on_activities.format(path = add_str_to_path), 
                                                        isSave = True,
                                                        header = header)
     
-       
+    '''  
     
     
-    for i in [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
+    for i in [0.01, .02, .03, .04,.05]:#0.1, 0.2, 0.3, .3, .4, .6 , .7 , .8 , .9]:#(1,16):#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
 
     #for i in [180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
     
@@ -572,7 +592,7 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                                        isSave = True,
                                                                        header = header)       
           
-    
+        
         casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , 
                                                       number_of_entire_rows= number_of_events, 
                                                       address_to_read=each_row_one_feature, 
@@ -581,7 +601,7 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                       header = header)
         
     
-        '''
+        
         create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, 
                                                                      address_to_read = each_row_one_feature, 
                                                                      has_header = False, 
@@ -589,16 +609,21 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                                      isSave = True,
 																	 header = header)
         
-        
+        '''
         create_sequence_of_sensor_events_based_on_delta_no_overlap(deltaInMinutes = i, 
                                                                    address_to_read = each_row_one_feature, 
                                                                    has_header = False, 
                                                                    address_for_save = seq_delta_no_overlap.format(path = add_str_to_path, delta = i), 
                                                                    isSave = True,
 																   header = header)
-        
-        #casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, number_of_entire_rows = 130337, address_to_read = address_to_read, has_header = False, address_for_save = address_to_save4.format(delta = i), isSave = True)
-        
+        '''
+        casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, 
+                                                                                   number_of_entire_rows = number_of_events, 
+                                                                                   address_to_read = each_row_one_feature, 
+                                                                                   has_header = False, 
+                                                                                   address_for_save = seq_of_bags.format(path = add_str_to_path,delta = i), 
+                                                                                   isSave = True)
+        '''
         
 
 def casas7_activities():
@@ -632,7 +657,7 @@ def casas7_activities():
         cells = line.split()
             
         if len(cells) > 4:
-            counter+=1
+            counter+=1 
             PersonNumber, WorkActivity = get_person_and_workActivity(cells[4])
             
             features[-1] = PersonNumber
@@ -2297,10 +2322,11 @@ if __name__ == '__main__':
     file_address_Twor2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\twor.2010\data_edited_by_adele"
     file_address_Test = r"E:\pgmpy\Test\annotated"
 
-    #dataset_create_different_feature_vectores(file_address_Towr2009, 'Twor2009', file_header_Twor2009)
+    
+    dataset_create_different_feature_vectores(file_address_Towr2009, 'Twor2009', file_header_Twor2009)
     #dataset_create_different_feature_vectores(file_address_Tulum2009, 'Tulum2009', file_header_Tulum2009)
     #dataset_create_different_feature_vectores(file_address_Tulum2010, 'Tulum2010', file_header_Tulum2010)
-    create_previous_works_feature_vectores('Tulum2010')
+    #create_previous_works_feature_vectores('Tulum2010')
     
     #list_of_sensors, counter, list_of_works, set_of_persons = get_list_of_allowed_sensors_and_works_in_dataset(file_address = file_address_Twor2010, return_list_of_persons = True)
     #print(list_of_sensors)   
