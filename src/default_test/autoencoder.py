@@ -5,6 +5,7 @@ Created on May 1, 2019
 '''
 
 from read_write import read_data_from_CSV_file, separate_dataset_based_on_persons
+from read_write import data_preparation_for_sequences_based_deep_models
 import numpy as np
 from keras.models import Sequential
 from keras.layers import LSTM
@@ -12,7 +13,7 @@ from keras.layers import Dense, Embedding
 from keras.layers import RepeatVector
 from keras.layers import TimeDistributed
 from keras.utils import plot_model
-from plot_results import plot_results
+from plot_paper_results import plot_some_plots
 
 
 def create_fixed_size_seq_from_bag_of_events(address_to_read, len_of_each_seq, has_activity):
@@ -71,7 +72,7 @@ def create_fixed_size_seq_from_bag_of_events(address_to_read, len_of_each_seq, h
     print("create_fixed_size_seq_from_bag_of_events completed!")
     return data[0], list_of_persons[0]
 
-def create_autoencoder(list_of_data, list_of_persons, val_data, val_persons, LSTM_len = 120, embedding_vector_dim = 20):
+def create_autoencoder_based_on_sequences_of_bag_of_events(list_of_data, list_of_persons, val_data, val_persons, LSTM_len = 120, embedding_vector_dim = 20):
 
     (number_of_samples, seq_len, number_of_features ) = list_of_data.shape
     print("number_of_samples:" , number_of_samples)
@@ -100,41 +101,167 @@ def create_autoencoder(list_of_data, list_of_persons, val_data, val_persons, LST
 
     return history
 
-def ready_data_for_model(dataset_name, delta, has_activity, len_of_each_seq):
+def create_autoencoder_based_on_sequences_of_events(list_of_data, list_of_persons, val_data, val_persons, LSTM_len = 120, embedding_vector_dim = 20, epoch = 10, batch_size = 32):
 
-    address_to_read = r"E:\pgmpy\Twor2009\Bag of sensor events_no overlap_based on different deltas\delta_0.1min.csv"
+    (number_of_samples, seq_len) = list_of_data.shape
+    list_of_data = list_of_data.reshape(number_of_samples, seq_len , 1)
+    val_samples , val_data_seq_len = val_data.shape
+    val_data = val_data.reshape(val_samples, val_data_seq_len, 1)
+
+    print("number_of_samples:" , number_of_samples)
+    print("LSTM_len:", LSTM_len)
+    model = Sequential()
+    #model.add(Embedding(input_dim = number_of_features+1 , output_dim = embedding_output_dim))#(number_of_features+1, embedding_vector_dim))
+    model.add(LSTM(LSTM_len, activation='relu', input_shape = (seq_len,1)))
+    model.add(RepeatVector(seq_len))
+    model.add(LSTM(LSTM_len, activation='relu', return_sequences=True))
+    model.add(TimeDistributed(Dense(1)))
+    
+    model.compile(optimizer='adam', loss='mse', metrics = ['accuracy'])
+    model.summary()
+    # fit model
+    history = model.fit(list_of_data, list_of_data, 
+                        epochs=epoch, batch_size=batch_size, verbose=1, 
+                        validation_data=(val_data, val_data))
+    print(history.history)
+    print("#######################")
+    #plot_model(model, show_shapes=True, to_file='reconstruct_lstm_autoencoder.png')
+    # demonstrate recreation
+    #yhat = model.predict(list_of_data, verbose=1)
+    #print("predict results", yhat)#[0,:,0])
+
+    return history
+
+
+def ready_data_for_modeling_seq_of_bag_of_events(dataset_name, delta, has_activity, len_of_each_seq):
+
+    '''
+    it split the tran as validation sets with the ratio of 80:20
+    '''
+    address_to_read = r"E:\pgmpy\{dataset_name}\Bag of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
+    address_to_read = address_to_read.format(dataset_name = dataset_name , delta = delta)
     list_of_data, list_of_persons  = create_fixed_size_seq_from_bag_of_events(address_to_read = address_to_read , 
                                              len_of_each_seq = len_of_each_seq, 
-                                             has_activity = False)    
+                                             has_activity = has_activity)    
     
     data_shape= list_of_data.shape
     train_size = int(.8 * data_shape[0])
 
-    #a = list_of_data[0:train_size]
-    #print(a.shape)
-    
-    history = create_autoencoder(list_of_data = list_of_data[0:train_size], 
-                       list_of_persons = list_of_persons[0:train_size],
-                       val_data = list_of_data[train_size:],
-                       val_persons = list_of_persons[train_size:])
+    history = create_autoencoder_based_on_sequences_of_bag_of_events(list_of_data = list_of_data[0:train_size],
+                                                                     list_of_persons = list_of_persons[0:train_size],
+                                                                     val_data = list_of_data[train_size:],
+                                                                     val_persons = list_of_persons[train_size:])
     
     return history
                     
 
-def select_seq_len_hyperparameter(dataset_name, delta, has_activity,):
+def ready_data_for_modeling_seq_of_events(dataset_name, delta, has_activity, len_of_each_seq, epoch , batch_size, LSTM_hidden_states ):
+
+    '''
+    '''
+    address_to_read = r"E:\pgmpy\{dataset_name}\Seq of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
+    address_to_read = address_to_read.format(dataset_name = dataset_name , delta = delta)
+    x_train, x_test, y_train, y_test, number_of_words, max_seq_len = data_preparation_for_sequences_based_deep_models(address_to_read, 122 , len_of_each_seq)  
+    
+    history = create_autoencoder_based_on_sequences_of_events(list_of_data = x_train,
+                                                              list_of_persons = y_train,
+                                                              val_data = x_test,
+                                                              val_persons = y_test,
+                                                              epoch = epoch , 
+                                                              batch_size = batch_size,
+                                                              LSTM_len = LSTM_hidden_states)
+    
+    return history
+
+
+
+def select_seq_len_hyperparameter_for_seq_of_bag_of_events(dataset_name, delta, has_activity):
     seq = []
     train_acc = []
     val_acc = []
     for seq_len in range(1,10):
-        history = ready_data_for_model(dataset_name, delta, has_activity, seq_len)
+        history = ready_data_for_modeling_seq_of_bag_of_events(dataset_name, delta, has_activity, seq_len)
         best_epoch_index = np.argmax(history.history['acc'])
         seq.append(seq_len)
-        train_acc.append(history.history['acc'])
-        val_acc.append(history.history['val_acc'])
+        train_acc.append(history.history['acc'][best_epoch_index])
+        val_acc.append(history.history['val_acc'][best_epoch_index])
+
+    plot_some_plots("Sequence length" , "accuracy" , seq, [train_acc, val_acc] , ["train acc" , "val acc"])
+
+def select_seq_len_hyperparameter_for_seq_of_events(dataset_name, delta, has_activity, epoch , batch_size):
+    seq = []
+    train_acc = []
+    val_acc = []
+    for seq_len in range(1,11):
+        history = ready_data_for_modeling_seq_of_events(dataset_name = dataset_name , 
+                                                        delta = delta, 
+                                                        has_activity = has_activity,
+                                                        len_of_each_seq = seq_len,
+                                                        epoch = epoch , 
+                                                        batch_size = batch_size)        
+        best_epoch_index = np.argmax(history.history['acc'])
+        seq.append(seq_len)
+        train_acc.append(history.history['acc'][best_epoch_index])
+        val_acc.append(history.history['val_acc'][best_epoch_index])
+
+    print("================================")
+    print("delta:", delta)
+    print("{:15s}{:15s}{:15s}".format("seq_len", "train acc" , "val acc"))
+    template = "{:15.2f}"
+    for i in range(len(seq)):
+        print(template.format(seq[i]), template.format(train_acc[i]), template.format(val_acc[i]))
 
 
+    best_train_acc_for_this_delta = np.argmax(train_acc)
+    print("best train accyracy is for seq_len:" , seq[best_train_acc_for_this_delta])
+    plot_some_plots("Sequence length" , "accuracy" , seq, [train_acc, val_acc] , ["train acc" , "val acc"], dataset_name + " (delta={})".format(delta))
+    
+
+def select_LSTM_hidden_state_hyperparameter_for_autoencoder(dataset_name, delta, has_activity, epoch , batch_size, seq_len):
+    number_of_states = []
+    train_acc = []
+    val_acc = []
+    print("seq_len:" , seq_len)
+
+    for hidden_state in range(10,111,10):
+        history = ready_data_for_modeling_seq_of_events(dataset_name = dataset_name , 
+                                                        delta = delta, 
+                                                        has_activity = has_activity,
+                                                        len_of_each_seq = seq_len,
+                                                        epoch = epoch , 
+                                                        batch_size = batch_size,
+                                                        LSTM_hidden_states = hidden_state)        
+        best_epoch_index = np.argmax(history.history['acc'])
+        number_of_states.append(hidden_state)
+        train_acc.append(history.history['acc'][best_epoch_index])
+        val_acc.append(history.history['val_acc'][best_epoch_index])
+
+    print("================================")
+    print("delta:", delta)
+    print("{:15s}{:15s}{:15s}".format("#hidden_states", "train acc" , "val acc"))
+    template = "{:15.2f}"
+    for i in range(len(number_of_states)):
+        print(template.format(number_of_states[i]), template.format(train_acc[i]), template.format(val_acc[i]))
+
+
+    best_train_acc_for_this_delta = np.argmax(train_acc)
+    print("best train accyracy is for number of hidden states:" , number_of_states[best_train_acc_for_this_delta])
+    plot_some_plots("#Hidden states" , "accuracy" , number_of_states, [train_acc, val_acc] , ["train acc" , "val acc"], dataset_name + " (delta={})".format(delta) + ", seq_len={}".format(seq_len))
+    
 
 
 if __name__ == "__main__":
     #ready_data_for_model(len_of_each_seq = 1)
-    select_seq_len_hyperparameter(dataset_name = '' , delta = 0, has_activity = False)
+    '''
+    select_seq_len_hyperparameter_for_seq_of_bag_of_events(dataset_name = '' , 
+                                                           delta = 0, 
+                                                           has_activity = False)
+           
+                                                           '''
+    for delta in [0.1]:#, 0.2, 0.3, .3, .4, .6 , .7 , .8 , .9]:
+        select_LSTM_hidden_state_hyperparameter_for_autoencoder(dataset_name = 'Twor2009' , 
+                                          delta = delta, 
+                                          has_activity = False,
+                                          epoch = 10 , 
+                                          batch_size =32, 
+                                          seq_len = 8)
