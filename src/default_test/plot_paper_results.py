@@ -31,11 +31,11 @@ Tulum2009_SOE_HWF = [89,88,94,89,94,89,93,93,93,89,94,90,90,94,90,94,93,94,89,93
 ###################################
 
 Tulum2010_BOE_TBWF = [71,70,70,70,69,69,69,68,68,67,67,67,67,65,65,65,68,64,61,60]
-Tulum2010_BOE_ABWF = [90] * len(x1)
+Tulum2010_BOE_ABWF = [99] * len(x1)
 Tulum2010_BOE_HWF =  [99,99,99,98,98,93,92,92,90,88,88,88,86,86,80,80,80,80,80,80]
 
 Tulum2010_SOE_TBWF = [76,78,80,80,80, 82,82,83,84,84,84,86,86,84,84,81,80,79,77,75]
-Tulum2010_SOE_ABWF = [99] * len(x1)
+Tulum2010_SOE_ABWF = [90] * len(x1)
 Tulum2010_SOE_HWF = [84,84,84,85,88,85,85,84,88,85,85,88,88,88,88,88,86,90,92,90]
 
 
@@ -44,12 +44,12 @@ def plot_six_plots(x1, BOE_TBWF,BOE_ABWF,BOE_HWF, SOE_TBWF,SOE_ABWF,SOE_HWF):
     
     x_label = '∆t', 
     y_label = 'F-measure' , 
-    plt.xlabel('∆t' , fontsize = 12, fontname = 'Times New Roman')
-    plt.ylabel('F-measure', fontsize = 12, fontname = 'Times New Roman')
+    plt.xlabel('∆t' , fontsize = 16, fontname = 'Times New Roman')
+    plt.ylabel('F-measure', fontsize = 16, fontname = 'Times New Roman')
         
-    plt.xticks(fontsize = 12, fontname = "Times New Roman")
-    plt.yticks(fontsize = 12, fontname = "Times New Roman")
-       
+    plt.xticks(fontsize = 14, fontname = "Times New Roman")
+    plt.yticks(fontsize = 14, fontname = "Times New Roman")
+    
     plt.plot(x1, BOE_TBWF, 'bx-', label = 'BOE+TBWF', linewidth = 2)
     plt.plot(x1, BOE_ABWF, 'go-', label = 'BOE+ABWF', linewidth = 2)
     plt.plot(x1,BOE_HWF, 'r+-' , label = 'BOE+HWF',linewidth = 2)
@@ -60,8 +60,8 @@ def plot_six_plots(x1, BOE_TBWF,BOE_ABWF,BOE_HWF, SOE_TBWF,SOE_ABWF,SOE_HWF):
     
     font = font_manager.FontProperties(family='Times New Roman',
                                        weight='bold',
-                                       style='normal', size=12)
-    plt.legend(prop=font, loc = 'lower left')#fontsize = 12, fontname = "Times New Roman")
+                                       style='normal', size=14)
+    #plt.legend(prop=font, loc = 'lower left')#fontsize = 12, fontname = "Times New Roman")
     plt.show()
     '''
     y_val = [BOE_TBWF,BOE_ABWF,BOE_HWF]
@@ -74,12 +74,12 @@ def plot_six_plots(x1, BOE_TBWF,BOE_ABWF,BOE_HWF, SOE_TBWF,SOE_ABWF,SOE_HWF):
     '''
 def plot_some_plots(x_label, y_label, x_values, y_values, y_plot_labels, main_title):
     
-    plt.xlabel(x_label , fontsize = 12, fontname = 'Times New Roman')
-    plt.ylabel(y_label, fontsize = 12, fontname = 'Times New Roman')
+    plt.xlabel(x_label , fontsize = 14, fontname = 'Times New Roman')
+    plt.ylabel(y_label, fontsize = 14, fontname = 'Times New Roman')
     plt.suptitle(main_title, fontsize = 14, fontname = 'Times New Roman', fontweight='bold')
         
-    plt.xticks(fontsize = 12, fontname = "Times New Roman")
-    plt.yticks(fontsize = 12, fontname = "Times New Roman")
+    plt.xticks(fontsize = 14, fontname = "Times New Roman")
+    plt.yticks(fontsize = 14, fontname = "Times New Roman")
 
     list_of_type_faces = ['bx-', 'go-' , 'r+-', 'b*--', 'gx--' , 'ro--']
     number_of_type_faces = len(list_of_type_faces)
@@ -103,24 +103,26 @@ def create_plot_for_different_values_of_hidden_state_in_autoencoder():
     plot_some_plots("#Hidden states" , "accuracy" , hidden_states, [train_acc, val_acc] , ["train acc" , "val acc"], "Twor2009" + " (delta={})".format(0.1) + ", seq_len={}".format(8))
     
 
-def plot_stacking_papaer_results():
+def plot_stacking_paper_results():
     
-    Twor2009_stacking_BoE = [? , 65.7, 92.4, 64.3, 83.89, 87.3, 89.0, 88.0, 88.6, 89.0, 88.1, 88.0, 84.7, 87.0, 91.2, 89.7, 88.4, 89.60, 93.2, 86.9]
-    Twor2009_stacking_SoE = [?, 85.1, 82.0, 79.9, 78.7, 75.8, 75.7, 73.8, 69.89, 68.2, 68.2, 65.60, 60.8, 57.4, 56.99, 55.1, 53.1, 51.6, 50.8, 46.7]
-    Twor2009_stacking = [?, 84.96, 93.23, 79.91, 91.1, 88.99, 90.47, 89.93, 88.82, 90.72, 88.05, 89.94, 85.97, 87.57, 91.93, 90.92, 87.8, 91.45, 95.0, 86.78]
+    Twor2009_stacking_BoE = [46.90 , 65.7, 92.4, 64.3, 83.89, 87.3, 89.0, 88.0, 88.6, 89.0, 88.1, 88.0, 84.7, 87.0, 91.2, 89.7, 88.4, 89.60, 93.2, 86.9]
+    Twor2009_stacking_SoE = [88.69, 85.1, 82.0, 79.9, 78.7, 75.8, 75.7, 73.8, 69.89, 68.2, 68.2, 65.60, 60.8, 57.4, 56.99, 55.1, 53.1, 51.6, 50.8, 46.7]
+    Twor2009_stacking = [88.63, 84.96, 93.23, 79.91, 91.1, 88.99, 90.47, 89.93, 88.82, 90.72, 88.05, 89.94, 85.97, 87.57, 91.93, 90.92, 87.8, 91.45, 95.0, 86.78]
     
     Tulum2009_stacking_BoE = [96.1, 94.2, 92.6, 91.15, 90.59, 89.70, 88.96, 87.89, 86.70, 85.70, 85.10, 83.70, 81.09, 78.80, 77.3, 76.59, 71.60, 69.20, 65.70, 62.70]
     Tulum2009_stacking_SoE = [91.19, 92.59, 92.00, 90.90, 89.59, 89.20, 88.59, 88.10, 86.70, 85.39, 85.79, 84.50, 82.70, 80.70, 78.80, 77.10, 75.49, 74.00, 71.70, 69.30]  
     Tulum2009_stacking = [96.05, 94.28, 93.16, 91.86, 90.63, 90.32, 89.35, 88.00, 87.65, 85.99, 85.65, 84.90, 83.03, 80.75, 78.80, 77.50, 76.25, 74.04, 71.70, 69.10] 
     
 
-    Tulum2010_stacking_BoE = []
-    Tulum2010_stacking_SoE = []
-    Tulum2010_stacking = []
+    Tulum2010_stacking_BoE = [72.0, 70.0, 70.0, 69.0, 69.0, 69.0, 69.0, 69.0, 68.0, 68.0, 68.0, 67.0, 67.0, 65.0, 64.0, 65.0, 66.0, 64.0, 62.0, 59.0]
+    Tulum2010_stacking_SoE = [76.0, 79.0, 80.0, 81.0, 82.0, 83.0, 83.0, 84.0, 85.0, 86.0, 86.0, 86.0, 88.0, 87.0, 85.0, 85.0, 82.0, 81.0, 78.0, 78.0]
+    Tulum2010_stacking = [76.0, 78.0, 80.0, 81.0, 82.0, 83.0, 83.0, 84.0, 85.0, 86.0, 86.0, 86.0, 88.0, 87.0, 85.0, 84.0, 82.0, 80.0, 78.0, 78.0]
     
     x_label = '∆t'
     y_label = 'F-measure'
-    y_plot_labels = ["Bag of Events" , "Sequecne of Events" , "Stacking"]
+    y_plot_labels = ["Algorithm 1","Algorithm 2" , "Algorithm 3"]
+
+	#y_plot_labels = ["Bag of Events" , "Sequecne of Events" , "Stacking"]
 
     #Twor2009
     plot_some_plots(x_label = x_label, y_label = y_label, x_values = x1, 
@@ -141,7 +143,7 @@ def plot_stacking_papaer_results():
                    main_title = "Tulum2010")
 
 if __name__ == "__main__":
-    '''
+    
     plot_six_plots(x1, 
                    Twor2009_BOE_TBWF,
                    Twor2009_BOE_ABWF,
@@ -150,7 +152,7 @@ if __name__ == "__main__":
                    Twor2009_SOE_ABWF,
                    Twor2009_SOE_HWF)
 
-'
+    
     plot_six_plots(x1, 
                    Tulum2009_BOE_TBWF,
                    Tulum2009_BOE_ABWF,
@@ -166,8 +168,9 @@ if __name__ == "__main__":
                    Tulum2010_SOE_TBWF,
                    Tulum2010_SOE_ABWF,
                    Tulum2010_SOE_HWF)
-     '''              
+                  
     #plot_some_plots("x" , "y", [1,2,3] , [[1,2,3], [3,4,5]], ["y1","y2"],"title", True )
     #plot_some_plots("x" , "y", [1,2,3] , [[1,2,3], [3,4,5]], ["y1","y2"],"title",  False )
     #create_plot_for_different_values_of_hidden_state_in_autoencoder()
-    plot_stacking_papaer_results()
+    
+    #plot_stacking_paper_results()
