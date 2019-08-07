@@ -407,12 +407,18 @@ def test_convert_binary_classes_to_zero_and_one():
 
 
 
-def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_words, max_seq_len):
+def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_words, max_seq_len, hasActivitycol):
     '''
     this module read a sequence based data file and tokenize it before using in deep models like LSTM.
     In addition it splits the data as train and test samples
     '''
-    list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(file_address = address_to_read, 
+    if hasActivitycol:
+	    list_of_data , list_of_persons, _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read, 
+                                                                                 has_header = True , 
+                                                                                 separate_data_based_on_persons = False, 
+                                                                                 separate_words= False)
+    else:
+        list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(file_address = address_to_read, 
                                                                                  has_header = True , 
                                                                                  separate_data_based_on_persons = False, 
                                                                                  separate_words= False)
@@ -452,4 +458,4 @@ if __name__ == "__main__":
     print((list_of_data[0][0]))
     print(len(list_of_data))
     
-    data_preparation_for_sequences_based_deep_models(address_to_read,  10,20)
+    data_preparation_for_sequences_based_deep_models(address_to_read,  10,20, True)
