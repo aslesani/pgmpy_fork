@@ -552,9 +552,8 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
         if type_of_feature_vector != 3:
             print("delta:" , d)
         if t == types[0]:
-            list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(file_address = address_to_read.format(dataset = string_of_dataset, 
-                                        t = t, 
-                                        delta= d), 
+            list_of_data , list_of_persons = read_sequence_based_CSV_file_without_activity(
+                                        file_address = address_to_read.format(dataset = string_of_dataset, t = t, delta= d), 
                                         has_header = True, 
                                         separate_data_based_on_persons = True)
         
