@@ -1284,13 +1284,13 @@ if __name__ == '__main__':
     #print("delta no overlap")
     
     # for delta
-    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:
+    for delta in range(5,15):#:#15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:
         test_the_best_validation_strategy_for_different_ns(selected_delta = delta, 
-                                                           add_string_to_path ='\Twor2009', 
+                                                           add_string_to_path ='\Tulum2009', 
                                                            consider_delta = True,
                                                            type_of_features = 0)
         print('______________________________________________')
-    
+    '''
     # for delta + activity
     for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:
         test_the_best_validation_strategy_for_different_ns(selected_delta = delta, 
@@ -1305,7 +1305,7 @@ if __name__ == '__main__':
                                                        consider_delta = False,
                                                        type_of_features = 2)
 
-
+    '''
     #select_hyper_parameters_using_the_best_validation_strategy()
     '''
     pr.disable()
