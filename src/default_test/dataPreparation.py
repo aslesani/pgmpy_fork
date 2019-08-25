@@ -580,7 +580,7 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
     '''  
     
     
-    for i in [0.01, .02, .03, .04,.05]:#0.1, 0.2, 0.3, .3, .4, .6 , .7 , .8 , .9]:#(1,16):#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
+    for i in range(5,15):#[1]:#[0.01, .02, .03, .04,.05]:#0.1, 0.2, 0.3, .3, .4, .6 , .7 , .8 , .9]:#(1,16):#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
 
     #for i in [180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
     
@@ -592,7 +592,7 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                                        isSave = True,
                                                                        header = header)       
           
-        
+        '''    
         casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , 
                                                       number_of_entire_rows= number_of_events, 
                                                       address_to_read=each_row_one_feature, 
@@ -600,7 +600,7 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                       isSave = True,
                                                       header = header)
         
-    
+        '''
         
         create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, 
                                                                      address_to_read = each_row_one_feature, 
@@ -609,14 +609,14 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                                      isSave = True,
 																	 header = header)
         
-        '''
+        
         create_sequence_of_sensor_events_based_on_delta_no_overlap(deltaInMinutes = i, 
                                                                    address_to_read = each_row_one_feature, 
                                                                    has_header = False, 
                                                                    address_for_save = seq_delta_no_overlap.format(path = add_str_to_path, delta = i), 
                                                                    isSave = True,
 																   header = header)
-        '''
+        
         casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, 
                                                                                    number_of_entire_rows = number_of_events, 
                                                                                    address_to_read = each_row_one_feature, 
@@ -1678,8 +1678,8 @@ def get_work_lists():
     return works[1:]
     
 def convert_string_to_datetime(date_str, time_str):    
-    
-    #print(date_str , time_str)
+    #s = date_str + time_str
+    #print(type(s), s)
     datetime_obj = datetime.datetime.strptime(date_str + time_str,"%Y-%m-%d%H:%M:%S.%f") 
     return datetime_obj
 
@@ -1690,7 +1690,9 @@ def datetime_cherknevis():
     d2 = '2009-02-06'
     t2= '17:47:16.229419'
     
+    convert_string_to_datetime(d1,t1)
     d1_c = datetime.datetime.strptime(d1+t1,"%Y-%m-%d%H:%M:%S.%f") 
+    print(d1_c)
     #t1_c = datetime.datetime.strptime(t1,"%H:%M:%S.%f")    
     d2_c = datetime.datetime.strptime(d2+t2,"%Y-%m-%d%H:%M:%S.%f") 
     #t2_c = datetime.datetime.strptime(t2,"%H:%M:%S.%f")    
@@ -2322,9 +2324,9 @@ if __name__ == '__main__':
     file_address_Twor2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\twor.2010\data_edited_by_adele"
     file_address_Test = r"E:\pgmpy\Test\annotated"
 
-    
-    dataset_create_different_feature_vectores(file_address_Towr2009, 'Twor2009', file_header_Twor2009)
-    #dataset_create_different_feature_vectores(file_address_Tulum2009, 'Tulum2009', file_header_Tulum2009)
+    #datetime_cherknevis()
+    #dataset_create_different_feature_vectores(file_address_Towr2009, 'Twor2009', file_header_Twor2009)
+    dataset_create_different_feature_vectores(file_address_Tulum2009, 'Tulum2009', file_header_Tulum2009)
     #dataset_create_different_feature_vectores(file_address_Tulum2010, 'Tulum2010', file_header_Tulum2010)
     #create_previous_works_feature_vectores('Tulum2010')
     

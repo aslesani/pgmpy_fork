@@ -857,9 +857,16 @@ if __name__ == "__main__":
     #test_featureSelection_based_on_Variance()
     #test_shift_2_data_set_based_on_the_first_dataset()
     #a = featureSelection_based_on_Variance(dest_file = r'E:\test.csv' , threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [5] , has_header = True ,is_Panda_dataFrame = False)
-    create_PCA_for_bag_of_sensor_events_based_on_activities('Tulum2010')    
+    #create_PCA_for_bag_of_sensor_events_based_on_activities('Tulum2010')    
     #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta('\Twor2009')
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
     #test_digitize_dataset_for_feature_enginnering_with_delta()
     #create_PCA_for_bag_of_sensor_events_based_on_activities_no_separation()
-    
+    file_address = r"E:\pgmpy\Tulum2009\Bag of sensor events_no overlap_based on different deltas\delta_{}min.csv"
+    directory_for_save = r"E:\pgmpy\Tulum2009\PCA on Bag of sensor events_no overlap\delta={}\\"
+    for i in range(10,15):
+        PCA_data_generation(file_address = file_address.format(i), 
+	                    base_address_to_save = directory_for_save.format(i), 
+						remove_date_and_time = False, 
+						remove_activity_column = False, 
+						has_header = True)
