@@ -213,7 +213,7 @@ def calculate_hyper_parameters_for_stacking(dataset):
   
     #list_of_deltas = [1400,1600,1800,2000,2500,3000,3500,4000,4500,5000]
     
-    list_of_deltas = [15, 30 ,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]#, 1200, 1400,1600,1800,2000,2500,3000,3500,4000,4500,5000]
+    list_of_deltas = [15]#, 30 ,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]#, 1200, 1400,1600,1800,2000,2500,3000,3500,4000,4500,5000]
     list_of_ns = range(2,8)    
     
     best_BoE_delta = 0
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     n = 2
     #print("delta:" , delta , "n:" , n)
     #prepare_data_for_stacking(k = 10, shuffle = True, delta = delta, n=n)
-    calculate_hyper_parameters_for_stacking(dataset = "Tulum2010")
+    calculate_hyper_parameters_for_stacking(dataset = "Twor2009")
     #test_kf_split()
     #a1, b1 = BoE_data_preparation(1100,2)
     '''a2, b2 = SoE_data_preparation(1100)
