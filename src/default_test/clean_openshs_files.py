@@ -24,5 +24,9 @@ def remove_blank_lines(in_filename):
 					
 if __name__ == "__main__":
     in_file = r"E:\Lessons_tutorials\Behavioural user profile articles\openSHS\openshs-master-new\app\datasets\dataset.csv"
+    base_address = r"E:\Lessons_tutorials\Behavioural user profile articles\openSHS\openshs-master-new\app\datasets"
+    person_name = "Maman"
+    number_of_days = 30
+    in_file = base_address + "\{p}_{nd}days.csv".format(p = person_name, nd = number_of_days)
 
     remove_blank_lines(in_file)
