@@ -40,6 +40,7 @@ file_header_Twor2009 = "M01_on,M01_off,M02_on,M02_off,M03_on,M03_off,M04_on,M04_
 file_header_Twor2010 = "D001_on,D001_off,D002_on,D002_off,D003_on,D003_off,D004_on,D004_off,D005_on,D005_off,D006_on,D006_off,D007_on,D007_off,D008_on,D008_off,D009_on,D009_off,D010_on,D010_off,D011_on,D011_off,D012_on,D012_off,D013_on,D013_off,D014_on,D014_off,D015_on,D015_off,I006_on,I006_off,I010_on,I010_off,I011_on,I011_off,I012_on,I012_off,M001_on,M001_off,M002_on,M002_off,M003_on,M003_off,M004_on,M004_off,M005_on,M005_off,M006_on,M006_off,M007_on,M007_off,M008_on,M008_off,M009_on,M009_off,M010_on,M010_off,M011_on,M011_off,M012_on,M012_off,M013_on,M013_off,M014_on,M014_off,M015_on,M015_off,M016_on,M016_off,M017_on,M017_off,M018_on,M018_off,M019_on,M019_off,M020_on,M020_off,M021_on,M021_off,M022_on,M022_off,M023_on,M023_off,M024_on,M024_off,M025_on,M025_off,M026_on,M026_off,M027_on,M027_off,M028_on,M028_off,M029_on,M029_off,M030_on,M030_off,M031_on,M031_off,M032_on,M032_off,M033_on,M033_off,M034_on,M034_off,M035_on,M035_off,M036_on,M036_off,M037_on,M037_off,M038_on,M038_off,M039_on,M039_off,M040_on,M040_off,M041_on,M041_off,M042_on,M042_off,M043_on,M043_off,M044_on,M044_off,M045_on,M045_off,M046_on,M046_off,M047_on,M047_off,M048_on,M048_off,M049_on,M049_off,M050_on,M050_off,M051_on,M051_off,Person,Work"
 file_header_Tulum2009 = "M001_on,M001_off,M002_on,M002_off,M003_on,M003_off,M004_on,M004_off,M005_on,M005_off,M006_on,M006_off,M007_on,M007_off,M008_on,M008_off,M009_on,M009_off,M010_on,M010_off,M011_on,M011_off,M012_on,M012_off,M013_on,M013_off,M014_on,M014_off,M015_on,M015_off,M016_on,M016_off,Person,Work"
 file_header_Tulum2010 = "M001_on,M001_off,M002_on,M002_off,M003_on,M003_off,M004_on,M004_off,M005_on,M005_off,M006_on,M006_off,M007_on,M007_off,M008_on,M008_off,M009_on,M009_off,M010_on,M010_off,M011_on,M011_off,M012_on,M012_off,M013_on,M013_off,M014_on,M014_off,M015_on,M015_off,M016_on,M016_off,M017_on,M017_off,M018_on,M018_off,M019_on,M019_off,M020_on,M020_off,M021_on,M021_off,M022_on,M022_off,M023_on,M023_off,M024_on,M024_off,M025_on,M025_off,M026_on,M026_off,M027_on,M027_off,M028_on,M028_off,M029_on,M029_off,M030_on,M030_off,M031_on,M031_off,Person,Work"
+file_header_OpenSHS = "wardrobe_on,wardrobe_off,tv_on,tv_off,oven_on,oven_off,officeLight_on,officeLight_off,officeDoorLock_on,officeDoorLock_off,officeDoor_on,officeDoor_off,officeCarp_on,officeCarp_off,office_on,office_off,mainDoorLock_on,mainDoorLock_off,mainDoor_on,mainDoor_off,livingLight_on,livingLight_off,livingCarp_on,livingCarp_off,kitchenLight_on,kitchenLight_off,kitchenDoorLock_on,kitchenDoorLock_off,kitchenDoor_on,kitchenDoor_off,kitchenCarp_on,kitchenCarp_off,hallwayLight_on,hallwayLight_off,fridge_on,fridge_off,couch_on,couch_off,bedroomLight_on,bedroomLight_off,bedroomDoorLock_on,bedroomDoorLock_off,bedroomDoor_on,bedroomDoor_off,bedroomCarp_on,bedroomCarp_off,bedTableLamp_on,bedTableLamp_off,bed_on,bed_off,bathroomLight_on,bathroomLight_off,bathroomDoorLock_on,bathroomDoorLock_off,bathroomDoor_on,bathroomDoor_off,bathroomCarp_on,bathroomCarp_off,Person,Work"
 file_header_Test = "M32_on,M32_off,M35_on,M35_off,M36_on,M36_off,M38_on,M38_off,M39_on,M39_off,M40_on,M40_off,M41_on,M41_off,M45_on,M45_off,M47_on,M47_off,M48_on,M48_off,Person,Work"
 
 def casas7_to_csv():
@@ -564,7 +565,7 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
     bag_based_on_activities= r"E:\pgmpy\{path}\Bag of sensor events_based on activities\based_on_activities.csv"
     bag_delta_no_overlap= r"E:\pgmpy\{path}\Bag of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
     bag_activity_and_delta = r"E:\pgmpy\{path}\Bag of sensor events_based_on_activity_and_no_overlap_delta\delta_{delta}min.csv"
-    '''
+    
     casas7_create_bag_of_sensor_events_based_on_activity(number_of_entire_rows= number_of_events, 
                                                          address_to_read= each_row_one_feature, 
                                                          address_for_save= bag_based_on_activities.format(path = add_str_to_path) , 
@@ -577,14 +578,14 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                        isSave = True,
                                                        header = header)
     
-    '''  
     
     
-    for i in range(5,15):#[1]:#[0.01, .02, .03, .04,.05]:#0.1, 0.2, 0.3, .3, .4, .6 , .7 , .8 , .9]:#(1,16):#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
+    
+    #for i in range(1,15):#[1]:#[0.01, .02, .03, .04,.05]:#0.1, 0.2, 0.3, .3, .4, .6 , .7 , .8 , .9]:#(1,16):#[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
 
-    #for i in [180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
+    for i in [15,30,45,60,75,90,100, 120,150,180,200,240,300,400,500,600,700,800,900,1000]:#range(1,16)[1600,1800,2000,2500,3000,3500,4000,4500,5000]
     
-        '''     
+        
         casas7_create_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes=i , 
                                                                        number_of_entire_rows= number_of_events, 
                                                                        address_to_read=each_row_one_feature, 
@@ -592,7 +593,7 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                                        isSave = True,
                                                                        header = header)       
           
-        '''    
+            
         casas7_create_bag_of_sensor_events_no_overlap(deltaInMinutes=i , 
                                                       number_of_entire_rows= number_of_events, 
                                                       address_to_read=each_row_one_feature, 
@@ -600,7 +601,7 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                       isSave = True,
                                                       header = header)
         
-        '''
+        
         
         create_sequence_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, 
                                                                      address_to_read = each_row_one_feature, 
@@ -616,15 +617,15 @@ def dataset_create_different_feature_vectores(raw_data_address, add_str_to_path,
                                                                    address_for_save = seq_delta_no_overlap.format(path = add_str_to_path, delta = i), 
                                                                    isSave = True,
 																   header = header)
-        
+        '''
         casas7_create_Sequence_of_bag_of_sensor_events_based_on_activity_and_delta(deltaInMinutes = i, 
                                                                                    number_of_entire_rows = number_of_events, 
                                                                                    address_to_read = each_row_one_feature, 
                                                                                    has_header = False, 
                                                                                    address_for_save = seq_of_bags.format(path = add_str_to_path,delta = i), 
                                                                                    isSave = True)
-        '''
-        
+    
+        '''      
 
 def casas7_activities():
     '''
@@ -2329,10 +2330,13 @@ if __name__ == '__main__':
 
     #datetime_cherknevis()
     #dataset_create_different_feature_vectores(file_address_Towr2009, 'Twor2009', file_header_Twor2009)
-    dataset_create_different_feature_vectores(file_address_Tulum2009, 'Tulum2009', file_header_Tulum2009)
+    #dataset_create_different_feature_vectores(file_address_Tulum2009, 'Tulum2009', file_header_Tulum2009)
     #dataset_create_different_feature_vectores(file_address_Tulum2010, 'Tulum2010', file_header_Tulum2010)
     #create_previous_works_feature_vectores('Tulum2010')
-    
+    #dataset_create_different_feature_vectores('', 'OpenSHS2_30days', file_header_OpenSHS)
+    dataset_create_different_feature_vectores('', 'OpenSHS3_30days', file_header_OpenSHS)
+
+
     #list_of_sensors, counter, list_of_works, set_of_persons = get_list_of_allowed_sensors_and_works_in_dataset(file_address = file_address_Twor2010, return_list_of_persons = True)
     #print(list_of_sensors)   
     file_address_Towr2009_to_save = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\sensor_data_each_row_one_features_is_one_on_and_off+time_ordered.csv"
