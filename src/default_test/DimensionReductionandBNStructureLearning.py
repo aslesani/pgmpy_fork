@@ -696,7 +696,7 @@ def create_PCA_for_different_bag_of_sensor_events_no_overlap():
 
 def create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta(string_add_to_address = ''):
     
-    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+    for delta in list(range(1,15))+[15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
         directory_for_save = r'E:\pgmpy{}\PCA on Bag of sensor events_activity_and_delta\delta=' + str(delta)
         directory_for_save = directory_for_save.format(string_add_to_address)
@@ -743,7 +743,7 @@ def create_PCA_for_bag_of_sensor_events_based_on_activities(add_string_to_path):
     
 def create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation(string_add_to_address = ''):
     
-    for delta in [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
+    for delta in list(range(1,15))+[15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         
         directory_for_save = r'E:\pgmpy{}\PCA on Bag of sensor events_no overlap\delta=' + str(delta)
         directory_for_save = directory_for_save.format(string_add_to_address)
@@ -756,7 +756,7 @@ def create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation(strin
         file_address = r'E:\pgmpy{path}\Bag of sensor events_no overlap_based on different deltas\delta_{d}min.csv'.format(path = string_add_to_address, d = delta)
         
 
-        PCA_data_generation(file_address = file_address , base_address_to_save = directory_for_save , remove_date_and_time = False , remove_activity_column = False , has_header = True)
+        PCA_data_generation(file_address = file_address , base_address_to_save = directory_for_save , remove_date_and_time = False , remove_activity_column = True , has_header = True)
 
 
 
@@ -850,23 +850,30 @@ def test_shift_2_data_set_based_on_the_first_dataset():
     print(a)
     print(b)  
  
-    
+  
     
 if __name__ == "__main__":
     #create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation('\Tulum2009')
     #test_featureSelection_based_on_Variance()
     #test_shift_2_data_set_based_on_the_first_dataset()
     #a = featureSelection_based_on_Variance(dest_file = r'E:\test.csv' , threshold = 0 , isSave = False , path_to_save = "" , column_indexes_not_apply_feature_selection = [5] , has_header = True ,is_Panda_dataFrame = False)
-    #create_PCA_for_bag_of_sensor_events_based_on_activities('Tulum2010')    
-    #create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta('\Twor2009')
     #create_PCA_for_different_bag_of_sensor_events_no_overlap()
     #test_digitize_dataset_for_feature_enginnering_with_delta()
     #create_PCA_for_bag_of_sensor_events_based_on_activities_no_separation()
-    file_address = r"E:\pgmpy\Tulum2009\Bag of sensor events_no overlap_based on different deltas\delta_{}min.csv"
-    directory_for_save = r"E:\pgmpy\Tulum2009\PCA on Bag of sensor events_no overlap\delta={}\\"
-    for i in range(10,15):
+    
+	
+    create_PCA_for_bag_of_sensor_events_based_on_activities('OpenSHS2_30days')    
+    create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta('\OpenSHS2_30days')
+    create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation('\OpenSHS2_30days')
+    
+    '''
+	file_address = r"E:\pgmpy\OpenSHS3_30days\Bag of sensor events_no overlap_based on different deltas\delta_{}min.csv"
+    directory_for_save = r"E:\pgmpy\OpenSHS3_30days\PCA on Bag of sensor events_no overlap\delta={}\\"
+    
+    for i in list(range(1,15)) + [15,30,45,60,75,90,100,120,150,180,200,240,300,400,500,600,700,800,900,1000]:#15,30,45,60
         PCA_data_generation(file_address = file_address.format(i), 
 	                    base_address_to_save = directory_for_save.format(i), 
 						remove_date_and_time = False, 
 						remove_activity_column = False, 
 						has_header = True)
+    '''
