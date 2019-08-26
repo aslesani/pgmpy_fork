@@ -1678,9 +1678,12 @@ def get_work_lists():
     return works[1:]
     
 def convert_string_to_datetime(date_str, time_str):    
-    #s = date_str + time_str
-    #print(type(s), s)
-    datetime_obj = datetime.datetime.strptime(date_str + time_str,"%Y-%m-%d%H:%M:%S.%f") 
+    
+    if str.find(time_str,'.') != -1:
+        datetime_obj = datetime.datetime.strptime(date_str + time_str,"%Y-%m-%d%H:%M:%S.%f") 
+    else:
+        datetime_obj = datetime.datetime.strptime(date_str + time_str,"%Y-%m-%d%H:%M:%S") 
+
     return datetime_obj
 
     
