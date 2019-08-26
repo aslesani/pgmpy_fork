@@ -850,7 +850,12 @@ def test_shift_2_data_set_based_on_the_first_dataset():
     print(a)
     print(b)  
  
-  
+def apply_PCA_on_different_feature_vectors_of_dataset(dataset_name):  
+
+    create_PCA_for_bag_of_sensor_events_based_on_activities(dataset_name)    
+    create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta('\\' + dataset_name)
+    create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation('\\' + dataset_name)
+    
     
 if __name__ == "__main__":
     #create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation('\Tulum2009')
@@ -861,11 +866,7 @@ if __name__ == "__main__":
     #test_digitize_dataset_for_feature_enginnering_with_delta()
     #create_PCA_for_bag_of_sensor_events_based_on_activities_no_separation()
     
-	
-    create_PCA_for_bag_of_sensor_events_based_on_activities('OpenSHS2_30days')    
-    create_PCA_for_different_bag_of_sensor_events_based_on_activity_and_delta('\OpenSHS2_30days')
-    create_PCA_for_different_bag_of_sensor_events_no_overlap_no_separation('\OpenSHS2_30days')
-    
+    apply_PCA_on_different_feature_vectors_of_dataset('OpenSHS2_30days')
     '''
 	file_address = r"E:\pgmpy\OpenSHS3_30days\Bag of sensor events_no overlap_based on different deltas\delta_{}min.csv"
     directory_for_save = r"E:\pgmpy\OpenSHS3_30days\PCA on Bag of sensor events_no overlap\delta={}\\"
