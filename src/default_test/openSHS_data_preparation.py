@@ -87,10 +87,8 @@ def convert_data_to_each_row_one_feature_is_on(in_file, out_file, person_number,
     print("rows:", rows, "cols:" , cols)
     
     np.savetxt(out_file, np.delete(all_features, -1 , 1 ), delimiter=',' , fmt='%s')
-				
-					
-if __name__ == "__main__":
-    
+
+def prepare_files_to_convert():	
     base_address = r"E:\Lessons_tutorials\Behavioural user profile articles\openSHS\openshs-master-new\app\datasets"
     person_name = input("Enter Person Name:")#"test"
     number_of_days = int(input("Enter number of days:"))#1
@@ -99,4 +97,9 @@ if __name__ == "__main__":
    
     person_ID = int(input("Enter ID of person:"))
     convert_data_to_each_row_one_feature_is_on(in_file, out_file, person_ID, True)
-
+			
+					
+if __name__ == "__main__":
+    prepare_files_to_convert()
+    
+   
