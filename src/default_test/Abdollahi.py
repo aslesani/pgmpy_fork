@@ -92,7 +92,7 @@ def bic(train,test, scoring_function,resultlist):
     if flag == 1:
         print('##############flag:' , flag)
     if(flag==0):
-        fscore,accuracy,precision,recall=calscore(resultlist,pred)
+        #fscore,accuracy,precision,recall=calscore(resultlist,pred)
         scores = calculate_different_metrics(y_true = resultlist , y_predicted = pred)
         #draw(model.edges(),name,"bic",folder)
         #WriteData(address+"bicpred\\",name+".xlsx",name,pred)
@@ -115,7 +115,7 @@ def bic(train,test, scoring_function,resultlist):
 def calculate_different_metrics(y_true , y_predicted):
     f1_score_micro = f1_score(y_true, y_predicted, average='micro') 
     f1_score_macro = f1_score(y_true, y_predicted, average='macro') 
-    f1_score_binary = f1_score(y_true, y_predicted, average='binary') 
+    f1_score_binary = 0#f1_score(y_true, y_predicted, average='binary') 
         
     precision = precision_score(y_true, y_predicted, average='micro') 
     recall = recall_score(y_true, y_predicted, average='micro')
