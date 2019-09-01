@@ -532,7 +532,7 @@ def select_the_best_delta_using_the_best_strategy_markov_chain(k=10 , shuffle = 
     if type_of_feature_vector == 3:
         address_to_read = r"E:\pgmpy\{dataset}\{t}\based_on_activities.csv"
     
-    deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
+    deltas = list(range(1,15))+[15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
     #deltas = [150, 180,200,240,300,400,500,600,700,800,900,1000]
     #deltas = range(1100,5001,100) 
     t = types[type_of_feature_vector]
@@ -901,8 +901,8 @@ if __name__ == "__main__":
     
     select_the_best_delta_using_the_best_strategy_markov_chain(k = 10, 
                                                                shuffle=True, 
-                                                               type_of_feature_vector = 1, 
-                                                               string_of_dataset= 'Twor2009' )
+                                                               type_of_feature_vector = 0, 
+                                                               string_of_dataset= 'OpenSHS3_30days')
     
 	#create_and_test_model_based_on_activities(True , 'Tulum2009')
 	
