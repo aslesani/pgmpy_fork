@@ -407,7 +407,7 @@ def test_convert_binary_classes_to_zero_and_one():
 
 
 
-def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_words, max_seq_len, hasActivitycol, shuffle = False):
+def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_words, max_seq_len, hasActivitycol, shuffle):
     '''
     this module read a sequence based data file and tokenize it before using in deep models like LSTM.
     In addition it splits the data as train and test samples
