@@ -7,7 +7,7 @@ import csv
 import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing import sequence
-from pomegranate_test import unison_shuffled_copies
+from shuffle_data import unison_shuffled_copies
 
 def read_data_from_file(dest_file, data_type , remove_date_and_time = True , has_header = False ):
     '''

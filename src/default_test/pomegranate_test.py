@@ -18,24 +18,7 @@ from plot_results import plot_results
 import sys
 import inspect
 
-
-def unison_shuffled_copies(a, b):
-
-    changed_type = False
-    if type(a) == list:
-        changed_type = True
-        a = np.array(a)
-        b = np.array(b)
-        
-    assert len(a) == len(b)
-    p = np.random.permutation(len(a))
-    
-    a , b = a[p], b[p]
-    
-    if changed_type:
-        return a.tolist(), b.tolist()
-    else:
-        return a,b
+from shuffle_data import unison_shuffled_copies
 
 def test_sample_from_site():
     
