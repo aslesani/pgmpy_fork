@@ -7,7 +7,7 @@ import csv
 import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing import sequence
-
+from pomegranate_test import unison_shuffled_copies
 
 def read_data_from_file(dest_file, data_type , remove_date_and_time = True , has_header = False ):
     '''
@@ -407,7 +407,7 @@ def test_convert_binary_classes_to_zero_and_one():
 
 
 
-def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_words, max_seq_len, hasActivitycol):
+def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_words, max_seq_len, hasActivitycol, shuffle = False):
     '''
     this module read a sequence based data file and tokenize it before using in deep models like LSTM.
     In addition it splits the data as train and test samples
@@ -422,7 +422,11 @@ def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_
                                                                                  has_header = True , 
                                                                                  separate_data_based_on_persons = False, 
                                                                                  separate_words= False)
-    #sensor_events , number_of_events = get_set_of_sensor_events(sequences)
+    
+    if shuffle:
+        list_of_data , list_of_persons = unison_shuffled_copies(list_of_data , list_of_persons)
+		
+	#sensor_events , number_of_events = get_set_of_sensor_events(sequences)
     
     list_of_persons = convert_binary_classes_to_zero_and_one(list_of_persons)
   
@@ -435,6 +439,7 @@ def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_
     # cut texts after this number of words (among top max_features most common words)
     #maxlen = 20#80#max_seq_len
 
+        
     #80% of data for train and 20% for test
     train_numbers = int(0.8 * len(sequences))
     x_train, y_train = sequences[0: train_numbers] , list_of_persons[0:train_numbers]
@@ -458,4 +463,4 @@ if __name__ == "__main__":
     print((list_of_data[0][0]))
     print(len(list_of_data))
     
-    data_preparation_for_sequences_based_deep_models(address_to_read,  10,20, True)
+    data_preparation_for_sequences_based_deep_models(address_to_read,  10,20, True, True)
