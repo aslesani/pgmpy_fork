@@ -3,7 +3,7 @@ import pdb
 
 
 def unison_shuffled_copies(a, b):
-    pdb.set_trace()
+    #pdb.set_trace()
     
     changed_type = False
     if type(a) == list:
