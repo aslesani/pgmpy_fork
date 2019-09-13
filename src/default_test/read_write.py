@@ -423,12 +423,14 @@ def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_
                                                                                  separate_data_based_on_persons = False, 
                                                                                  separate_words= False)
     
-    if shuffle:
+    print("$$$$$$$$before shuffle")
+	if shuffle:
         list_of_data , list_of_persons = unison_shuffled_copies(list_of_data , list_of_persons)
 		
 	#sensor_events , number_of_events = get_set_of_sensor_events(sequences)
     
-    list_of_persons = convert_binary_classes_to_zero_and_one(list_of_persons)
+    print("$$$$$$$after shuffle")
+	list_of_persons = convert_binary_classes_to_zero_and_one(list_of_persons)
   
     tokenizer = Tokenizer(num_words = number_of_words + 1, filters='!"#$%&()*+,-./:;<=>?@[\]^`{|}~')
     #list_of_data = [r'salam man', r"'M38_off' , 'M38_on'"]
