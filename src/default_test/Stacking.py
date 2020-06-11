@@ -29,6 +29,7 @@ def BoE_data_preparation(delta, n, dataset):
     
     return data, list_of_persons
 
+
 def SoE_data_preparation(delta, dataset):
     
     address_to_read = r"E:\pgmpy\{dataset}\Seq of sensor events_no overlap_based on different deltas\delta_{delta}min.csv"
