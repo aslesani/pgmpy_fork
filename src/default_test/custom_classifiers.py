@@ -118,26 +118,26 @@ def a_little_test():
     print(model.predict([0,0,1]))
 
 
-def select_hyper_parameters_for_custom_classifiers_on_different_datasets(shuffle = True):
+def select_hyper_parameters_for_custom_classifiers_on_different_datasets(dataset_name, shuffle = True):
     
-    data_address = r"E:\pgmpy\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
+    data_address = r"E:\pgmpy\{dataset}\PCA on Bag of sensor events_no overlap\delta={delta}\PCA_n={n}.csv"
 
     deltas = [15,30,45,60,75,90,100, 120,150, 180,200,240,300,400,500,600,700,800,900,1000]
-    n = range(2,11)
+    n = range(2,6)
     
-    best_hyper_parameters_for_classifiers = np.zeros((17, 2) , dtype = float)# 15 is number of classifiers
+    best_hyper_parameters_for_classifiers = np.zeros((18, 2) , dtype = float)# 15 is number of classifiers
     #the first column is for best selected_n
     #the second column is for best selected_delta
-    best_avg_f_scores = np.zeros(17 , dtype = float)
+    best_avg_f_scores = np.zeros(18 , dtype = float)
     
     #selected_delta = 75
     #selected_n = 9
     
-    for cls_index in range(15,18):
+    for cls_index in range(15,17):
         for selected_n in n:
             for selected_delta in deltas:
                 #print(selected_n, selected_delta)
-                data = digitize_dataset(data_address = data_address.format(delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
+                data = digitize_dataset(data_address = data_address.format(dataset = dataset_name, delta = selected_delta, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
                 data = shift_each_column_separately(data)
                 
                 names , avg_f_score = test_different_classifiers(data_features = data[:,0:selected_n], data_target = data[:,-1], k = 10,shuffle = shuffle, selected_classifiers = [cls_index])
@@ -153,6 +153,39 @@ def select_hyper_parameters_for_custom_classifiers_on_different_datasets(shuffle
     for i in range(len(best_avg_f_scores)):
         print(names[i] , "best_f_score:" , best_avg_f_scores[i] , "best_hyper_parameters:" , best_hyper_parameters_for_classifiers[i])
                 
+
+def custom_classifiers_on_different_datasets_for_ABWF(dataset_name, shuffle = True):
+    
+    data_address = r"E:\pgmpy\{dataset}\PCA on bag of sensor events_based on activity\PCA_n={n}.csv"
+
+    n = range(2,6)
+    
+    best_hyper_parameters_for_classifiers = np.zeros((18, 1) , dtype = float)# 15 is number of classifiers
+    #the first column is for best selected_n
+    #the second column is for best selected_delta
+    best_avg_f_scores = np.zeros(18 , dtype = float)
+    
+    #selected_delta = 75
+    #selected_n = 9
+    
+    for cls_index in range(0,12):
+        for selected_n in n:
+            data = digitize_dataset(data_address = data_address.format(dataset = dataset_name, n = selected_n), selected_bin = 10, address_to_save = "", isSave=False , has_header = False , return_as_pandas_data_frame = False)
+            data = shift_each_column_separately(data)
+                
+            names , avg_f_score = test_different_classifiers(data_features = data[:,0:selected_n], data_target = data[:,-1], k = 10,shuffle = shuffle, selected_classifiers = [cls_index])
+            #print("##############",len(avg_f_score))
+            if avg_f_score > best_avg_f_scores[cls_index]:
+                best_avg_f_scores[cls_index] = avg_f_score
+                best_hyper_parameters_for_classifiers[cls_index][0] = selected_n
+        
+        print("classifier:", cls_index , "best_f_score:" , best_avg_f_scores[cls_index] , "best_hyper_parameters:" , best_hyper_parameters_for_classifiers[cls_index])
+
+                    
+    for i in range(len(best_avg_f_scores)):
+        print(names[i] , "best_f_score:" , best_avg_f_scores[i] , "best_hyper_parameters:" , best_hyper_parameters_for_classifiers[i])
+                
+
 
 def test_test_different_classifiers(address_to_read):
     #for applying the iccke paper on CASAS dataset
@@ -175,9 +208,16 @@ def test_the_best_algorithm_of_iccke_paper(add_str_to_path):
 
 if __name__ == "__main__":
     
-    test_the_best_algorithm_of_iccke_paper('Tulum2010')
-    #select_hyper_parameters_for_custom_classifiers_on_different_datasets(shuffle = False)
-    #a_little_test()
+    #test_the_best_algorithm_of_iccke_paper('Tulum2010')
+    
+	
+	
+	#select_hyper_parameters_for_custom_classifiers_on_different_datasets("Twor2009", shuffle = False)
+    custom_classifiers_on_different_datasets_for_ABWF("Tulum2009", shuffle = True)
+	
+	
+	
+	#a_little_test()
     #file_address = "E:\pgmpy\Bag of sensor events_no overlap_based on different deltas\delta_900min.csv"
     
     #data = read_Abdoolahi_data()
