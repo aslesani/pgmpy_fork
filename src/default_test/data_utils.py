@@ -9,7 +9,7 @@ import numpy as np
 
 def check_data(data1 , data2 , remove_latent_variables, return_index_of_deleted_items = False):
     '''
-    check the data to understand if there is a variable that exists in test but not in train set
+    check the data to understand if there is a variable(I think state is more precise) that exists in test but not in train set
     if True, remove that row of data if desired
     
     Parameters:
