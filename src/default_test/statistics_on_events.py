@@ -544,8 +544,13 @@ if __name__ == "__main__":
     #claculate_inner_and_outer_differences_for_all_dataset_and_feature_strategies()
     
     #claculate_inner_and_outer_differences_for_all_dataset_and_feature_strategies_parallel()
-    claculate_inner_and_outer_differences_for_Tulum2010_feature_strategies() 
+    #claculate_inner_and_outer_differences_for_Tulum2010_feature_strategies() 
     
+    file_address_Tulum2010, number_of_rows_Tulum2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2010\data_edited by adele", 1085860
+    file_address_Tulum2009, number_of_rows_Tulum2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2009\data.txt", 486912
+    
+    return_list_of_activity_durations(number_of_rows_Tulum2009, file_address_Tulum2009)
+	
     #test_inner_and_outer_difference()
     
     
