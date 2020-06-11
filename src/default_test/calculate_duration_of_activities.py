@@ -45,10 +45,10 @@ def get_list_of_duration_of_activities(file_address):
 
 if __name__ == '__main__':
 
-    file_address_Towr2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated"
+    file_address_Twor2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated"
     file_address_Tulum2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2010\data_edited by adele"
     file_address_Tulum2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2009\data.txt"
     file_address_Twor2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\twor.2010\data_edited_by_adele"
     Test = r"E:\pgmpy\Test\annotated"
-    list_of_activities = get_list_of_duration_of_activities(file_address_Tulum2009)
+    list_of_activities = get_list_of_duration_of_activities(file_address_Twor2009)
     print(len(list_of_activities))
