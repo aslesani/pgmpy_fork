@@ -12,6 +12,8 @@ from dataPreparation import file_header_Twor2009, file_header_Tulum2009, file_he
 import pandas as pd 
 from read_write import read_data_from_CSV_file
 
+import networkx as nx
+import matplotlib.pyplot as plt
 
 file_address_Towr2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated"
 file_address_Tulum2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2010\data_edited by adele"
@@ -287,12 +289,47 @@ def test_percent_of_occlusion(dataset_name):
     except Exception as e:
         print(e)
 
+def draw_sensor_layout(dataset_name):
+    
+    sensor_map_file = r"E:\pgmpy\{}\sensor_maps.csv".format(dataset_name)
+    maps_of_sensors = read_pandas_dataframe_from_csv(sensor_map_file)
+    number_of_sensors = len(maps_of_sensors)
+    row_names = list(maps_of_sensors.index)
+    column_names = maps_of_sensors.columns
+    
+    #print(maps_of_sensors)
+    
+    edges = [(row_names[i], column_names[j]) for i in range(number_of_sensors) for j in range(number_of_sensors) if maps_of_sensors.iloc[i,j] == 1]
+    #print(edges)
+    
+    g = nx.Graph()
+    g.add_edges_from(edges) 
+    print("Total number of nodes: ", int(g.number_of_nodes())) 
+    print("Number of self loops: ", int(nx.number_of_selfloops(g)))
+    print("List of all nodes with self-loops: ", list(nx.nodes_with_selfloops(g))) 
+    nx.draw_networkx(g, with_label = True) 
+    #nx.draw_circular(g, with_label = True) 
+    
+    plt.show()
+
+def test_draw():
+    g = nx.Graph() 
+  
+    g.add_edge(1, 2) 
+    g.add_edge(2, 3) 
+    g.add_edge(3, 4) 
+    g.add_edge(1, 4) 
+    g.add_edge(1, 5) 
+    nx.draw(g, with_labels = True)
+    plt.show()
+    
+    
 if __name__ == "__main__":
 
     #Twor2009_sorted_header = "D03_on,D03_off,D05_on,D05_off,D07_on,D07_off,D08_on,D08_off,D09_on,D09_off,D10_on,D10_off,D12_on,D12_off,D14_on,D14_off,D15_on,D15_off,I03_on,I03_off,M01_on,M01_off,M02_on,M02_off,M03_on,M03_off,M04_on,M04_off,M05_on,M05_off,M06_on,M06_off,M07_on,M07_off,M08_on,M08_off,M09_on,M09_off,M10_on,M10_off,M11_on,M11_off,M12_on,M12_off,M13_on,M13_off,M14_on,M14_off,M15_on,M15_off,M16_on,M16_off,M17_on,M17_off,M18_on,M18_off,M19_on,M19_off,M20_on,M20_off,M21_on,M21_off,M22_on,M22_off,M23_on,M23_off,M24_on,M24_off,M25_on,M25_off,M26_on,M26_off,M27_on,M27_off,M28_on,M28_off,M29_on,M29_off,M30_on,M30_off,M31_on,M31_off,M32_on,M32_off,M33_on,M33_off,M34_on,M34_off,M35_on,M35_off,M36_on,M36_off,M37_on,M37_off,M38_on,M38_off,M39_on,M39_off,M40_on,M40_off,M41_on,M41_off,M42_on,M42_off,M43_on,M43_off,M44_on,M44_off,M45_on,M45_off,M46_on,M46_off,M47_on,M47_off,M48_on,M48_off,M49_on,M49_off,M50_on,M50_off,M51_on,M51_off,Person,Work"
     #'D03_off, D03_on, D05_off, D05_on, D07_off, D07_on, D08_off, D08_on, D09_off, D09_on, D10_off, D10_on, D12_off, D12_on, D14_off, D14_on, D15_off, D15_on, I03_off, I03_on, M01_off, M01_on, M02_off, M02_on, M03_off, M03_on, M04_off, M04_on, M05_off, M05_on, M06_off, M06_on, M07_off, M07_on, M08_off, M08_on, M09_off, M09_on, M10_off, M10_on, M11_off, M11_on, M12_off, M12_on, M13_off, M13_on, M14_off, M14_on, M15_off, M15_on, M16_off, M16_on, M17_off, M17_on, M18_off, M18_on, M19_off, M19_on, M20_off, M20_on, M21_off, M21_on, M22_off, M22_on, M23_off, M23_on, M24_off, M24_on, M25_off, M25_on, M26_off, M26_on, M27_off, M27_on, M28_off, M28_on, M29_off, M29_on, M30_off, M30_on, M31_off, M31_on, M32_off, M32_on, M33_off, M33_on, M34_off, M34_on, M35_off, M35_on, M36_off, M36_on, M37_off, M37_on, M38_off, M38_on, M39_off, M39_on, M40_off, M40_on, M41_off, M41_on, M42_off, M42_on, M43_off, M43_on, M44_off, M44_on, M45_off, M45_on, M46_off, M46_on, M47_off, M47_on, M48_off, M48_on, M49_off, M49_on, M50_off, M50_on, M51_off, M51_on, Person, Work' 
-    dataset_name = "Tulum2010"
-    #dataset_name = "Twor2009"
+    #dataset_name = "Tulum2009"
+    dataset_name = "Twor2009"
 
     
     print(dataset_name)
@@ -301,4 +338,5 @@ if __name__ == "__main__":
     #create_map_of_sensors(dataset_name = dataset_name, has_header = False, address_for_save = address_for_save, isSave = True, header = eval("file_header_" + dataset_name))# file_header_Tulum2009)
     #read_pandas_dataframe_from_csv(address_for_save)
     #test_check_the_neighberhood_of_two_sensors(address_for_save, 'M49', 'M36')
-    test_percent_of_occlusion(dataset_name)
+    #test_percent_of_occlusion(dataset_name)
+    draw_sensor_layout(dataset_name)
