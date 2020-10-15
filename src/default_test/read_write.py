@@ -5,8 +5,8 @@ Created on Apr 13, 2018
 '''
 import csv 
 import numpy as np
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing import sequence
+#from keras.preprocessing.text import Tokenizer
+#from keras.preprocessing import sequence
 from shuffle_data import unison_shuffled_copies
 import pickle
 
@@ -576,8 +576,7 @@ def data_preparation_for_sequences_based_deep_models_with_prediction(train_seque
     print('x_nontrain shape after pad:', x_nontrain.shape)
     
     return x_train, x_nontrain, \
-           y_train, y_nontrain_sequence_of_real_person_tags, y_nontrain_predicted, \
-           number_of_words, max_seq_len
+           y_train, y_nontrain_sequence_of_real_person_tags, y_nontrain_predicted
 
 def test_data_preparation_for_sequences_based_deep_models_with_prediction(pickle_file):
     
