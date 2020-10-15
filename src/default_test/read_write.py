@@ -8,6 +8,7 @@ import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing import sequence
 from shuffle_data import unison_shuffled_copies
+import pickle
 
 def read_data_from_file(dest_file, data_type , remove_date_and_time = True , has_header = False ):
     '''
@@ -40,7 +41,7 @@ def read_data_from_file(dest_file, data_type , remove_date_and_time = True , has
     #print(return_value)
     return return_value
 
-def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return_as_pandas_data_frame = False , remove_date_and_time = False , return_header_separately = False , convert_int_columns_to_int = False):
+def read_data_from_CSV_file(dest_file, data_type, has_header = False, return_as_pandas_data_frame = False, remove_date_and_time = False, return_header_separately = False, convert_int_columns_to_int = False):
     '''
     this function is a replacement for read_data_from_PCA_output_file and read_data_from_PCA_digitized_file
     with more capabalities.
@@ -52,7 +53,7 @@ def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return
     has_header = if the file has header, it is set to True. The header is the first line that starts whit '#' character 
     return_as_pandas_data_frame = if True, the return_value is pandas Dataframe, else numpy ndaaray
     
-    convert_int_columns_to_int: if the user want to keep date and time columns, then she should 
+    convert_int_columns_to_int: if the user wants to keep date and time columns, then she should 
                                 specify data_type as object and then set convert_int_columns_to_int to True
     
     Returns:
@@ -82,13 +83,14 @@ def read_data_from_CSV_file(dest_file , data_type ,  has_header = False , return
         data = [data[0:selected_cols] for data in data]#data[:][0:selected_cols]#np.delete(np.delete(data, -1, 1), -1 , 1)
 
     #print(len(data[0]))
+    
     return_value= np.asarray(data, dtype = data_type)
     
     if convert_int_columns_to_int:
         rows , cols_to_convert = np.shape(return_value)
         
         if remove_date_and_time == False:
-            cols_to_convert -=2
+            cols_to_convert -= 2
         
         for r in range(rows):
             for c in range(cols_to_convert):
@@ -399,6 +401,75 @@ def convert_binary_classes_to_zero_and_one(data):
     
     return data
 
+def convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags(train_tags,\
+                                                                    sequence_of_real_person_tags, predicted_tags):
+  
+    '''
+    Parameters:
+    ===========
+    train_tags: 
+    sequence_of_real_person_tags:
+    predicted_tags:
+    '''
+    
+    #create set of all person tags
+    print(train_tags.shape)
+    train_tags_set = set(train_tags)
+    predicted_tags_set = set(predicted_tags)
+    sequence_of_real_person_tags_set = set()
+    for i in sequence_of_real_person_tags:
+        sequence_of_real_person_tags_set = sequence_of_real_person_tags_set.union(set(i)) 
+        
+    values = train_tags_set.union(predicted_tags_set).union(sequence_of_real_person_tags_set)    
+    values = sorted(list(values))
+ 
+    for i in range(len(train_tags)):
+        train_tags[i] = values.index(train_tags[i])
+    
+    for i in range(len(predicted_tags)):
+        predicted_tags[i] = values.index(predicted_tags[i])
+        
+    for i in range(len(sequence_of_real_person_tags)):
+        sequence_of_real_person_tags[i] = [values.index(sequence_of_real_person_tags[i][j]) \
+                                           for j in range(len(sequence_of_real_person_tags[i]))]
+
+    
+    return train_tags, sequence_of_real_person_tags, predicted_tags
+
+
+
+def test_convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags(pickle_file_address):
+
+    with open(pickle_file_address, 'rb') as f:
+        data = pickle.load(f)
+    
+    train = data[0]
+    non_train = data[1]
+    
+    train_tags = train[:,1]
+    sequence_of_real_person_tags = non_train[:,1]
+    predicted_tags = non_train[:,2]
+    
+    print(train_tags)
+    print('----------------------------------')
+    print(sequence_of_real_person_tags)
+    print('----------------------------------')
+    print(predicted_tags)
+    print('**********************************')
+    
+    train_tags, sequence_of_real_person_tags, predicted_tags = \
+                            convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags(\
+                            train_tags,
+                            sequence_of_real_person_tags, 
+                            predicted_tags)
+  
+    print(train_tags)
+    print('----------------------------------')
+    print(sequence_of_real_person_tags)
+    print('----------------------------------')
+    print(predicted_tags)
+
+
 
 def test_convert_binary_classes_to_zero_and_one():
     data = [2,1,1,1,2]
@@ -455,14 +526,82 @@ def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_
     
     return x_train, x_test, y_train, y_test, number_of_words, max_seq_len
 
-if __name__ == "__main__":
+
+
+def data_preparation_for_sequences_based_deep_models_with_prediction(train_sequence, non_train_sequence,\
+                                        number_of_words, max_seq_len):
+    
+    '''
+    this module recives two sequences, one for train sequences 
+    and one for non-train sequences. then tokenize it before using in deep models like LSTM.
+    Parameters:
+    ===========
+    train_sequence: a ndarray in which each row contains a list of sequences and the person tag. 
+    non_train_sequence: a ndarray in which each row contains a list of sensor events seperated based on predicted persons,
+                        a list of person tags which its length is as equal as the sensor events sequences and
+                        demonstrates the real person tags of each sensor event,
+                        and a person number which can be considered as predicted person tag, which is more frequent 
+                        in the list of real person tags.
+                        
+                        
+    '''
+    
+    x_train = train_sequence[:,0]
+    y_train = train_sequence[:,1]
+    x_nontrain = non_train_sequence[:,0]
+    y_nontrain_sequence_of_real_person_tags = non_train_sequence[:,1]
+    y_nontrain_predicted = non_train_sequence[:,2]
+    
+    y_train, y_nontrain_sequence_of_real_person_tags, y_nontrain_predicted = \
+                            convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags(\
+                            train_tags = y_train,
+                            sequence_of_real_person_tags = y_nontrain_sequence_of_real_person_tags, 
+                            predicted_tags = y_nontrain_predicted)
+                            
   
+    tokenizer = Tokenizer(num_words = number_of_words + 1, filters='!"#$%&()*+,-./:;<=>?@[\]^`{|}~')
+    tokenizer.fit_on_texts(np.concatenate((x_train, x_nontrain), axis = 0))#fit on all sensor events
+    
+    x_train = tokenizer.texts_to_sequences(x_train)
+    x_nontrain = tokenizer.texts_to_sequences(x_nontrain)
+
+    #lens = []
+    #for i in range(len(x_train)):
+    #    lens.append(len(x_train[i]))
+    
+    print('Pad sequences (samples x time)')
+    x_train = sequence.pad_sequences(x_train, maxlen=max_seq_len)
+    x_nontrain = sequence.pad_sequences(x_nontrain, maxlen=max_seq_len)
+    print('x_train shape after pad:', x_train.shape)
+    print('x_nontrain shape after pad:', x_nontrain.shape)
+    
+    return x_train, x_nontrain, \
+           y_train, y_nontrain_sequence_of_real_person_tags, y_nontrain_predicted, \
+           number_of_words, max_seq_len
+
+def test_data_preparation_for_sequences_based_deep_models_with_prediction(pickle_file):
+    
+    number_of_words = 31
+    max_seq_len = 20
+    
+    with open(pickle_file, 'rb') as f:
+        data = pickle.load(f)
+        
+    train_sequence = data[0]
+    non_train_sequence = data[1]
+    
+    data_preparation_for_sequences_based_deep_models_with_prediction(train_sequence, non_train_sequence,\
+                                        number_of_words, max_seq_len)
+ 
+if __name__ == "__main__":
+    print("I Commented keras. Do not forget!")
     #separate_data_based_on_persons = True
     #a , b , c = read_sequence_of_bags_CSV_file_with_activity(file_address = r'C:\b.csv' , has_header= True, separate_data_based_on_persons = separate_data_based_on_persons)
     #repeated_per = repaet_person_tags_as_much_as_seq_length(a , b , separate_data_based_on_persons=separate_data_based_on_persons)
-    address_to_read= r"E:/pgmpy/Twor2009/Seq of sensor events_based on activities/based_on_activities.csv"
-    list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read, has_header = True , separate_data_based_on_persons = False)
-    print((list_of_data[0][0]))
-    print(len(list_of_data))
+    #address_to_read= r"E:/pgmpy/Twor2009/Seq of sensor events_based on activities/based_on_activities.csv"
+    #list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read, has_header = True , separate_data_based_on_persons = False)
     
-    data_preparation_for_sequences_based_deep_models(address_to_read,  10,20, True, True)
+    pickle_file = r"E:\pgmpy\Twor2009\train_and_nontrain_sequences_train_percent_0.8.pkl"
+    test_data_preparation_for_sequences_based_deep_models_with_prediction(pickle_file)
+    #test_convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags(pickle_file)
+    #data_preparation_for_sequences_based_deep_models(address_to_read,  10,20, True, True)
