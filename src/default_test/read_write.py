@@ -5,8 +5,8 @@ Created on Apr 13, 2018
 '''
 import csv 
 import numpy as np
-#from keras.preprocessing.text import Tokenizer
-#from keras.preprocessing import sequence
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing import sequence
 from shuffle_data import unison_shuffled_copies
 import pickle
 
