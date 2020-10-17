@@ -449,7 +449,9 @@ def convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_t
     '''
     
     #create set of all person tags
-    print(train_tags.shape)
+    print('train_tags.shape:', train_tags.shape)
+    print('train_sequence_of_real_person_tags.shape:' , train_sequence_of_real_person_tags.shape)
+    
     train_tags_set = set(train_tags)
     nontrain_tags_set = set(nontrain_tags)
     sequence_of_train_real_person_tags_set = set()
