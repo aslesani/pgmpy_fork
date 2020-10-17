@@ -437,6 +437,53 @@ def convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_t
     return train_tags, sequence_of_real_person_tags, predicted_tags
 
 
+def convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags_v2(train_tags,\
+                      train_sequence_of_real_person_tags, nontrain_tags, nontrain_sequence_of_real_person_tags):
+  
+    '''
+    Parameters:
+    ===========
+    train_tags: 
+    sequence_of_real_person_tags:
+    predicted_tags:
+    '''
+    
+    #create set of all person tags
+    print(train_tags.shape)
+    train_tags_set = set(train_tags)
+    nontrain_tags_set = set(nontrain_tags)
+    sequence_of_train_real_person_tags_set = set()
+    for i in train_sequence_of_real_person_tags:
+        sequence_of_train_real_person_tags_set = sequence_of_train_real_person_tags_set.union(set(i)) 
+     
+    sequence_of_nontrain_real_person_tags_set = set()
+    for i in nontrain_sequence_of_real_person_tags:
+        sequence_of_nontrain_real_person_tags_set = sequence_of_nontrain_real_person_tags_set.union(set(i)) 
+    
+    
+    values = train_tags_set.union(nontrain_tags_set).union(sequence_of_train_real_person_tags_set)\
+             .union(sequence_of_nontrain_real_person_tags_set) 
+    print(values)
+    values = sorted(list(values))
+ 
+    for i in range(len(train_tags)):
+        train_tags[i] = values.index(train_tags[i])
+    
+    for i in range(len(nontrain_tags)):
+        nontrain_tags[i] = values.index(nontrain_tags[i])
+        
+    for i in range(len(train_sequence_of_real_person_tags)):
+        train_sequence_of_real_person_tags[i] = [values.index(train_sequence_of_real_person_tags[i][j]) \
+                                           for j in range(len(train_sequence_of_real_person_tags[i]))]
+
+    for i in range(len(nontrain_sequence_of_real_person_tags)):
+        nontrain_sequence_of_real_person_tags[i] = [values.index(nontrain_sequence_of_real_person_tags[i][j]) \
+                                           for j in range(len(nontrain_sequence_of_real_person_tags[i]))]
+
+    return train_tags, train_sequence_of_real_person_tags, nontrain_tags, nontrain_sequence_of_real_person_tags
+
+
+
 
 def test_convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags(pickle_file_address):
 
@@ -528,8 +575,8 @@ def data_preparation_for_sequences_based_deep_models(address_to_read, number_of_
 
 
 
-def data_preparation_for_sequences_based_deep_models_with_prediction(train_sequence, non_train_sequence,\
-                                        number_of_words, max_seq_len):
+def data_preparation_for_sequences_based_deep_models_train_based_on_real_and_non_train_based_on_prediction(\
+                                        train_sequence, non_train_sequence, number_of_words, max_seq_len):
     
     '''
     this module recives two sequences, one for train sequences 
@@ -578,7 +625,8 @@ def data_preparation_for_sequences_based_deep_models_with_prediction(train_seque
     return x_train, x_nontrain, \
            y_train, y_nontrain_sequence_of_real_person_tags, y_nontrain_predicted
 
-def test_data_preparation_for_sequences_based_deep_models_with_prediction(pickle_file):
+
+def test_data_preparation_for_sequences_based_deep_models_train_based_on_real_and_non_train_based_on_prediction(pickle_file):
     
     number_of_words = 31
     max_seq_len = 20
@@ -589,8 +637,84 @@ def test_data_preparation_for_sequences_based_deep_models_with_prediction(pickle
     train_sequence = data[0]
     non_train_sequence = data[1]
     
-    data_preparation_for_sequences_based_deep_models_with_prediction(train_sequence, non_train_sequence,\
-                                        number_of_words, max_seq_len)
+    data_preparation_for_sequences_based_deep_models_train_based_on_real_and_non_train_based_on_prediction(\
+                    train_sequence, non_train_sequence, number_of_words, max_seq_len)
+
+
+
+def data_preparation_for_sequences_based_deep_models_all_based_on_prediction(\
+                                        train_sequence, non_train_sequence, number_of_words, max_seq_len):
+    
+    '''
+    this module recives two sequences, one for train sequences 
+    and one for non-train sequences. then tokenize it before using in deep models like LSTM.
+    Parameters:
+    ===========
+    train_sequence: a ndarray in which each row contains a list of sensor events seperated based on predicted persons,
+                        a list of person tags which its length is as equal as the sensor events sequences and
+                        demonstrates the real person tags of each sensor event,
+                        and a person number which can be considered as predicted person tag, which is more frequent 
+                        in the list of real person tags.
+                 
+    non_train_sequence: a ndarray in which each row contains a list of sensor events seperated based on predicted persons,
+                        a list of person tags which its length is as equal as the sensor events sequences and
+                        demonstrates the real person tags of each sensor event,
+                        and a person number which can be considered as predicted person tag, which is more frequent 
+                        in the list of real person tags.
+                        
+                        
+    '''
+    
+    x_train = train_sequence[:,0]
+    y_train_sequence_of_real_person_tags = train_sequence[:,1]
+    y_train_predicted = train_sequence[:,2]
+    x_nontrain = non_train_sequence[:,0]
+    y_nontrain_sequence_of_real_person_tags = non_train_sequence[:,1]
+    y_nontrain_predicted = non_train_sequence[:,2]
+    
+    y_train_predicted,y_train_sequence_of_real_person_tags,y_nontrain_predicted,y_nontrain_sequence_of_real_person_tags = \
+                            convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags_v2(\
+                            train_tags = y_train_predicted,
+                            train_sequence_of_real_person_tags = y_train_sequence_of_real_person_tags, 
+                            nontrain_tags = y_nontrain_predicted, 
+                            nontrain_sequence_of_real_person_tags = y_nontrain_sequence_of_real_person_tags)
+                           
+  
+    tokenizer = Tokenizer(num_words = number_of_words + 1, filters='!"#$%&()*+,-./:;<=>?@[\]^`{|}~')
+    tokenizer.fit_on_texts(np.concatenate((x_train, x_nontrain), axis = 0))#fit on all sensor events
+    
+    x_train = tokenizer.texts_to_sequences(x_train)
+    x_nontrain = tokenizer.texts_to_sequences(x_nontrain)
+
+    #lens = []
+    #for i in range(len(x_train)):
+    #    lens.append(len(x_train[i]))
+    
+    print('Pad sequences (samples x time)')
+    x_train = sequence.pad_sequences(x_train, maxlen=max_seq_len)
+    x_nontrain = sequence.pad_sequences(x_nontrain, maxlen=max_seq_len)
+    print('x_train shape after pad:', x_train.shape)
+    print('x_nontrain shape after pad:', x_nontrain.shape)
+    
+    return x_train, x_nontrain, \
+           y_train_predicted, y_nontrain_predicted,\
+           y_train_sequence_of_real_person_tags, y_nontrain_sequence_of_real_person_tags
+
+
+def test_data_preparation_for_sequences_based_deep_models_all_based_on_prediction(pickle_file):
+    
+    number_of_words = 31
+    max_seq_len = 20
+    
+    with open(pickle_file, 'rb') as f:
+        data = pickle.load(f)
+        
+    train_sequence = data[0]
+    non_train_sequence = data[1]
+    
+    data = data_preparation_for_sequences_based_deep_models_all_based_on_prediction(\
+                    train_sequence, non_train_sequence, number_of_words, max_seq_len)
+    print(data[2])
  
 if __name__ == "__main__":
     print("I Commented keras. Do not forget!")
@@ -600,7 +724,8 @@ if __name__ == "__main__":
     #address_to_read= r"E:/pgmpy/Twor2009/Seq of sensor events_based on activities/based_on_activities.csv"
     #list_of_data , list_of_persons , _ = read_sequence_based_CSV_file_with_activity(file_address = address_to_read, has_header = True , separate_data_based_on_persons = False)
     
-    pickle_file = r"E:\pgmpy\Twor2009\train_and_nontrain_sequences_train_percent_0.8.pkl"
-    test_data_preparation_for_sequences_based_deep_models_with_prediction(pickle_file)
+    #pickle_file = r"E:\pgmpy\Twor2009\train_and_nontrain_sequences_train_percent_0.8.pkl"
+    pickle_file_all_based_on_prediction = r"E:\pgmpy\Twor2009\train_and_nontrain_sequences_all_based_on_tracking\trainPercent_0.6\1_min.pkl"
+    test_data_preparation_for_sequences_based_deep_models_all_based_on_prediction(pickle_file_all_based_on_prediction)
     #test_convert_binary_classes_to_zero_and_one_for_real_person_tags_and_prediction_tags(pickle_file)
     #data_preparation_for_sequences_based_deep_models(address_to_read,  10,20, True, True)
