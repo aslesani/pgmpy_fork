@@ -74,12 +74,12 @@ def remove_none_person_tags_from_sequence_of_person_tags(data):
         if len(locs[0]) == len(data[i][1]): # if all of the items in row is None, delete the row
             data = np.delete(data, i , axis = 0)
         else:
-            data[i][0] = np.delete(data[i][0], locs)
-            data[i][1] = np.delete(data[i][1], locs)
+            data[i][0] = np.delete(data[i][0], locs).tolist()
+            data[i][1] = np.delete(data[i][1], locs).tolist()
         
     return data
 
-def create_sequence_of_events_based_on_delta(deltaInMinutes, data,\
+def create_sequence_of_events_based_on_delta_no_overlap(deltaInMinutes, data,\
                      considered_columns_as_person_tags,return_sequence_of_ground_truth_labels):
     '''
     it is a general method to create sequence of sensor events based on time delta.
@@ -116,13 +116,13 @@ def create_sequence_of_events_based_on_delta(deltaInMinutes, data,\
         # column0: list(seq) , col1 = person 
         person_sequences[each_person] = np.ndarray(shape = (person_data_number_of_rows , 3), dtype = np.ndarray )
         
-        first_valid_event = -1
-        next_person_ID = None
-        while next_person_ID == None:
-            first_valid_event = first_valid_event + 1
-            next_person_ID = list_of_real_persons_associted_with_sensor_event(\
-                                        data_row = person_data.loc[person_data.index[first_valid_event]], 
-                                        real_person_columns = real_person_columns)
+        first_valid_event = 0
+        #next_person_ID = None
+        #while next_person_ID == None:
+        #first_valid_event = first_valid_event + 1
+        next_person_ID = list_of_real_persons_associted_with_sensor_event(\
+                                    data_row = person_data.loc[person_data.index[first_valid_event]], 
+                                    real_person_columns = real_person_columns)
             
         
         person_sequences[each_person][0][1] = [next_person_ID]
@@ -177,12 +177,111 @@ def create_sequence_of_events_based_on_delta(deltaInMinutes, data,\
         #print(person_sequences[0].shape , person_sequences[person].shape)
         person_sequences[0] = np.concatenate((person_sequences[0], person_sequences[person]), axis=0)
     
+    #print('before remove none tags:', type(person_sequences[0]), type(person_sequences[0][0]))
+    #for i in person_sequences[0][0]:
+    #    print(type(i))
+    person_sequences[0] = remove_none_person_tags_from_sequence_of_person_tags(person_sequences[0])
+    #print('after remove none tags:', type(person_sequences[0]), type(person_sequences[0][0]))
+    #for i in person_sequences[0][0]:
+    #    print(type(i))
+    
+    if return_sequence_of_ground_truth_labels == False:
+        person_sequences[0] = np.delete(person_sequences[0], 1 , axis = 1) # delete column 1 which is sequence of real person tags
+    
+    return person_sequences[0]
+
+
+
+def create_sequence_of_events_based_on_delta_with_overlap(deltaInMinutes, data,\
+                     considered_columns_as_person_tags,return_sequence_of_ground_truth_labels):
+    '''
+    it is a general method to create sequence of sensor events based on time delta with overlap. 
+    for each sensor event, the events occurred after it in a period of deltaInMinutes, are considered to create a sequence.
+ 
+    Parameters:
+    ==========
+    deltaInMinutes: 
+    data: pnadas DataFrame
+    considered_columns_as_person_tags: list of column names to consider as person tags
+    return_sequence_of_ground_truth_labels: if True, the function create a sequence of real person tags 
+                                            for each sequence.
+    Return:
+    =======
+    
+   
+    '''
+    # create the column tags counterpart
+    real_person_columns = [col.split('_')[0] for col in considered_columns_as_person_tags]
+    number_of_residents = len(real_person_columns)
+    #to save seq of sensor_events for each person separately 
+    person_sequences = np.zeros(number_of_residents, dtype = np.ndarray)
+
+    #create sequences based on considered_columns_as_person_tags
+    for each_person in range(number_of_residents):
+        #initialize 
+        #Note: pandas dataframe considers the number_of_train_samples th data as well.
+        person_data = data[data[considered_columns_as_person_tags[each_person]] == 1]
+        person_data_number_of_rows , _ = person_data.shape
+
+        sensors = [list_of_real_persons_associted_with_sensor_event(data_row = person_data.loc[i], 
+                                                        real_person_columns = real_person_columns)
+                                                        for i in person_data.index]
+        new_counter = -1
+        current_person_tag =  int(considered_columns_as_person_tags[each_person].split('R')[1].split('_')[0])
+        
+        # create a ndarray with size of all data of the person and each row is an array (for defining sequence) 
+        # col0: list(seq) , col1: list(real_person_tags), col2: current_person_tag 
+        person_sequences[each_person] = np.ndarray(shape = (person_data_number_of_rows , 3), dtype = np.ndarray )
+        
+        for i in range(person_data_number_of_rows):
+            each_line = person_data.index[i]
+            new_counter += 1
+            person_sequences[each_person][new_counter][2] = current_person_tag
+            next_person_ID = sensors[i]
+                        
+            person_sequences[each_person][new_counter][1] = [next_person_ID]
+            
+            next_element_of_sequence = person_data.loc[each_line]['sensor']        
+            #print(next_element_of_sequence)
+            person_sequences[each_person][new_counter][0] = [next_element_of_sequence]
+            
+            for j in range(i+1,person_data_number_of_rows):
+                offset = person_data.index[j]
+                #print('offset:', offset)    
+                timedelta_in_minutes = timedelta.total_seconds(person_data.loc[offset]['start'] - \
+                                       person_data.loc[each_line]['start']) / 60
+                # compare delta time in minutes
+                if timedelta_in_minutes <= deltaInMinutes:
+                    
+                    next_person_ID = sensors[j]
+                    
+                    person_sequences[each_person][new_counter][1].append(next_person_ID)
+                    
+                    next_element_of_sequence = person_data.loc[offset]['sensor']        
+                    #print(next_element_of_sequence)
+                    person_sequences[each_person][new_counter][0].append(next_element_of_sequence)
+                    
+
+                else:  
+                    break
+           
+                    
+        #remove additional items (because the initial size was number of rows )
+        person_sequences[each_person] = np.delete(person_sequences[each_person] , range(new_counter + 1 , \
+                                                      person_data_number_of_rows) , axis = 0)    
+         
+    #save all data in person_sequences[0]
+    for person in range(1, number_of_residents):
+        #print(person_sequences[0].shape , person_sequences[person].shape)
+        person_sequences[0] = np.concatenate((person_sequences[0], person_sequences[person]), axis=0)
+    
     person_sequences[0] = remove_none_person_tags_from_sequence_of_person_tags(person_sequences[0])
     
     if return_sequence_of_ground_truth_labels == False:
         person_sequences[0] = np.delete(person_sequences[0], 1 , axis = 1) # delete column 1 which is sequence of real person tags
     
     return person_sequences[0]
+
 
 
 def add_max_frequent_person_tag_in_sequence_of_person_tags_column(data):
@@ -234,12 +333,12 @@ def create_sequence_of_sensor_events_based_on_delta_no_overlap_train_based_on_re
     non_train_data = data.tail(rows - number_of_train_samples)
     
     
-    train_seq = create_sequence_of_events_based_on_delta(deltaInMinutes = deltaInMinutes, 
+    train_seq = create_sequence_of_events_based_on_delta_no_overlap(deltaInMinutes = deltaInMinutes, 
                                                          data = train_data, 
                                                          considered_columns_as_person_tags = real_person_columns,
                                                          return_sequence_of_ground_truth_labels = False)
    
-    non_train_seq = create_sequence_of_events_based_on_delta(deltaInMinutes = deltaInMinutes, 
+    non_train_seq = create_sequence_of_events_based_on_delta_no_overlap(deltaInMinutes = deltaInMinutes, 
                                                              data = non_train_data, 
                                                              considered_columns_as_person_tags = predicted_person_columns,
                                                              return_sequence_of_ground_truth_labels = True)
@@ -294,12 +393,12 @@ def create_sequence_of_sensor_events_based_on_delta_no_overlap_all_based_on_pred
     non_train_data = data.tail(rows - number_of_train_samples)
     
    
-    train_seq = create_sequence_of_events_based_on_delta(deltaInMinutes = deltaInMinutes, 
+    train_seq = create_sequence_of_events_based_on_delta_no_overlap(deltaInMinutes = deltaInMinutes, 
                                                         data = train_data, 
                                                         considered_columns_as_person_tags = predicted_person_columns,
                                                         return_sequence_of_ground_truth_labels = True)
     
-    non_train_seq = create_sequence_of_events_based_on_delta(deltaInMinutes = deltaInMinutes, 
+    non_train_seq = create_sequence_of_events_based_on_delta_no_overlap(deltaInMinutes = deltaInMinutes, 
                                                         data = non_train_data, 
                                                         considered_columns_as_person_tags = predicted_person_columns,
                                                         return_sequence_of_ground_truth_labels = True)
@@ -317,16 +416,171 @@ def create_sequence_of_sensor_events_based_on_delta_no_overlap_all_based_on_pred
        
 
 
+def create_sequence_of_sensor_events_based_on_delta_with_overlap_train_based_on_real_tags_and_nontrain_based_on_prediction_seprate_train_and_non_train(\
+                        deltaInMinutes, address_to_read, isSave, directory_for_save, train_percent):
+    '''
+    read a pickle file of prediction as pandas dataframe.
+    this function separate train and non-train data.
+    train data are converted to sequences based on real person tags.
+    non-train data are converted to sequences based on predicted person tags.
+    
+    the columns are: 'start', 
+                     'stop', 
+                     'Rx': the columns representing the Residetns IDs, if the column is 1, it means that that column is the PID of that event
+                     'Rx_predited': the columns representing the predicted IDs.
+                     'sensor': the sensor that is activated in event
+                     'activity': the performed activity
+    
+    Parameters:
+    ===============
+    isSave: Save the returned value to file
+    train_percent: percent of data(sensor events) to be considered as train data. 
+                   To create sequence of events from train data, the real person tag is considered, 
+                   while for validation and test data, the predicted tag is considered. 
+                   The real tag of each sensor event of non-train data should be returned for evaluation. 
+    
+    '''
+    
+    data = read_pickle_file_data_as_pandas_dataframe(address_to_read)
+    real_person_columns = [i for i in data.columns if re.findall('^R[0-9]{1}$', i)]
+    predicted_person_columns = [i for i in data.columns if re.findall('^R[0-9]{1}_predicted$', i)]
+    
+
+    rows , cols = data.shape
+     
+    #seperate each person data based on real tags
+    number_of_residents = len(real_person_columns)
+    number_of_train_samples = int(train_percent * rows)
+    
+    train_data = data.head(number_of_train_samples)
+    non_train_data = data.tail(rows - number_of_train_samples)
+    
+    
+    train_seq = create_sequence_of_events_based_on_delta_with_overlap(deltaInMinutes = deltaInMinutes, 
+                                                         data = train_data, 
+                                                         considered_columns_as_person_tags = real_person_columns,
+                                                         return_sequence_of_ground_truth_labels = False)
+   
+    non_train_seq = create_sequence_of_events_based_on_delta_with_overlap(deltaInMinutes = deltaInMinutes, 
+                                                             data = non_train_data, 
+                                                             considered_columns_as_person_tags = predicted_person_columns,
+                                                             return_sequence_of_ground_truth_labels = True)
+    
+
+    #non_train_seq = add_max_frequent_person_tag_in_sequence_of_person_tags_column(non_train_seq)
+    
+    if isSave:
+        train_and_nontrain_file_address = join(directory_for_save, \
+                                          'trainPercent_{}'.format(train_percent),
+                                          '{delta}_min.pkl'.format(delta = deltaInMinutes))
+        with open(train_and_nontrain_file_address, 'wb') as f:
+            pickle.dump([train_seq, non_train_seq], f)
+            print('{} processing saved!'.format(deltaInMinutes))
+       
+
+def create_sequence_of_sensor_events_based_on_delta_with_overlap_all_based_on_prediction_seperate_train_and_non_train(\
+                                deltaInMinutes, address_to_read, isSave, directory_for_save, train_percent):
+    '''
+    read a pickle file of prediction as pandas dataframe.
+    this function separate train and non-train data.
+    all data are converted to sequences based on predicted person tags.
+    
+    the columns are: 'start', 
+                     'stop', 
+                     'Rx': the columns representing the Residetns IDs, if the column is 1, it means that that column is the PID of that event
+                     'Rx_predited': the columns representing the predicted IDs.
+                     'sensor': the sensor that is activated in event
+                     'activity': the performed activity
+    
+    Parameters:
+    ===============
+    isSave: Save the returned value to file
+    train_percent: percent of data(sensor events) to be considered as train data. 
+                   To create sequence of events the predicted tag is considered. 
+                   The real tag of each sensor event should be returned for evaluation. 
+    
+    '''
+    
+    data = read_pickle_file_data_as_pandas_dataframe(address_to_read)
+    real_person_columns = [i for i in data.columns if re.findall('^R[0-9]{1}$', i)]
+    predicted_person_columns = [i for i in data.columns if re.findall('^R[0-9]{1}_predicted$', i)]
+    
+
+    rows , cols = data.shape
+     
+    #seperate each person data based on real tags
+    number_of_residents = len(real_person_columns)
+    number_of_train_samples = int(train_percent * rows)
+    
+    train_data = data.head(number_of_train_samples)
+    non_train_data = data.tail(rows - number_of_train_samples)
+    
+   
+    train_seq = create_sequence_of_events_based_on_delta_with_overlap(deltaInMinutes = deltaInMinutes, 
+                                                        data = train_data, 
+                                                        considered_columns_as_person_tags = predicted_person_columns,
+                                                        return_sequence_of_ground_truth_labels = True)
+    
+    non_train_seq = create_sequence_of_events_based_on_delta_with_overlap(deltaInMinutes = deltaInMinutes, 
+                                                        data = non_train_data, 
+                                                        considered_columns_as_person_tags = predicted_person_columns,
+                                                        return_sequence_of_ground_truth_labels = True)
+    
+    #train_seq = add_max_frequent_person_tag_in_sequence_of_person_tags_column(train_seq)
+    #non_train_seq = add_max_frequent_person_tag_in_sequence_of_person_tags_column(non_train_seq)
+    
+    if isSave:
+        train_and_nontrain_file_address = join(directory_for_save, \
+                                          'trainPercent_{}'.format(train_percent),
+                                          '{delta}_min.pkl'.format(delta = deltaInMinutes))
+        with open(train_and_nontrain_file_address, 'wb') as f:
+            pickle.dump([train_seq, non_train_seq], f)
+            print('{} processing saved!'.format(deltaInMinutes))
+       
+
+def no_overlap():
+
+    pickle_file_with_prediction = r"E:\pgmpy\{}\just_on_events_with_predicted_person_tags.pkl"
+    save_directory_all_based_on_tracking = r"E:\pgmpy\{dataset}\train_and_nontrain_sequences_all_based_on_tracking\no_overlap"
+    save_directory_train_based_on_real_tag_and_nontrain_based_on_prediction =\
+    r"E:\pgmpy\{dataset}\train_and_nontrain_sequences_train_based_on_real_tag_and_nontrain_based_on_prediction\no_overlap"
+    
+    dataset_name = 'Twor2009'
+    
+    for train_percent in [0.6,0.7,0.8]:
+        for deltaInMinutes in list(range(1,11)) + [15,30,45,60,75,90,100]:
+            create_sequence_of_sensor_events_based_on_delta_no_overlap_all_based_on_prediction_seperate_train_and_non_train(\
+               deltaInMinutes = deltaInMinutes, 
+               address_to_read = pickle_file_with_prediction.format(dataset_name), 
+               isSave = True, 
+               directory_for_save = save_directory_all_based_on_tracking.format(dataset = dataset_name), 
+               train_percent = train_percent)
+    
+            create_sequence_of_sensor_events_based_on_delta_no_overlap_train_based_on_real_tags_and_nontrain_based_on_prediction_seprate_train_and_non_train(\
+                deltaInMinutes = deltaInMinutes, 
+                address_to_read = pickle_file_with_prediction.format(dataset_name), 
+                isSave = True, 
+                directory_for_save = save_directory_train_based_on_real_tag_and_nontrain_based_on_prediction.format(\
+                    dataset = dataset_name), 
+                train_percent = train_percent)
+                
+                
+                
 if __name__ == '__main__':
-            
+        
+    #no_overlap()
+    
     file_address_Towr2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\7 twor.2009\twor.2009\annotated"
     file_address_Tulum2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2010\data_edited by adele"
     file_address_Tulum2009 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\tulum2009\data.txt"
     file_address_Twor2010 = r"E:\Lessons_tutorials\Behavioural user profile articles\Datasets\9 tulum\twor.2010\data_edited_by_adele"
     file_address_Test = r"E:\pgmpy\Test\annotated"
     
-    pickle_file = r"E:\pgmpy\{}\just_on_events_with_predicted_person_tags.pkl"
-    save_directory_sequence = r"E:\pgmpy\{dataset}\train_and_nontrain_sequences_all_based_on_tracking"
+    pickle_file_with_prediction = r"E:\pgmpy\{}\just_on_events_with_predicted_person_tags.pkl"
+    save_directory_all_based_on_tracking = r"E:\pgmpy\{dataset}\train_and_nontrain_sequences_all_based_on_tracking\with_overlap"
+    save_directory_train_based_on_real_tag_and_nontrain_based_on_prediction =\
+    r"E:\pgmpy\{dataset}\train_and_nontrain_sequences_train_based_on_real_tag_and_nontrain_based_on_prediction\with_overlap"
+    
     dataset_name = 'Twor2009'
     #train_percent = 0.6
     
@@ -335,13 +589,21 @@ if __name__ == '__main__':
     data['start'] = 0
     print(data.loc[0])
     '''
-    for train_percent in [0.6,0.7,0.8]:
-        for deltaInMinutes in  list(range(1,11)) + [15,30,45,60,75,90,100]:
-            create_sequence_of_sensor_events_based_on_delta_no_overlap_all_based_on_prediction_seperate_train_and_non_train(\
-                       deltaInMinutes = deltaInMinutes, 
-                       address_to_read = pickle_file.format(dataset_name), 
-                       isSave = True, 
-                       directory_for_save = save_directory_sequence.format(dataset = dataset_name), 
-                       train_percent = train_percent)
     
+    for train_percent in [0.6,0.7,0.8]:
+        for deltaInMinutes in list(range(2,11)) + [15,30,45,60,75,90,100]:
+            create_sequence_of_sensor_events_based_on_delta_with_overlap_all_based_on_prediction_seperate_train_and_non_train(\
+               deltaInMinutes = deltaInMinutes, 
+               address_to_read = pickle_file_with_prediction.format(dataset_name), 
+               isSave = True, 
+               directory_for_save = save_directory_all_based_on_tracking.format(dataset = dataset_name), 
+               train_percent = train_percent)
+    
+            create_sequence_of_sensor_events_based_on_delta_with_overlap_train_based_on_real_tags_and_nontrain_based_on_prediction_seprate_train_and_non_train(\
+                deltaInMinutes = deltaInMinutes, 
+                address_to_read = pickle_file_with_prediction.format(dataset_name), 
+                isSave = True, 
+                directory_for_save = save_directory_train_based_on_real_tag_and_nontrain_based_on_prediction.format(\
+                    dataset = dataset_name), 
+                train_percent = train_percent)
     
